@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Create Event</title>
+    <link rel="stylesheet" href="event_creation_form.css">
+    <!-- Premium Outfit font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="phone-container">
+        <!-- Header -->
+        <header class="form-header">
+            <button class="back-btn" aria-label="Go Back" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+            <h1 class="page-title">Create Event</h1>
+            <div style="width: 40px;"></div> <!-- Spacer to center title -->
+        </header>
+
+        <form id="eventCreationForm" class="event-form" novalidate>
+
+            <!-- Banner / Photo Selection Section -->
+            <div class="banner-section">
+                <div class="banner-preview" id="bannerPreview">
+                    <span class="upload-icon-label" id="bannerText">Add a photo</span>
+                    <input type="file" id="fileInput" accept="image/*" class="hidden-file-input">
+                </div>
+            </div>
+
+            <!-- Title Field -->
+            <div class="input-group">
+                <label for="eventTitle">TITLE</label>
+                <input type="text" id="eventTitle" placeholder="Maseru Flea Market" required autocomplete="off">
+                <div class="validation-message" id="titleError">Event title is required</div>
+            </div>
+
+            <!-- Category Selector -->
+            <div class="input-group">
+                <label>CATEGORY</label>
+                <div class="chips-container category-chips" id="categoryChips">
+                    <button type="button" class="chip" data-value="Sports">
+                        <svg class="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+                        Sports
+                    </button>
+                    <button type="button" class="chip" data-value="Arts & Culture">
+                        <svg class="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                        Arts &amp; Culture
+                    </button>
+                    <button type="button" class="chip" data-value="Nightlife">
+                        <svg class="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        Nightlife
+                    </button>
+                </div>
+                <div class="validation-message" id="categoryError">Please select a category</div>
+            </div>
+
+            <!-- Date & Time Group -->
+            <div class="date-time-section">
+                <!-- Start Date -->
+                <div class="input-group">
+                    <label for="startDate">START DATE</label>
+                    <div class="input-with-icon">
+                        <input type="date" id="startDate" required>
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <!-- Date Presets -->
+                    <div class="chips-container" id="dateChips">
+                        <button type="button" class="chip" data-value="today">Today</button>
+                        <button type="button" class="chip" data-value="tomorrow">Tomorrow</button>
+                        <button type="button" class="chip" data-value="friday">Friday</button>
+                        <button type="button" class="chip" data-value="saturday">Saturday</button>
+                    </div>
+                    <div class="validation-message" id="dateError">Start date is required</div>
+                </div>
+
+                <!-- Start Time -->
+                <div class="input-group">
+                    <label for="startTime">START TIME</label>
+                    <div class="input-with-icon">
+                        <input type="time" id="startTime" required>
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <!-- Time Presets -->
+                    <div class="chips-container" id="timeChips">
+                        <button type="button" class="chip" data-value="12:00">12 PM</button>
+                        <button type="button" class="chip" data-value="14:00">2 PM</button>
+                        <button type="button" class="chip" data-value="18:00">6 PM</button>
+                        <button type="button" class="chip" data-value="20:00">8 PM</button>
+                    </div>
+                    <div class="validation-message" id="timeError">Start time is required</div>
+                </div>
+            </div>
+
+            <!-- Location Field -->
+            <div class="input-group">
+                <label for="eventLocation">LOCATION</label>
+                <div class="input-with-icon">
+                    <input type="text" id="eventLocation" placeholder="Venue name" required autocomplete="off">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </div>
+                <!-- Location Presets -->
+                <div class="chips-container" id="locationChips">
+                    <button type="button" class="chip" data-value="Limkokwing MP">Limkokwing MP</button>
+                    <button type="button" class="chip" data-value="Limkokwing MC">Limkokwing MC</button>
+                </div>
+                <div class="validation-message" id="locationError">Venue location is required</div>
+            </div>
+
+            <!-- Admission / Price Section -->
+            <div class="input-group">
+                <label>ADMISSION</label>
+                <div class="tabs-selector">
+                    <button type="button" class="tab-btn active" id="btnFree" data-admission="free">Free</button>
+                    <button type="button" class="tab-btn" id="btnPaid" data-admission="paid">Paid</button>
+                </div>
+
+                <!-- Dynamic Price Input (Hidden initially) -->
+                <div class="price-input-wrapper hidden" id="priceInputWrapper">
+                    <span class="currency-prefix">M</span>
+                    <input type="number" id="eventPrice" placeholder="20" min="1" step="1">
+                    <div class="validation-message" id="priceError">Please enter a valid price</div>
+                </div>
+            </div>
+
+            <!-- Description Field (Optional) -->
+            <div class="input-group">
+                <label for="eventDescription">DESCRIPTION <span class="optional-label">(OPTIONAL)</span></label>
+                <textarea id="eventDescription"
+                    placeholder="Provide detailed information about your event (schedules, guidelines, what to bring, etc.)."
+                    rows="6"></textarea>
+            </div>
+
+            <!-- Sticky Submit / Publish Button -->
+            <div class="submit-container">
+                <button type="submit" class="publish-btn" id="publishBtn">Publish Event</button>
+            </div>
+        </form>
+
+        <!-- Success overlay -->
+        <div class="success-overlay" id="successOverlay">
+            <div class="success-card">
+                <div class="success-checkmark">
+                    <svg viewBox="0 0 52 52">
+                        <circle class="success-circle" cx="26" cy="26" r="25" fill="none" />
+                        <path class="success-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                    </svg>
+                </div>
+                <h2>Event Published!</h2>
+                <p>Your event is now live and visible to everyone in Maseru.</p>
+                <button type="button" class="done-btn" id="doneBtn">Awesome</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script handling frictionless behaviors -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('eventCreationForm');
+            const fileInput = document.getElementById('fileInput');
+            const bannerPreview = document.getElementById('bannerPreview');
+            const bannerText = document.getElementById('bannerText');
+
+            const startDateInput = document.getElementById('startDate');
+            const startTimeInput = document.getElementById('startTime');
+            const eventLocationInput = document.getElementById('eventLocation');
+            const eventTitleInput = document.getElementById('eventTitle');
+
+            const btnFree = document.getElementById('btnFree');
+            const btnPaid = document.getElementById('btnPaid');
+            const priceInputWrapper = document.getElementById('priceInputWrapper');
+            const eventPriceInput = document.getElementById('eventPrice');
+
+            const successOverlay = document.getElementById('successOverlay');
+            const doneBtn = document.getElementById('doneBtn');
+
+            // --- Category state ---
+            let selectedCategory = '';
+
+            // --- State variables ---
+            let selectedCoverMode = 'default'; // 'default' or 'upload'
+            let uploadBgUrl = '';
+
+            // Set default date to today
+            const today = new Date();
+            const formatForInput = (d) => {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+            startDateInput.value = formatForInput(today);
+
+            // Set default time to nearest hour or 6:00 PM as default
+            startTimeInput.value = '18:00'; // 6 PM default
+
+            // Set default yellow banner style
+            bannerPreview.style.backgroundColor = 'var(--accent-color)';
+
+            // --- Banner Photo Handling ---
+            bannerPreview.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        uploadBgUrl = event.target.result;
+                        bannerPreview.style.background = `url('${uploadBgUrl}') center/cover no-repeat`;
+                        selectedCoverMode = 'upload';
+                        bannerText.textContent = "Change photo";
+                        bannerText.classList.add('has-photo');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // --- Chips Interactions (Frictionless filling) ---
+
+            // Helper: Find next occurrence of weekday
+            function getNextWeekday(dayName) {
+                const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                const targetDay = weekdays.indexOf(dayName.toLowerCase());
+                if (targetDay === -1) return new Date();
+
+                const resultDate = new Date();
+                const currentDay = resultDate.getDay();
+                let daysToAdd = targetDay - currentDay;
+                if (daysToAdd <= 0) {
+                    daysToAdd += 7; // Next week's Friday/Saturday
+                }
+                resultDate.setDate(resultDate.getDate() + daysToAdd);
+                return resultDate;
+            }
+
+            // Date Chips Click
+            const dateChips = document.querySelectorAll('#dateChips .chip');
+            dateChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    dateChips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+
+                    const value = chip.getAttribute('data-value');
+                    let selectedDate = new Date();
+
+                    if (value === 'today') {
+                        selectedDate = new Date();
+                    } else if (value === 'tomorrow') {
+                        selectedDate.setDate(selectedDate.getDate() + 1);
+                    } else if (value === 'friday') {
+                        selectedDate = getNextWeekday('friday');
+                    } else if (value === 'saturday') {
+                        selectedDate = getNextWeekday('saturday');
+                    }
+
+                    startDateInput.value = formatForInput(selectedDate);
+
+                    // Trigger haptic-like scaling animation
+                    triggerPulse(chip);
+                });
+            });
+
+            // Deactivate Date Chip if user manual changes input
+            startDateInput.addEventListener('change', () => {
+                dateChips.forEach(c => c.classList.remove('active'));
+            });
+
+            // Time Chips Click
+            const timeChips = document.querySelectorAll('#timeChips .chip');
+            timeChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    timeChips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+
+                    const val = chip.getAttribute('data-value');
+                    startTimeInput.value = val;
+                    triggerPulse(chip);
+                });
+            });
+
+            // Deactivate Time Chip if user manual changes input
+            startTimeInput.addEventListener('change', () => {
+                timeChips.forEach(c => c.classList.remove('active'));
+            });
+
+            // Location Chips Click
+            const locationChips = document.querySelectorAll('#locationChips .chip');
+            locationChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    locationChips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+
+                    const loc = chip.getAttribute('data-value');
+                    eventLocationInput.value = loc;
+                    triggerPulse(chip);
+                });
+            });
+
+            // Category Chips Click
+            const categoryChips = document.querySelectorAll('#categoryChips .chip');
+            categoryChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    categoryChips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    selectedCategory = chip.getAttribute('data-value');
+
+                    // Clear any category validation error
+                    document.getElementById('categoryError').style.display = 'none';
+
+                    triggerPulse(chip);
+                });
+            });
+
+            // Deactivate Location Chip if user manual changes input
+            eventLocationInput.addEventListener('input', () => {
+                locationChips.forEach(c => c.classList.remove('active'));
+            });
+
+            // --- Admission / Price Switcher ---
+            btnFree.addEventListener('click', () => {
+                btnFree.classList.add('active');
+                btnPaid.classList.remove('active');
+                priceInputWrapper.classList.add('hidden');
+                eventPriceInput.removeAttribute('required');
+                eventPriceInput.value = '';
+            });
+
+            btnPaid.addEventListener('click', () => {
+                btnPaid.classList.add('active');
+                btnFree.classList.remove('active');
+                priceInputWrapper.classList.remove('hidden');
+                eventPriceInput.setAttribute('required', 'required');
+                eventPriceInput.focus();
+            });
+
+            // Helper for micro-animation scale pulse
+            function triggerPulse(element) {
+                element.style.transform = 'scale(0.92)';
+                setTimeout(() => {
+                    element.style.transform = '';
+                }, 100);
+            }
+
+            // --- Form Submission & Validation ---
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                let isValid = true;
+
+                // Validate Title
+                if (!eventTitleInput.value.trim()) {
+                    document.getElementById('titleError').style.display = 'block';
+                    eventTitleInput.classList.add('invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('titleError').style.display = 'none';
+                    eventTitleInput.classList.remove('invalid');
+                }
+
+                // Validate Date
+                if (!startDateInput.value) {
+                    document.getElementById('dateError').style.display = 'block';
+                    startDateInput.classList.add('invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('dateError').style.display = 'none';
+                    startDateInput.classList.remove('invalid');
+                }
+
+                // Validate Time
+                if (!startTimeInput.value) {
+                    document.getElementById('timeError').style.display = 'block';
+                    startTimeInput.classList.add('invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('timeError').style.display = 'none';
+                    startTimeInput.classList.remove('invalid');
+                }
+
+                // Validate Category
+                if (!selectedCategory) {
+                    document.getElementById('categoryError').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('categoryError').style.display = 'none';
+                }
+
+                // Validate Location
+                if (!eventLocationInput.value.trim()) {
+                    document.getElementById('locationError').style.display = 'block';
+                    eventLocationInput.classList.add('invalid');
+                    isValid = false;
+                } else {
+                    document.getElementById('locationError').style.display = 'none';
+                    eventLocationInput.classList.remove('invalid');
+                }
+
+                // Validate Price if Paid
+                if (btnPaid.classList.contains('active')) {
+                    const priceVal = parseFloat(eventPriceInput.value);
+                    if (isNaN(priceVal) || priceVal <= 0) {
+                        document.getElementById('priceError').style.display = 'block';
+                        eventPriceInput.classList.add('invalid');
+                        isValid = false;
+                    } else {
+                        document.getElementById('priceError').style.display = 'none';
+                        eventPriceInput.classList.remove('invalid');
+                    }
+                }
+
+                if (isValid) {
+                    // Collect Form Data
+                    const eventData = {
+                        title: eventTitleInput.value,
+                        category: selectedCategory,
+                        cover: selectedCoverMode === 'default' ? 'default-yellow' : 'user-uploaded',
+                        startDate: startDateInput.value,
+                        startTime: startTimeInput.value,
+                        location: eventLocationInput.value,
+                        admission: btnFree.classList.contains('active') ? 'Free' : `M${eventPriceInput.value}`,
+                        description: document.getElementById('eventDescription').value
+                    };
+
+                    console.log('Event Created Successfully!', eventData);
+
+                    // Show success screen with custom overlay
+                    successOverlay.classList.add('show');
+                } else {
+                    // Scroll to first error
+                    const firstError = document.querySelector('.invalid');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstError.focus();
+                    }
+                }
+            });
+
+            // Reset form when clicking Awesome
+            doneBtn.addEventListener('click', () => {
+                successOverlay.classList.remove('show');
+                form.reset();
+
+                // Reset to defaults
+                startDateInput.value = formatForInput(new Date());
+                startTimeInput.value = '18:00';
+                btnFree.click();
+
+                // Reset category
+                categoryChips.forEach(c => c.classList.remove('active'));
+                selectedCategory = '';
+
+                // Reset preset cover
+                bannerPreview.style.background = 'var(--accent-color)';
+                bannerText.textContent = "Add a photo";
+                bannerText.classList.remove('has-photo');
+                selectedCoverMode = 'default';
+            });
+
+            // Back button returns to navbar trigger or list
+            document.querySelector('.back-btn').addEventListener('click', () => {
+                if (confirm('Discard event draft?')) {
+                    window.history.back();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

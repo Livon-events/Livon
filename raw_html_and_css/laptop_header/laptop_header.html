@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laptop Header</title>
+    <link rel="stylesheet" href="laptop_header.css">
+    <!-- Premium Outfit font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container">
+            <!-- Left: Logo & Location -->
+            <div class="left-section">
+                <div class="logo-box">
+                    <svg viewBox="0 0 100 100" class="logo-svg">
+                        <rect width="100" height="100" rx="12" fill="white" />
+                        <!-- Interlocking Rings -->
+                        <ellipse cx="40" cy="50" rx="14" ry="24" transform="rotate(-30 40 50)" stroke="black"
+                            stroke-width="5" fill="none" />
+                        <ellipse cx="60" cy="50" rx="14" ry="24" transform="rotate(-30 60 50)" stroke="black"
+                            stroke-width="5" fill="none" />
+                        <path d="M 43 27 A 14 24 0 0 1 52 35" stroke="white" stroke-width="6" fill="none"
+                            transform="rotate(-30 40 50)" />
+                        <ellipse cx="40" cy="50" rx="14" ry="24" transform="rotate(-30 40 50)" stroke="black"
+                            stroke-width="5" fill="none" />
+                    </svg>
+                </div>
+
+                <div class="location-filter" id="locationFilterBtn">
+                    <span class="city">Maseru</span>
+                    <span class="area" id="displayArea">Maseru central</span>
+                </div>
+            </div>
+
+            <!-- Center: Wide Search Capsule -->
+            <div class="search-bar">
+                <span class="search-placeholder">Search</span>
+                <div class="search-icon-circle">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Right: Navigation Items -->
+            <nav class="nav-section">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                class="nav-icon">
+                                <path d="M3 10.5L12 3l9 7.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            </svg>
+                            <span class="nav-label">Home</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="profile" class="nav-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                class="nav-icon">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span class="nav-label">Profile</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="create_event" class="create-event-link">
+                            <div class="create-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"
+                                    class="create-icon">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Overlay & Modal for Location Selection -->
+    <div class="modal-overlay" id="sheetOverlay">
+        <div class="modal-box" id="bottomSheet">
+            <div class="modal-header">
+                <h3 id="sheetTitle">Select Area in Maseru</h3>
+                <button class="close-btn" id="closeSheetBtn">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <ul class="location-list" id="areaList">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for Area selection interactions -->
+    <script>
+        const maseruAreas = ["All areas", "Maseru central", "Thetsane", "Hillsview", "Khubetsoana"];
+        let selectedArea = "Maseru central";
+
+        // DOM elements
+        const locationFilterBtn = document.getElementById('locationFilterBtn');
+        const sheetOverlay = document.getElementById('sheetOverlay');
+        const bottomSheet = document.getElementById('bottomSheet');
+        const closeSheetBtn = document.getElementById('closeSheetBtn');
+        const areaList = document.getElementById('areaList');
+        const displayArea = document.getElementById('displayArea');
+
+        // Render areas list
+        function renderAreas() {
+            areaList.innerHTML = '';
+            maseruAreas.forEach(area => {
+                const li = document.createElement('li');
+                const isActive = (area === selectedArea);
+                li.className = `location-item ${isActive ? 'active' : ''}`;
+                li.innerHTML = `
+                    <span>${area}</span>
+                    ${isActive ? '<span class="check-mark">&#10003;</span>' : ''}
+                `;
+                li.addEventListener('click', () => selectArea(area));
+                areaList.appendChild(li);
+            });
+        }
+
+        function selectArea(area) {
+            selectedArea = area;
+            displayArea.textContent = selectedArea;
+            closeLocationModal();
+        }
+
+        function openLocationModal() {
+            sheetOverlay.classList.add('show');
+            bottomSheet.classList.add('show');
+            renderAreas();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLocationModal() {
+            sheetOverlay.classList.remove('show');
+            bottomSheet.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        // Event listeners
+        locationFilterBtn.addEventListener('click', openLocationModal);
+        closeSheetBtn.addEventListener('click', closeLocationModal);
+        sheetOverlay.addEventListener('click', (e) => {
+            if (e.target === sheetOverlay) closeLocationModal();
+        });
+    </script>
+</body>
+
+</html>

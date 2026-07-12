@@ -1,0 +1,362 @@
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --yellow: #ffea00;
+    --content-width: 798px;
+}
+
+body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+.page {
+    min-height: 100vh;
+    background: #000;
+    color: #fff;
+}
+
+/* Scrollable content — bottom padding keeps it clear of the sticky action bar */
+.content {
+    width: min(calc(100% - 48px), var(--content-width));
+    margin: 0 auto;
+    padding: 0 0 104px;
+}
+
+.page-title {
+    font-size: 32px;
+    line-height: 1.25;
+    font-weight: 800;
+    margin: 0 0 8px;
+}
+
+/* Event card */
+.card {
+    border: 2px solid var(--yellow);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Poster placeholder — full width, fixed 194px height. 3px gap from the
+   card border on all sides. Mobile-first (fills the phone-width card);
+   on larger screens the card itself is capped at 448px via .content, so
+   the poster naturally stays a sensible size instead of stretching wide. */
+.poster-wrap {
+    padding: 4px;
+    background: #000;
+}
+
+.poster {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    min-height: 220px;
+    max-height: 342px;
+    border-radius: 6px;
+    background: #d10aa7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.card-body {
+    padding: 18px 16px 16px;
+}
+
+.event-title {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0;
+}
+
+.event-datetime {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1.35;
+    color: #d1d5db;
+}
+
+.event-date,
+.event-time {
+    font-weight: 600;
+    color: #fff;
+}
+
+.divider {
+    color: #6b7280;
+}
+
+.event-location {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    line-height: 1.35;
+    color: #9ca3af;
+}
+
+.event-location svg {
+    flex-shrink: 0;
+}
+
+.event-host {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.35;
+    color: #d1d5db;
+}
+
+.host-name {
+    color: var(--yellow);
+    font-weight: 600;
+}
+
+.event-footer {
+    margin-top: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.event-price {
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 800;
+    color: var(--yellow);
+}
+
+/* Shared chip style for category + hashtags */
+.chip {
+    border-radius: 4px;
+    background: #242424;
+    padding: 9px 14px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #e5e7eb;
+}
+
+/* About */
+.about-header {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.about-title {
+    font-size: 32px;
+    line-height: 1.2;
+    font-weight: 800;
+    margin: 0;
+}
+
+.peek-btn {
+    border: 2px solid var(--yellow);
+    border-radius: 8px;
+    background: transparent;
+    min-width: 104px;
+    min-height: 40px;
+    padding: 0 20px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.peek-btn:active {
+    transform: scale(0.95);
+}
+
+.about-text {
+    max-width: 680px;
+    margin: 14px 0 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.45;
+    color: #a9a9a9;
+}
+
+/* Sticky bottom action bar */
+.action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: #000;
+}
+
+.action-bar-inner {
+    width: min(calc(100% - 48px), var(--content-width));
+    margin: 0 auto;
+    padding: 12px 0 0;
+    display: flex;
+    gap: 16px;
+}
+
+.going-btn {
+    flex: 1 1 auto;
+    border: none;
+    border-radius: 6px;
+    background: var(--yellow);
+    color: #000;
+    min-height: 48px;
+    padding: 0 16px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.going-btn.is-going {
+    background: #000;
+    color: var(--yellow);
+    border: 2px solid var(--yellow);
+}
+
+.going-btn:active {
+    transform: scale(0.98);
+}
+
+.share-btn {
+    flex: 0 0 196px;
+    border: none;
+    border-radius: 6px;
+    background: var(--yellow);
+    color: #000;
+    min-height: 48px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.share-btn:active {
+    transform: scale(0.98);
+}
+
+.safe-area-pad {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (max-width: 600px) {
+    .content {
+        width: min(calc(100% - 24px), var(--content-width));
+        padding-bottom: 92px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        line-height: 1.35;
+        margin-bottom: 4px;
+    }
+
+    .poster-wrap {
+        padding: 3px;
+    }
+
+    .poster {
+        aspect-ratio: 16 / 7.2;
+        min-height: 180px;
+    }
+
+    .card-body {
+        padding: 10px 8px 8px;
+    }
+
+    .event-title {
+        font-size: 24px;
+        line-height: 1.15;
+    }
+
+    .event-datetime {
+        margin-top: 10px;
+        gap: 7px;
+        font-size: 11px;
+    }
+
+    .event-location {
+        margin-top: 4px;
+        font-size: 12px;
+    }
+
+    .event-host {
+        margin-top: 8px;
+        font-size: 12px;
+    }
+
+    .event-footer {
+        margin-top: 20px;
+    }
+
+    .event-price {
+        font-size: 24px;
+    }
+
+    .chip {
+        padding: 7px 10px;
+        font-size: 11px;
+    }
+
+    .about-header {
+        margin-top: 12px;
+    }
+
+    .about-title {
+        font-size: 24px;
+    }
+
+    .peek-btn {
+        min-width: 84px;
+        min-height: 32px;
+        padding: 0 16px;
+        font-size: 14px;
+    }
+
+    .about-text {
+        max-width: none;
+        margin-top: 12px;
+        font-size: 16px;
+        line-height: 1.35;
+    }
+
+    .action-bar-inner {
+        width: min(calc(100% - 24px), var(--content-width));
+        padding-top: 8px;
+        gap: 12px;
+    }
+
+    .going-btn,
+    .share-btn {
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .share-btn {
+        flex-basis: 31%;
+        min-width: 108px;
+    }
+}

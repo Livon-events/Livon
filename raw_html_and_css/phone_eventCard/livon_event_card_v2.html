@@ -1,0 +1,228 @@
+
+<style>
+  .card-wrap {
+    position: relative;
+    width: 340px;
+    margin: 1.5rem auto;
+  }
+  .card-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    pointer-events: none;
+  }
+  .card-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .notch-row {
+    height: 46px;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    gap: 5px;
+  }
+  .notch-stat {
+    flex: 1;
+    height: 100%;
+    background: #000;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .peek-btn {
+    position: relative;
+    flex-shrink: 0;
+    width: 112px;
+    height: 100%;
+    border-radius: 7px;
+    background: #000;
+    color: #FFEA00;
+    font-weight: 700;
+    font-size: 14px;
+    border: 2px solid #FFEA00;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .connections-badge {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #FFEA00;
+    color: #000;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .card-body {
+    margin: 0 3px 3px 3px;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1.5px solid #222;
+  }
+  .event-poster {
+    margin: 4px;
+    width: calc(100% - 8px);
+    height: 190px;
+    background: #CC00AA;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.2);
+    font-size: 13px;
+    font-family: 'Segoe UI', sans-serif;
+    box-sizing: border-box;
+  }
+  .event-desc {
+    padding: 8px 10px 4px;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  .event-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+  .event-price {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .event-location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #B1B0B0;
+    margin-bottom: 4px;
+  }
+  .event-host {
+    font-size: 13px;
+    color: #fff;
+  }
+  .event-host span { color: #FFEA00; font-weight: 700; }
+  .event-footer {
+    display: flex;
+    gap: 5px;
+    padding: 8px 8px 10px;
+  }
+  .going-btn {
+    flex: 1;
+    height: 48px;
+    border-radius: 8px;
+    background: #FFEA00;
+    border: none;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: 'Segoe UI', sans-serif;
+    color: #000;
+  }
+  .share-btn {
+    width: 56px;
+    height: 48px;
+    border-radius: 8px;
+    background: #FFEA00;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+  }
+</style>
+
+<h2 class="sr-only">Livon event card with notch peek button and black stat panels</h2>
+
+<div class="card-wrap" id="cardWrap">
+  <svg class="card-bg" id="cardBg" xmlns="http://www.w3.org/2000/svg">
+    <path id="cardPath" fill="#FFEA00"/>
+  </svg>
+
+  <div class="card-inner">
+    <div class="notch-row">
+      <div class="notch-stat">3 Months</div>
+      <button class="peek-btn" id="peekBtn">
+        Peek
+        <span class="connections-badge">5</span>
+      </button>
+      <div class="notch-stat">6:00 PM</div>
+    </div>
+
+    <div class="card-body">
+      <div class="event-poster">poster image</div>
+      <div class="event-desc">
+        <p class="event-title">This is the event title</p>
+        <p class="event-price">M20</p>
+        <div class="event-location">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B1B0B0" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <span>Hall 11, Limkokwing MP</span>
+        </div>
+        <p class="event-host">Hosted by <span>John Doe</span></p>
+      </div>
+      <div class="event-footer">
+        <button class="going-btn">Going</button>
+        <button class="share-btn">&#x27A4;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function drawCard() {
+    const wrap = document.getElementById('cardWrap');
+    const btn  = document.getElementById('peekBtn');
+    const svg  = document.getElementById('cardBg');
+    const path = document.getElementById('cardPath');
+
+    const W = wrap.offsetWidth;
+    const H = wrap.offsetHeight;
+    const wrapRect = wrap.getBoundingClientRect();
+    const btnRect  = btn.getBoundingClientRect();
+
+    const x1 = btnRect.left - wrapRect.left;
+    const x2 = btnRect.right - wrapRect.left;
+    const d  = 46;
+    const r  = 12;
+    const nr = 10;
+
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', H);
+    path.setAttribute('d', `
+      M ${r},0
+      L ${x1 - nr},0
+      A ${nr},${nr} 0 0 1 ${x1},${nr}
+      L ${x1},${d - nr}
+      A ${nr},${nr} 0 0 0 ${x1 + nr},${d}
+      L ${x2 - nr},${d}
+      A ${nr},${nr} 0 0 0 ${x2},${d - nr}
+      L ${x2},${nr}
+      A ${nr},${nr} 0 0 1 ${x2 + nr},0
+      L ${W - r},0
+      A ${r},${r} 0 0 1 ${W},${r}
+      L ${W},${H - r}
+      A ${r},${r} 0 0 1 ${W - r},${H}
+      L ${r},${H}
+      A ${r},${r} 0 0 1 0,${H - r}
+      L 0,${r}
+      A ${r},${r} 0 0 1 ${r},0
+      Z
+    `);
+  }
+
+  drawCard();
+  window.addEventListener('resize', drawCard);
+</script>
