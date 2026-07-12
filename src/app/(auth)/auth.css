@@ -1,0 +1,421 @@
+/* Ported from raw_html_and_css/login/styles.css — do not redesign.
+   Font families are supplied via CSS variables set by next/font in
+   (auth)/layout.tsx rather than the original Google Fonts <link> tags. */
+
+.auth-scope {
+  --bg: #0a0a0a;
+  --card: #000000;
+  --card-edge: #201c10;
+  --yellow: #ffea00;
+  --text: #f5f3ee;
+  --text-dim: #9a988f;
+  --text-faint: #67655c;
+  --border: #262420;
+  --radius-lg: 22px;
+  --radius-sm: 12px;
+}
+
+.auth-scope * {
+  box-sizing: border-box;
+}
+
+.auth-scope {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Ambient social-graph dot field: nodes on a network, quiet in the background */
+.auth-scope .grid-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: radial-gradient(var(--border) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 0%, transparent 75%);
+  pointer-events: none;
+}
+
+.auth-scope .stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 34px;
+}
+
+/* ===== Pass card (ticket-notch signature) ===== */
+.auth-scope .pass {
+  position: relative;
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 48px 32px 32px;
+  box-shadow: 0 30px 60px -25px rgba(0, 0, 0, 0.8);
+}
+
+/* Circular cutout notch at top-center, holds the logo placeholder */
+.auth-scope .pass-notch {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 68px;
+  height: 68px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-scope .pass-notch::before,
+.auth-scope .pass-notch::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 60px;
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--border) 0 6px,
+    transparent 6px 12px
+  );
+}
+
+.auth-scope .pass-notch::before {
+  right: 100%;
+  margin-right: 4px;
+}
+
+.auth-scope .pass-notch::after {
+  left: 100%;
+  margin-left: 4px;
+}
+
+.auth-scope .logo-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px dashed var(--text-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-scope .logo-placeholder span {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.auth-scope .pass-head {
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+.auth-scope .eyebrow {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--yellow);
+}
+
+.auth-scope .pass-head h1 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+/* ===== Google button ===== */
+.auth-scope .google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 15px;
+  background: var(--text);
+  color: #141414;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.auth-scope .google-btn:hover {
+  border: 1px solid var(--yellow);
+}
+
+.auth-scope .google-btn:active {
+  transform: translateY(1px);
+}
+
+.auth-scope .google-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-scope .google-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* ===== Divider ===== */
+.auth-scope .divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 22px 0;
+  color: var(--text-faint);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.auth-scope .divider::before,
+.auth-scope .divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ===== Form ===== */
+.auth-scope .pass-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-scope .field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.auth-scope .field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.auth-scope .field label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+
+.auth-scope .field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.auth-scope .forgot-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--yellow);
+  text-decoration: none;
+}
+
+.auth-scope .forgot-link:hover {
+  text-decoration: underline;
+}
+
+.auth-scope .field input {
+  width: 100%;
+  background: #0d0d0c;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.auth-scope .field input::placeholder {
+  color: var(--text-faint);
+}
+
+.auth-scope .field input:focus {
+  border-color: var(--yellow);
+}
+
+.auth-scope .field-input-wrap {
+  position: relative;
+  display: flex;
+}
+
+.auth-scope .field-input-wrap input {
+  padding-right: 42px;
+}
+
+.auth-scope .password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 0;
+}
+
+.auth-scope .password-toggle:hover {
+  color: var(--text-dim);
+}
+
+.auth-scope .password-toggle:focus-visible {
+  outline: 1px solid var(--yellow);
+}
+
+.auth-scope .password-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.auth-scope .field-error {
+  font-size: 12px;
+  color: #ff6b6b;
+  margin: -2px 0 0;
+}
+
+.auth-scope .form-error {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.08);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin: 0 0 4px;
+}
+
+.auth-scope .form-notice {
+  font-size: 13px;
+  color: var(--yellow);
+  background: rgba(255, 234, 0, 0.08);
+  border: 1px solid rgba(255, 234, 0, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin: 0 0 4px;
+}
+
+.auth-scope .submit-btn {
+  margin-top: 6px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--yellow);
+  color: #141210;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.auth-scope .submit-btn:hover {
+  filter: brightness(1.06);
+}
+
+.auth-scope .submit-btn:active {
+  transform: translateY(1px);
+}
+
+.auth-scope .submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-scope .switch-line {
+  margin: 22px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.auth-scope .switch-line a {
+  color: var(--yellow);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-scope .switch-line a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 480px) {
+  .auth-scope .pass {
+    padding: 34px 22px 26px;
+  }
+
+  .auth-scope .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-scope .pass-head h1 {
+    font-size: 22px;
+  }
+}
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .auth-scope * {
+    transition: none !important;
+  }
+}
+
+/* ===== Sign-up page overrides: sharp black card, FFEA00 accent ===== */
+.auth-scope.signup-page {
+  --card: #000000;
+  --yellow: #ffea00;
+}
+
+.auth-scope.signup-page .pass {
+  border-color: var(--yellow);
+}
+
+.auth-scope.signup-page .field input {
+  background: #000000;
+  border-color: #ffffff;
+}
