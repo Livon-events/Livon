@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import SiteHeader from "@/components/layout/SiteHeader";
+import BottomNav from "@/components/layout/BottomNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,14 +8,14 @@ export const metadata: Metadata = {
   description: "Livon — campus event discovery",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+    <html lang="en">
+      <body>
+        <SiteHeader />
+        {children}
+        <div className="md:hidden"><BottomNav /></div>
+      </body>
     </html>
   );
 }

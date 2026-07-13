@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event card</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            color: #ffffff;
+            background-color: #000000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 6px;
+        }
+
+        /* ── Outer card wrapper — NO background, SVG draws it ── */
+        .event_card {
+            position: relative;
+            /* SVG positions inside this */
+            width: 98%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Yellow notch SVG sits behind everything */
+        .card_svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            display: block;
+        }
+
+        /* ── Top bar ── */
+        .eventCard_head {
+            position: relative;
+            /* sits above SVG */
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            width: 100%;
+            height: 46px;
+            padding: 5px;
+            gap: 13px;
+        }
+
+        /* Left (days) and right (time) stat panels */
+        .eventCard_head>.days_left,
+        .eventCard_head>.start_time {
+            flex: 1;
+            height: 100%;
+            background-color: #000000;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+            color: #ffffff;
+        }
+
+        /* Peek button — sits inside the notch cutout */
+        .peek {
+            position: relative;
+            flex: 1;
+            height: 100%;
+            background-color: #000000;
+            color: #FFEA00;
+            border: 3px solid #FFEA00;
+            border-radius: 7px;
+            font-weight: bold;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .connections_counter {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #FFEA00;
+            color: #000000;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        /* ── Body ── */
+        .eventCard_body {
+            position: relative;
+            background-color: #000000;
+            border-radius: 10px;
+            margin: 5px 3px 3px 3px;
+            overflow: hidden;
+        }
+
+        /* Poster — all 4 corners rounded via margin */
+        .event_poster {
+            display: block;
+            width: calc(100% - 8px);
+            margin: 4px;
+            border-radius: 9px;
+            object-fit: cover;
+        }
+
+        .event_card_title {
+            margin-bottom: 12px;
+        }
+
+        .event_description {
+            padding: 6px;
+        }
+
+        .location {
+            display: flex;
+            font-size: 14px;
+            align-items: center;
+            color: #B1B0B0;
+            margin: 4px 0;
+        }
+
+        .host {
+            font-size: 14px;
+        }
+
+        .host_name {
+            color: #FFEA00;
+            font-weight: bold;
+        }
+
+        /* ── Footer ── */
+        .event_footer {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin: 5px;
+            gap: 5px;
+            width: calc(100% - 10px);
+        }
+
+        .event_footer>button {
+            height: 50px;
+            border-radius: 6px;
+            border: none;
+            background-color: #FFEA00;
+            color: #000;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+
+        .event_footer>button:active {
+            transform: scale(0.96);
+            background-color: #e0d400;
+        }
+
+        .interested_button {
+            flex: 1;
+            font-weight: 900;
+            font-size: 1.2rem;
+        }
+
+        .interested_button.active {
+            background-color: #000000;
+            color: #FFEA00;
+        }
+
+        .share_button {
+            flex-basis: 25%;
+            flex-shrink: 0;
+        }
+
+        .share_button img {
+            filter: brightness(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="event_card" id="eventCard">
+
+        <!-- SVG yellow background with notch — sized by JS after layout -->
+        <svg id="cardSvg" class="card_svg" xmlns="http://www.w3.org/2000/svg">
+            <path id="cardPath" fill="#FFEA00" />
+        </svg>
+
+        <!-- Top bar: stat | peek button | stat -->
+        <div class="eventCard_head">
+            <div class="days_left">3 Months</div>
+            <button class="peek" id="peekBtn">
+                <span>Peek</span>
+                <div class="connections_counter">5</div>
+            </button>
+            <div class="start_time">6:00 PM</div>
+        </div>
+
+        <div class="eventCard_body">
+            <img class="event_poster" src="../assets/law.jpg" alt="jesus">
+
+            <div class="event_description">
+                <h2 class="event_card_title">This is a placeholder for event title</h2>
+                <h3 class="price">M20</h3>
+                <div class="location">
+                    <p class="location_description">
+                        <span class="venue">Hall 11</span>, <span class="area">Limkokwing MP</span>
+                    </p>
+                    <img src="../assets/location_on.svg" alt="location icon" width="20px">
+                </div>
+                <p class="host">Hosted by <span class="host_name">John Doe</span></p>
+            </div>
+
+            <div class="event_footer">
+                <button class="interested_button">Interested</button>
+                <button class="share_button">
+                    <img src="../assets/share.svg" alt="share icon">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function drawCard() {
+            const card = document.getElementById('eventCard');
+            const btn = document.getElementById('peekBtn');
+            const svg = document.getElementById('cardSvg');
+            const path = document.getElementById('cardPath');
+
+            const W = card.offsetWidth;
+            const H = card.offsetHeight;
+
+            if (W === 0 || H === 0) return; // not laid out yet
+
+            const cardRect = card.getBoundingClientRect();
+            const btnRect = btn.getBoundingClientRect();
+
+            const gap = 5; // visible yellow gap between peek button and notch
+            const x1 = btnRect.left - cardRect.left - gap;
+            const x2 = btnRect.right - cardRect.left + gap;
+            const d = 46;   // notch depth = head height
+            const r = 12;   // card outer corner radius
+            const nr = 10;   // notch corner radius
+
+            svg.setAttribute('width', W);
+            svg.setAttribute('height', H);
+
+            path.setAttribute('d', `
+                M ${r},0
+                L ${x1 - nr},0
+                A ${nr},${nr} 0 0 1 ${x1},${nr}
+                L ${x1},${d - nr}
+                A ${nr},${nr} 0 0 0 ${x1 + nr},${d}
+                L ${x2 - nr},${d}
+                A ${nr},${nr} 0 0 0 ${x2},${d - nr}
+                L ${x2},${nr}
+                A ${nr},${nr} 0 0 1 ${x2 + nr},0
+                L ${W - r},0
+                A ${r},${r} 0 0 1 ${W},${r}
+                L ${W},${H - r}
+                A ${r},${r} 0 0 1 ${W - r},${H}
+                L ${r},${H}
+                A ${r},${r} 0 0 1 0,${H - r}
+                L 0,${r}
+                A ${r},${r} 0 0 1 ${r},0
+                Z
+            `);
+        }
+
+        // Double rAF ensures browser has finished layout before we measure
+        document.addEventListener('DOMContentLoaded', () => {
+            requestAnimationFrame(() => requestAnimationFrame(drawCard));
+        });
+
+        window.addEventListener('resize', drawCard);
+    </script>
+</body>
+
+</html>
