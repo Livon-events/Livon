@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import SiteHeader from "@/components/layout/SiteHeader";
 import BottomNav from "@/components/layout/BottomNav";
 import "./globals.css";
+export const PAGE_CONTAINER_CLASSES = "mx-auto w-full max-w-[1400px] px-3 lg:px-6";
 
 export const metadata: Metadata = {
   title: "Livon",

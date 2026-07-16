@@ -1,3 +1,4 @@
+/* src/app/globals.css — add/replace the html/body rules */
 @import "tailwindcss";
 
 :root {
@@ -17,6 +18,12 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
