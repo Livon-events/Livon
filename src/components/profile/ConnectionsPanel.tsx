@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ConnectionUser, ConnectionsSubTab } from "../types/profile";
+import type { ConnectionUser, ConnectionsSubTab } from "./types";
 import SegmentedTabs from "./SegmentedTabs";
 import ConnectionRow from "./ConnectionRow";
 

@@ -1,7 +1,7 @@
 "use client";
 
-import type { SocialLink } from "../types/profile";
-import { useLinksDropdown } from "../hooks/useLinksDropdown";
+import type { SocialLink } from "./types";
+import { useLinksDropdown } from "./useLinksDropdown";
 
 interface LinksSectionProps {
   links: SocialLink[];

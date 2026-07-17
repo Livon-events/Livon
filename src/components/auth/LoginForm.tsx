@@ -5,7 +5,20 @@ import { useRouter } from "next/navigation";
 import { signInWithEmail } from "@/lib/mutations/auth";
 import { PasswordField } from "@/components/auth/PasswordField";
 
-export function LoginForm() {
+// Only ever redirect to a same-site path — never follow an absolute or
+// protocol-relative URL from the `next` param, to avoid open-redirect abuse.
+function safeNext(next: string | undefined): string {
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    return next;
+  }
+  return "/profile";
+}
+
+interface LoginFormProps {
+  next?: string;
+}
+
+export function LoginForm({ next }: LoginFormProps) {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +43,7 @@ export function LoginForm() {
       return;
     }
 
-    router.push("/profile");
+    router.push(safeNext(next));
     router.refresh();
   }
 

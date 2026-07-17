@@ -1,4 +1,4 @@
-import type { EventSummary } from "../types/profile";
+import type { EventSummary } from "./types";
 
 interface EventRowProps {
   event: EventSummary;

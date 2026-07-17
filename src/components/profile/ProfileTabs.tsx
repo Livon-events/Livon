@@ -1,4 +1,4 @@
-import type { ProfileMainTab } from "../types/profile";
+import type { ProfileMainTab } from "./types";
 
 interface ProfileTabsProps {
   active: ProfileMainTab;

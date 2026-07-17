@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { EventSummary, EventsSubTab } from "../types/profile";
+import type { EventSummary, EventsSubTab } from "./types";
 import SegmentedTabs from "./SegmentedTabs";
 import EventRow from "./EventRow";
 

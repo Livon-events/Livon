@@ -1,4 +1,4 @@
-import type { ConnectionUser, EventSummary, SocialLink } from "../types/profile";
+import type { ConnectionUser, EventSummary, SocialLink } from "@/components/profile/types";
 
 // Placeholder data only — this file exists so the components below are
 // runnable/testable in isolation. Replace with real Supabase queries when

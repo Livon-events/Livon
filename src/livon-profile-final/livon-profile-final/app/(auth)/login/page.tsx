@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
-import { SignupForm } from "@/components/auth/SignupForm";
+import { LoginForm } from "@/components/auth/LoginForm";
 
-type SignupPageProps = {
+type LoginPageProps = {
   searchParams: Promise<{ next?: string }>;
 };
 
-export default async function SignupPage({ searchParams }: SignupPageProps) {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next } = await searchParams;
 
   return (
-    <div className="auth-scope signup-page">
+    <div className="auth-scope">
       <div className="grid-field" aria-hidden="true" />
 
       <main className="stage">
@@ -22,8 +22,8 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           </div>
 
           <header className="pass-head">
-            <p className="eyebrow">Get in</p>
-            <h1 id="form-title">Create your account</h1>
+            <p className="eyebrow">Welcome back</p>
+            <h1 id="form-title">Sign in</h1>
           </header>
 
           <GoogleSignInButton />
@@ -32,12 +32,12 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             <span>or use your email</span>
           </div>
 
-          <SignupForm next={next} />
+          <LoginForm next={next} />
 
           <p className="switch-line">
-            Already going places?{" "}
-            <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>
-              Sign in
+            New to Livon?{" "}
+            <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}>
+              Create an account
             </Link>
           </p>
         </section>

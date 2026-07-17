@@ -2,7 +2,13 @@ import Link from "next/link";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { LoginForm } from "@/components/auth/LoginForm";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ next?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { next } = await searchParams;
+
   return (
     <div className="auth-scope">
       <div className="grid-field" aria-hidden="true" />
@@ -26,10 +32,13 @@ export default function LoginPage() {
             <span>or use your email</span>
           </div>
 
-          <LoginForm />
+          <LoginForm next={next} />
 
           <p className="switch-line">
-            New to Livon? <Link href="/signup">Create an account</Link>
+            New to Livon?{" "}
+            <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}>
+              Create an account
+            </Link>
           </p>
         </section>
       </main>

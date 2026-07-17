@@ -7,7 +7,20 @@ import { PasswordField } from "@/components/auth/PasswordField";
 
 const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
 
-export function SignupForm() {
+// Only ever redirect to a same-site path — never follow an absolute or
+// protocol-relative URL from the `next` param, to avoid open-redirect abuse.
+function safeNext(next: string | undefined): string {
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    return next;
+  }
+  return "/profile";
+}
+
+interface SignupFormProps {
+  next?: string;
+}
+
+export function SignupForm({ next }: SignupFormProps) {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -62,7 +75,7 @@ export function SignupForm() {
       return;
     }
 
-    router.push("/profile");
+    router.push(safeNext(next));
     router.refresh();
   }
 

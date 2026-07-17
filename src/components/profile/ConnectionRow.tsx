@@ -1,4 +1,4 @@
-import type { ConnectionUser } from "../types/profile";
+import type { ConnectionUser } from "./types";
 
 interface ConnectionRowProps {
   connection: ConnectionUser;
