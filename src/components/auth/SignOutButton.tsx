@@ -11,7 +11,7 @@ export function SignOutButton() {
   async function handleClick() {
     setPending(true);
     await signOut();
-    router.push("/");
+    router.push("/login");
     router.refresh();
   }
 
@@ -20,7 +20,7 @@ export function SignOutButton() {
       type="button"
       onClick={handleClick}
       disabled={pending}
-      className="rounded-xl bg-[#ffea00] px-4 py-2 text-sm font-semibold text-[#141210] disabled:opacity-60"
+      className="mt-8 w-full rounded-xl bg-[#E5342E] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#cc2b26] disabled:opacity-60"
     >
       {pending ? "Signing out…" : "Sign out"}
     </button>

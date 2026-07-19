@@ -86,9 +86,11 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
       </div>
 
       <div
-        className={`absolute top-[calc(100%+12px)] inset-x-0 flex flex-col gap-2.5 bg-[#17181A] border border-[#1F2023] rounded-2xl p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.6)] transition-all duration-[180ms] ease-out ${
-          isOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-1.5"
-        }`}
+        className={`absolute top-[calc(100%+12px)] inset-x-0 flex flex-col gap-2.5 
+          bg-[#17181A] border border-[#1F2023] rounded-2xl p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.6)] 
+          transition-all duration-[180ms] ease-out z-20
+          max-h-[min(65dvh,280px)] overflow-y-auto overscroll-contain
+          ${isOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-1.5"}`}
       >
         {links.map((link) => (
           <div key={link.id} className="flex items-center gap-2.5">
@@ -105,7 +107,7 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
             <button
               type="button"
               onClick={() => onLinkSubmit?.(link.id, link.value)}
-              className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFE600] text-black flex items-center justify-center cursor-pointer"
+              className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFE600] text-black flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
             >
               <ArrowIcon />
             </button>

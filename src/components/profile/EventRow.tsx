@@ -1,12 +1,15 @@
+import { X, Wrench } from "lucide-react";
 import type { EventSummary } from "./types";
 
 interface EventRowProps {
   event: EventSummary;
-  actionLabel: string;
+  actionLabel: "leave" | "manage";
   onAction?: (id: string) => void;
 }
 
 export default function EventRow({ event, actionLabel, onAction }: EventRowProps) {
+  const Icon = actionLabel === "leave" ? X : Wrench;
+
   return (
     <div className="flex items-center gap-3.5 bg-[#17181A] rounded-2xl px-3 py-2.5">
       <div
@@ -26,9 +29,11 @@ export default function EventRow({ event, actionLabel, onAction }: EventRowProps
       <button
         type="button"
         onClick={() => onAction?.(event.id)}
-        className="font-display text-sm font-extrabold border-none rounded-[10px] px-4 py-2.5 bg-[#FFE600] text-black cursor-pointer flex-shrink-0"
+        aria-label={actionLabel}
+        title={actionLabel}
+        className="flex items-center justify-center border-none rounded-[10px] w-10 h-10 bg-[#FFE600] text-black cursor-pointer flex-shrink-0"
       >
-        {actionLabel}
+        <Icon className="w-[18px] h-[18px]" strokeWidth={2.5} />
       </button>
     </div>
   );

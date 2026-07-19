@@ -33,7 +33,6 @@ export default function EventCardHead({
   const handlePeekClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // TODO: open the Peek flow for `eventId` per docs/fr/peek.md.
   };
 
   return (
@@ -50,9 +49,13 @@ export default function EventCardHead({
         className="relative flex h-full flex-1 items-center justify-center rounded-[7px] border-[3px] border-[#FFEA00] bg-black text-[14px] font-bold text-[#FFEA00] transition-transform active:scale-95"
       >
         <span>Peek</span>
-        <span className="absolute right-[6px] top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full bg-[#FFEA00] text-[10px] font-black leading-none text-black">
-          {peekConnectionsCount}
-        </span>
+
+        {/* Only show the attendee count badge when there are connections attending */}
+        {peekConnectionsCount > 0 && (
+          <span className="absolute right-[6px] top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full bg-[#FFEA00] text-[10px] font-black leading-none text-black">
+            {peekConnectionsCount}
+          </span>
+        )}
       </button>
 
       <div className="flex h-full flex-1 items-center justify-center rounded-[7px] bg-black text-[13px] font-bold text-white">

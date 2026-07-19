@@ -57,3 +57,17 @@ export function getTimeOrLiveLabel(
 
   return to12Hour(startsAt.getUTCHours(), startsAt.getUTCMinutes());
 }
+
+/**
+ * Event details page date/time line: "25 Dec 2026 · 6:00 AM".
+ * Per docs/FR/event-details-page.md, this is start date + start time only —
+ * there is no end-time input on the creation form, so no range is shown
+ * here (unlike the raw HTML mockup, which predates that FR resolution).
+ */
+export function getEventDateTimeLabel(startsAt: Date): string {
+  const day = startsAt.getUTCDate();
+  const month = startsAt.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  const year = startsAt.getUTCFullYear();
+  const time = to12Hour(startsAt.getUTCHours(), startsAt.getUTCMinutes());
+  return `${day} ${month} ${year} \u00B7 ${time}`;
+}

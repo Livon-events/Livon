@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "picsum.photos" },
       {
         protocol: "https",
-        hostname: "https://zzgnkqpkmumpwjpsbbil.supabase.co",
+        hostname: "zzgnkqpkmumpwjpsbbil.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
     ],

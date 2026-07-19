@@ -1,4 +1,4 @@
-import EventCardGrid from "@/components/events/EventCardGrid";
+import EventCardGrid from "@/components/events/card/EventCardGrid";
 import CategoryFilterBar from "@/components/events/CategoryFilterBar";
 import { getHomeFeed } from "@/lib/queries/home-feed";
 import { getCategories } from "@/lib/queries/categories";

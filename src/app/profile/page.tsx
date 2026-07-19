@@ -15,13 +15,14 @@ export default async function ProfilePage() {
 
   const { data: profile, error: profileError } = await supabase
     .from("users")
-    .select("username, avatar_url")
+    .select("username, bio, avatar_url")
     .eq("user_id", user.id)
     .single();
   
   return (
     <UserProfilePage
       username={profile?.username ?? user.email ?? "User"}
+      bio={profile?.bio ?? null}
       avatarUrl={profile?.avatar_url ?? undefined}
     />
   );
