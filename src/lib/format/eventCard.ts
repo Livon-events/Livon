@@ -71,3 +71,16 @@ export function getEventDateTimeLabel(startsAt: Date): string {
   const time = to12Hour(startsAt.getUTCHours(), startsAt.getUTCMinutes());
   return `${day} ${month} ${year} \u00B7 ${time}`;
 }
+
+/**
+ * Profile page events list date label: "Fri, 18 Jul" — short weekday +
+ * day + short month. Distinct from getEventDateTimeLabel (which is for the
+ * details page and includes year + time) since the profile list mockup
+ * this replaces used this shorter, no-year, no-time format.
+ */
+export function getProfileEventDateLabel(startsAt: Date): string {
+  const weekday = startsAt.toLocaleString("en-US", { weekday: "short", timeZone: "UTC" });
+  const day = startsAt.getUTCDate();
+  const month = startsAt.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  return `${weekday}, ${day} ${month}`;
+}

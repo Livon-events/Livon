@@ -3,10 +3,12 @@
 
 import { useState } from 'react';
 
-const DEFAULT_CATEGORIES = ['Nightlife', 'Sports', 'Arts and theatre', 'Music'];
-
 interface CategorySelectorProps {
-  categories?: string[];
+  // No hardcoded default: categories are DB-driven (see lib/queries/categories.ts)
+  // and every real caller (CategoryFilterBar, CreateEventForm) already passes
+  // them explicitly. A local fallback list here would silently drift from
+  // whatever the `categories` table actually contains.
+  categories: string[];
   defaultActive?: string | null;
   /** Pass this + onChange for controlled usage. `null` means no filter (all events). */
   activeCategory?: string | null;
@@ -22,7 +24,7 @@ interface CategorySelectorProps {
  * nowrap expands the body" overflow that makes the grid feel squished.
  */
 export default function CategorySelector({
-  categories = DEFAULT_CATEGORIES,
+  categories,
   defaultActive = null,
   activeCategory,
   onChange,

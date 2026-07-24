@@ -5,51 +5,27 @@ import { usePathname } from "next/navigation";
 import { Search, X, Home, User, Plus } from "lucide-react";
 import { useLocationPicker, type LocationArea } from "@/hooks/useLocationPicker";
 
-/**
- * Sticky desktop/laptop header: logo + location on the left, a wide search
- * capsule in the center, and nav links (Home, Profile, Create) on the
- * right — replacing the separate BottomNav used on mobile. Converted from
- * raw_html_and_css/laptop_header/laptop_header.html + laptop_header.css.
- *
- * Rendered from the `md` breakpoint (768px) up — so tablets get the
- * desktop-style header too, not just laptops/large screens. See
- * SiteHeader.tsx, which pairs this with the mobile AppHeader and toggles
- * between them with Tailwind classes rather than JS media queries. Uses
- * `position: fixed` (not `sticky`) so it never scrolls with the page;
- * SiteHeader renders a matching-height spacer right after it to keep page
- * content from being covered.
- *
- * Shares its location-picker state logic with AppHeader via
- * useLocationPicker; only the overlay chrome differs here (centered modal
- * vs. bottom sheet), matching the two source mockups.
- *
- * NOT WIRED UP YET — same caveats as AppHeader: no persistence/scoping yet
- * (docs/fr/location-toggle.md is a later write-path step), search is a
- * static trigger, and `Outfit` should load via `next/font/google` in the
- * root layout rather than per-component.
- */
 
 type DesktopHeaderProps = {
-  city?: string;
-  areas?: LocationArea[];
-  initialAreaId?: string;
-  onAreaChange?: (area: LocationArea) => void;
+  userId: string | null;
+  cityId: string;
+  cityName: string;
+  areas: LocationArea[];
+  initialAreaId: string;
+  hasAccountPreference: boolean;
 };
 
-const DEFAULT_AREAS: LocationArea[] = [
-  { id: "all", name: "All areas" },
-  { id: "maseru-central", name: "Maseru central" },
-];
-
 export default function DesktopHeader({
-  city = "Maseru",
-  areas = DEFAULT_AREAS,
-  initialAreaId = "maseru-central",
-  onAreaChange,
+  userId,
+  cityId,
+  cityName,
+  areas,
+  initialAreaId,
+  hasAccountPreference,
 }: DesktopHeaderProps) {
   const pathname = usePathname();
-  const { sheetOpen, selectedArea, openSheet, closeSheet, selectArea } =
-    useLocationPicker(initialAreaId, areas, onAreaChange);
+  const { sheetOpen, selectedArea, areas: pickerAreas, openSheet, closeSheet, selectArea } =
+    useLocationPicker({ userId, cityId, areas, initialAreaId, hasAccountPreference });
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname?.startsWith(href);
@@ -76,7 +52,7 @@ export default function DesktopHeader({
               className="flex select-none flex-col items-start justify-center text-left"
             >
               <span className="text-[21px] font-bold leading-[1.15] tracking-[-0.3px] text-white underline decoration-2 underline-offset-[3px]">
-                {city}
+                {cityName}
               </span>
               <span className="mt-0.5 text-[13.5px] font-medium tracking-[-0.1px] text-[#a1a1a6]">
                 {selectedArea.name}
@@ -146,7 +122,7 @@ export default function DesktopHeader({
           }`}
         >
           <div className="mb-4 flex items-center justify-between border-b border-[#1f1f1f] pb-4">
-            <h3 className="text-lg font-semibold tracking-[-0.2px] text-white">Select Area in {city}</h3>
+            <h3 className="text-lg font-semibold tracking-[-0.2px] text-white">Select Area in {cityName}</h3>
             <button
               type="button"
               onClick={closeSheet}
@@ -159,7 +135,7 @@ export default function DesktopHeader({
 
           <div className="max-h-[300px] overflow-y-auto">
             <ul className="flex flex-col gap-2">
-              {areas.map((area) => {
+              {pickerAreas.map((area) => {
                 const active = area.id === selectedArea.id;
                 return (
                   <li key={area.id}>
@@ -171,7 +147,6 @@ export default function DesktopHeader({
                       }`}
                     >
                       <span>{area.name}</span>
-                      {active && <span className="text-[15px] font-bold">✓</span>}
                     </button>
                   </li>
                 );

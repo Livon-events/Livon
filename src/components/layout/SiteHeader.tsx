@@ -1,43 +1,60 @@
 import AppHeader from "./AppHeader";
 import DesktopHeader from "./DesktopHeader";
+import { createClient } from "@/lib/supabase/server";
+import { getLocationPickerData } from "@/lib/queries/location";
+import { getOrganizerLocationContext } from "@/lib/queries/users";
+import { ALL_AREAS_ID } from "@/lib/location/constants";
 
-/**
- * Responsive header shell — belongs in app/layout.tsx, rendered once for
- * the whole app (not per-page). Mounts both AppHeader (mobile) and
- * DesktopHeader (`md` / 768px and up, so tablets get it too); Tailwind's
- * `md:hidden` / `hidden md:block` decide which is visible, avoiding a
- * JS-based media-query flash on load.
- *
- * Both headers use `position: fixed` so they stay pinned at the top and
- * never scroll with the page. Since `fixed` takes an element out of
- * document flow, each variant here is paired with a spacer div of the
- * same height, so page content isn't hidden underneath. If you change a
- * header's padding/content and its rendered height changes, update the
- * matching spacer height below.
- *
- * Pair with BottomNav the same way in the layout — it also needs
- * `md:hidden` now (matches this breakpoint), since DesktopHeader already
- * contains the nav links inline:
- *
- *   <SiteHeader />
- *   {children}
- *   <div className="md:hidden"><BottomNav /></div>
- *
- * This is a Server Component itself (no "use client") — AppHeader and
- * DesktopHeader each declare their own "use client" where needed, so this
- * wrapper doesn't force anything above it to be client-side.
- */
-export default function SiteHeader() {
+export default async function SiteHeader() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const cities = await getLocationPickerData();
+  const defaultCity = cities[0];
+
+  const location = user ? await getOrganizerLocationContext(user.id) : null;
+  const hasAccountPreference = Boolean(location);
+
+  const activeCity =
+    (location && cities.find((c) => c.id === location.cityId)) ?? defaultCity;
+
+  if (!activeCity) {
+    // No cities seeded at all — nothing sensible to render. Shouldn't
+    // happen past initial setup, but fail loudly rather than crash on
+    // `activeCity.id` below.
+    throw new Error("SiteHeader: no cities found — has the cities table been seeded?");
+  }
+
+  const initialAreaId = location
+    ? (location.areaId ?? ALL_AREAS_ID)
+    : (activeCity.areas[0]?.id ?? ALL_AREAS_ID);
+
   return (
     <>
       <div className="md:hidden">
-        <AppHeader />
+        <AppHeader
+          userId={user?.id ?? null}
+          cityId={activeCity.id}
+          cityName={activeCity.name}
+          areas={activeCity.areas}
+          initialAreaId={initialAreaId}
+          hasAccountPreference={hasAccountPreference}
+        />
         {/* Spacer matching AppHeader's rendered height (~71.5px: py-3
             (24px) + 44px logo box + 3.5px border), rounded up slightly. */}
         <div className="h-[72px]" aria-hidden="true" />
       </div>
       <div className="hidden md:block">
-        <DesktopHeader />
+        <DesktopHeader
+          userId={user?.id ?? null}
+          cityId={activeCity.id}
+          cityName={activeCity.name}
+          areas={activeCity.areas}
+          initialAreaId={initialAreaId}
+          hasAccountPreference={hasAccountPreference}
+        />
         {/* Spacer matching DesktopHeader's rendered height (~79.5px:
             py-4 (32px) + 44px content row + 3.5px border), rounded up. */}
         <div className="h-20" aria-hidden="true" />

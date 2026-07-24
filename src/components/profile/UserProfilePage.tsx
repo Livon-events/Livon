@@ -9,22 +9,27 @@ import ConnectionsPanel from "./ConnectionsPanel";
 import EventsPanel from "./EventsPanel";
 import EditProfileModal from "./EditProfileModal";
 import { SignOutButton } from "../auth/SignOutButton";
-import {
-  mockSocialLinks,
-  mockConnectionRequests,
-  mockConnections,
-  mockGoingEvents,
-  mockCreatedEvents,
-} from "@/lib/mock/profile";
-import type { ProfileMainTab } from "./types";
+// Connections + social links are still mock-only — a different, separate
+// gap from the events lists below (see docs/db/rls-policies.md for the
+// connections queries this would need; not wired up yet).
+import { mockSocialLinks, mockConnectionRequests, mockConnections } from "@/lib/mock/profile";
+import type { EventSummary, ProfileMainTab } from "./types";
 
 interface UserProfilePageProps {
   username: string;
   bio?: string | null;
   avatarUrl?: string;
+  createdEvents: EventSummary[];
+  goingEvents: EventSummary[];
 }
 
-export default function UserProfilePage({ username: initialUsername, bio: initialBio, avatarUrl: initialAvatarUrl }: UserProfilePageProps) {
+export default function UserProfilePage({
+  username: initialUsername,
+  bio: initialBio,
+  avatarUrl: initialAvatarUrl,
+  createdEvents,
+  goingEvents,
+}: UserProfilePageProps) {
   const [mainTab, setMainTab] = useState<ProfileMainTab>("connections");
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -58,13 +63,13 @@ export default function UserProfilePage({ username: initialUsername, bio: initia
             active={mainTab}
             onChange={setMainTab}
             connectionsCount={mockConnections.length + mockConnectionRequests.length}
-            eventsCount={mockGoingEvents.length + mockCreatedEvents.length}
+            eventsCount={goingEvents.length + createdEvents.length}
           />
 
           {mainTab === "connections" ? (
             <ConnectionsPanel requests={mockConnectionRequests} connections={mockConnections} />
           ) : (
-            <EventsPanel going={mockGoingEvents} created={mockCreatedEvents} />
+            <EventsPanel going={goingEvents} created={createdEvents} />
           )}
         </div>
 
