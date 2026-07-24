@@ -5,6 +5,7 @@ import { getPriceLabel } from "@/lib/format/eventCard";
 import EventCardHead from "./EventCardHead";
 import EventCardActions from "./EventCardActions";
 import EventCardBackground from "./EventCardBackground";
+import HostLink from "./HostLink";
 import type { GoingVisibility } from "@/hooks/useGoingAction";
 
 export type EventCardData = {
@@ -67,8 +68,7 @@ export default function EventCard({ event }: EventCardProps) {
             <MapPin className="h-[20px] w-[20px] shrink-0" strokeWidth={2} />
           </div>
           <p className="text-[14px]">
-            Hosted by{" "}
-            <span className="font-bold text-[#FFEA00]">{event.hostUsername}</span>
+            Hosted by <HostLink username={event.hostUsername} />
           </p>
         </div>
 

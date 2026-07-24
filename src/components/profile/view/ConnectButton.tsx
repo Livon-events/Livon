@@ -16,7 +16,7 @@ const LABEL: Record<ConnectionState["status"], string> = {
 };
 
 export default function ConnectButton({ profileUserId, initialState }: ConnectButtonProps) {
-  const { state, error, handleClick } = useConnectAction(profileUserId, initialState);
+  const { state, error, isPending, handleClick } = useConnectAction(profileUserId, initialState);
 
   // Solid yellow for the "make a move" actions (Connect / Accept); an
   // outlined yellow-on-black for the "you're already in a state, tap to
@@ -29,13 +29,16 @@ export default function ConnectButton({ profileUserId, initialState }: ConnectBu
       <button
         type="button"
         onClick={handleClick}
-        className={`font-display text-lg max-[380px]:text-base font-extrabold text-center rounded-xl py-4 max-[380px]:py-3.5 cursor-pointer transition-transform active:scale-[0.97] ${
+        disabled={isPending}
+        className={`font-display text-lg max-[380px]:text-base font-extrabold text-center rounded-xl py-4 max-[380px]:py-3.5 transition-transform active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 ${
+          isPending ? "cursor-wait" : "cursor-pointer"
+        } ${
           isOutline
             ? "bg-black text-[#FFE600] border-[3px] border-[#FFE600]"
             : "bg-[#FFE600] text-black border-[3px] border-transparent"
         }`}
       >
-        {LABEL[state.status]}
+        {isPending ? "…" : LABEL[state.status]}
       </button>
       {error && <p className="mt-1.5 text-xs text-red-400">{error}</p>}
     </div>

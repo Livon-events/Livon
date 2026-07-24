@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { getPriceLabel, getEventDateTimeLabel } from "@/lib/format/eventCard";
 import type { EventDetails } from "@/lib/queries/events";
@@ -48,7 +49,13 @@ export default function EventDetailsCard({ event }: EventDetailsCardProps) {
         </div>
 
         <p className="mt-2 text-xs text-[#d1d5db] sm:mt-2.5 sm:text-sm">
-          Hosted by <span className="font-semibold text-[#FFEA00]">{event.hostUsername}</span>
+          Hosted by{" "}
+          <Link
+            href={`/users/${encodeURIComponent(event.hostUsername)}`}
+            className="font-semibold text-[#FFEA00] hover:underline"
+          >
+            {event.hostUsername}
+          </Link>
         </p>
 
         <div className="mt-5 flex items-center justify-between sm:mt-7">
