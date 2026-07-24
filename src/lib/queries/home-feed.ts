@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import type { GoingVisibility } from "@/lib/mutations/event-interests";
 
 export type HomeFeedCursor = {
   rankScore: number;
@@ -18,6 +19,12 @@ export type HomeFeedEvent = {
   startsAt: string;
   endsAt: string | null;
   peekConnectionsCount: number;
+  // Viewer's own Going state, per docs/FR/going-rsvp-privacy.md — always
+  // false/null for a signed-out viewer. `get_home_feed` itself doesn't
+  // return this (it's a ranking/listing RPC, not viewer-state-aware for
+  // this purpose), so it's merged in afterward from event_interests.
+  isGoing: boolean;
+  myVisibility: GoingVisibility | null;
 };
 
 export type HomeFeedResult = {
@@ -70,6 +77,30 @@ export async function getHomeFeed({
 
   const rows = (data ?? []) as HomeFeedRow[];
 
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
+
+  // event_id -> visibility, for just this page's events and just the
+  // signed-in viewer's own rows (RLS already scopes a plain select on
+  // event_interests to "own rows, or visible rows from connections" — the
+  // .eq("user_id", ...) below just makes the "own rows" intent explicit).
+  let myInterestByEventId = new Map<string, GoingVisibility>();
+  if (viewer && rows.length > 0) {
+    const { data: myInterests } = await supabase
+      .from("event_interests")
+      .select("event_id, visibility")
+      .eq("user_id", viewer.id)
+      .in(
+        "event_id",
+        rows.map((r) => r.id)
+      );
+
+    myInterestByEventId = new Map(
+      (myInterests ?? []).map((row) => [row.event_id, row.visibility as GoingVisibility])
+    );
+  }
+
   const events: HomeFeedEvent[] = rows.map((row) => ({
     id: row.id,
     title: row.title,
@@ -81,6 +112,8 @@ export async function getHomeFeed({
     startsAt: row.starts_at,
     endsAt: row.ends_at,
     peekConnectionsCount: row.peek_connections_count,
+    isGoing: myInterestByEventId.has(row.id),
+    myVisibility: myInterestByEventId.get(row.id) ?? null,
   }));
 
   const lastRow = rows[rows.length - 1];

@@ -32,7 +32,7 @@ export default function EventDetailsPage({ event }: EventDetailsPageProps) {
         />
       </div>
 
-      <EventActionBar eventId={event.id} initialGoing={event.isGoing} />
+      <EventActionBar eventId={event.id} initialGoing={event.isGoing} initialVisibility={event.myVisibility} />
     </main>
   );
 }

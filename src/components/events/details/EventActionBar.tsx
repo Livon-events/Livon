@@ -1,26 +1,25 @@
 "use client";
 
-import { useState } from "react";
 import { Share2 } from "lucide-react";
+import { useGoingAction, type GoingVisibility } from "@/hooks/useGoingAction";
+import GoingPrivacyPopup from "@/components/events/shared/GoingPrivacyPopup";
 
 type EventActionBarProps = {
   eventId: string;
   initialGoing?: boolean;
+  initialVisibility?: GoingVisibility | null;
 };
 
-// "Going" and its privacy popup (Private/Visible on first tap, Change
-// privacy/Not going on re-tap) are fully specced in
-// docs/FR/going-rsvp-privacy.md and not redefined here — this page only
-// covers the button's position/presence, per docs/FR/event-details-page.md.
-// Toggling local state is a placeholder until that flow is wired in.
-export default function EventActionBar({ eventId, initialGoing = false }: EventActionBarProps) {
-  const [going, setGoing] = useState(initialGoing);
-
-  const handleGoingClick = () => {
-    setGoing((prev) => !prev);
-    // TODO: open the Going privacy popup / re-tap menu for `eventId` per
-    // docs/FR/going-rsvp-privacy.md.
-  };
+// Full "Going" flow (privacy popup on first tap, change-privacy/not-going
+// menu on re-tap) per docs/FR/going-rsvp-privacy.md, via the shared
+// useGoingAction hook — also used by EventCardActions on the feed card.
+export default function EventActionBar({
+  eventId,
+  initialGoing = false,
+  initialVisibility = null,
+}: EventActionBarProps) {
+  const { going, popup, handleButtonClick, closePopup, selectChangePrivacy, selectNotGoing, choosePrivacy } =
+    useGoingAction(eventId, initialGoing, initialVisibility);
 
   const handleShareClick = () => {
     // TODO: trigger the invite-link share flow for `eventId` per
@@ -29,10 +28,20 @@ export default function EventActionBar({ eventId, initialGoing = false }: EventA
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 bg-black">
-      <div className="mx-auto flex w-[min(calc(100%-24px),798px)] gap-3 pt-2 sm:w-[min(calc(100%-48px),798px)] sm:gap-4 sm:pt-3">
+      <div className="relative mx-auto flex w-[min(calc(100%-24px),798px)] gap-3 pt-2 sm:w-[min(calc(100%-48px),798px)] sm:gap-4 sm:pt-3">
+        {popup !== "closed" && (
+          <GoingPrivacyPopup
+            mode={popup}
+            onSelectPrivacy={choosePrivacy}
+            onChangePrivacy={selectChangePrivacy}
+            onNotGoing={selectNotGoing}
+            onClose={closePopup}
+          />
+        )}
+
         <button
           type="button"
-          onClick={handleGoingClick}
+          onClick={handleButtonClick}
           data-event-id={eventId}
           className={`min-h-[44px] flex-1 rounded-md text-base font-extrabold transition-transform active:scale-[0.98] sm:min-h-[48px] ${
             going

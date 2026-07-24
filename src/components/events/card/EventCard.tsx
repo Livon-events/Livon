@@ -5,6 +5,7 @@ import { getPriceLabel } from "@/lib/format/eventCard";
 import EventCardHead from "./EventCardHead";
 import EventCardActions from "./EventCardActions";
 import EventCardBackground from "./EventCardBackground";
+import type { GoingVisibility } from "@/hooks/useGoingAction";
 
 export type EventCardData = {
   id: string;
@@ -17,6 +18,8 @@ export type EventCardData = {
   startsAt: string; // ISO timestamp
   endsAt: string | null; // ISO timestamp, or null (8hr fallback applies)
   peekConnectionsCount: number;
+  isGoing: boolean;
+  myVisibility: GoingVisibility | null;
 };
 
 type EventCardProps = {
@@ -69,7 +72,11 @@ export default function EventCard({ event }: EventCardProps) {
           </p>
         </div>
 
-        <EventCardActions eventId={event.id} />
+        <EventCardActions
+          eventId={event.id}
+          initialInterested={event.isGoing}
+          initialVisibility={event.myVisibility}
+        />
       </div>
     </Link>
   );

@@ -1,26 +1,25 @@
 "use client";
 
-import { useState } from "react";
 import { Share2 } from "lucide-react";
+import { useGoingAction, type GoingVisibility } from "@/hooks/useGoingAction";
+import GoingPrivacyPopup from "@/components/events/shared/GoingPrivacyPopup";
 
 type EventCardActionsProps = {
   eventId: string;
   initialInterested?: boolean;
+  initialVisibility?: GoingVisibility | null;
 };
 
+// "Interested" is this card's label for the same Going/RSVP action as the
+// event details page's "Going" button — full privacy-popup flow per
+// docs/FR/going-rsvp-privacy.md, via the shared useGoingAction hook.
 export default function EventCardActions({
   eventId,
   initialInterested = false,
+  initialVisibility = null,
 }: EventCardActionsProps) {
-  const [interested, setInterested] = useState(initialInterested);
-
-  const handleInterestedClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setInterested((prev) => !prev);
-    // TODO: call the toggle-interest mutation for `eventId` here per
-    // docs/fr/going-rsvp-privacy.md.
-  };
+  const { going, popup, handleButtonClick, closePopup, selectChangePrivacy, selectNotGoing, choosePrivacy } =
+    useGoingAction(eventId, initialInterested, initialVisibility);
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -30,13 +29,32 @@ export default function EventCardActions({
   };
 
   return (
-    <div className="m-[5px] flex w-[calc(100%-10px)] flex-row items-center gap-[5px]">
+    // The whole card is a Link (see EventCard.tsx) — stop every click in
+    // here (button taps, popup taps, the popup's own backdrop) from also
+    // triggering a navigation.
+    <div
+      className="relative m-[5px] flex w-[calc(100%-10px)] flex-row items-center gap-[5px]"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    >
+      {popup !== "closed" && (
+        <GoingPrivacyPopup
+          mode={popup}
+          onSelectPrivacy={choosePrivacy}
+          onChangePrivacy={selectChangePrivacy}
+          onNotGoing={selectNotGoing}
+          onClose={closePopup}
+        />
+      )}
+
       <button
         type="button"
-        onClick={handleInterestedClick}
+        onClick={handleButtonClick}
         data-event-id={eventId}
         className={`h-[50px] flex-1 rounded-[6px] border-[3px] text-[1.2rem] font-black transition-all active:scale-[0.96] ${
-          interested
+          going
             ? "border-[#FFEA00] bg-black text-[#FFEA00]"
             : "border-transparent bg-[#FFEA00] text-black"
         }`}

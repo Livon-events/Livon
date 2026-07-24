@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import type { GoingVisibility } from "@/lib/mutations/event-interests";
 
 export type EventDetails = {
   id: string;
@@ -16,6 +17,9 @@ export type EventDetails = {
   status: string;
   peekConnectionsCount: number; // attending_connections_count + host_bonus, per docs/FR/peek.md
   isGoing: boolean;
+  // The viewer's own privacy choice on this event, per
+  // docs/FR/going-rsvp-privacy.md — null whenever isGoing is false.
+  myVisibility: GoingVisibility | null;
 };
 
 type EventRow = {
@@ -76,6 +80,7 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
   } = await supabase.auth.getUser();
 
   let isGoing = false;
+  let myVisibility: GoingVisibility | null = null;
   let peekConnectionsCount = 0;
 
   if (viewer) {
@@ -83,7 +88,7 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
       await Promise.all([
         supabase
           .from("event_interests")
-          .select("event_interest_id")
+          .select("event_interest_id, visibility")
           .eq("event_id", eventId)
           .eq("user_id", viewer.id)
           .maybeSingle(),
@@ -106,6 +111,7 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
       ]);
 
     isGoing = Boolean(myInterest);
+    myVisibility = (myInterest?.visibility as GoingVisibility | undefined) ?? null;
 
     const attendingConnectionsCount = (eventInterests ?? []).filter(
       (row) => row.user_id !== viewer.id
@@ -128,5 +134,6 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
     status: event.status,
     peekConnectionsCount,
     isGoing,
+    myVisibility,
   };
 }
