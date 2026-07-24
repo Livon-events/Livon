@@ -13,6 +13,7 @@ import { SignOutButton } from "../auth/SignOutButton";
 // gap from the events lists below (see docs/db/rls-policies.md for the
 // connections queries this would need; not wired up yet).
 import { mockSocialLinks, mockConnectionRequests, mockConnections } from "@/lib/mock/profile";
+import { markNotGoing } from "@/lib/mutations/event-interests";
 import type { EventSummary, ProfileMainTab } from "./types";
 
 interface UserProfilePageProps {
@@ -28,7 +29,7 @@ export default function UserProfilePage({
   bio: initialBio,
   avatarUrl: initialAvatarUrl,
   createdEvents,
-  goingEvents,
+  goingEvents: initialGoingEvents,
 }: UserProfilePageProps) {
   const [mainTab, setMainTab] = useState<ProfileMainTab>("connections");
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -40,6 +41,26 @@ export default function UserProfilePage({
   const [username, setUsername] = useState(initialUsername);
   const [bio, setBio] = useState(initialBio ?? null);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
+
+  // Local copy so the "leave" (X) button can remove an event from view
+  // immediately after un-marking interest, without waiting on a full
+  // server-component re-fetch. "Created" events don't need this yet — the
+  // wrench/"manage" action isn't wired to anything yet (out of scope for
+  // now, see EventsPanel).
+  const [goingEvents, setGoingEvents] = useState(initialGoingEvents);
+
+  async function handleLeaveEvent(eventId: string) {
+    const previous = goingEvents;
+    // Optimistic removal — same pattern as useGoingAction (the same
+    // underlying action, "Not going", just triggered from the profile
+    // list's X button instead of the event's own Going button).
+    setGoingEvents((events) => events.filter((event) => event.id !== eventId));
+
+    const result = await markNotGoing(eventId);
+    if (!result.ok) {
+      setGoingEvents(previous);
+    }
+  }
 
   return (
     <div className="flex justify-center min-h-screen bg-black px-5 pt-4 pb-16 font-body">
@@ -69,7 +90,7 @@ export default function UserProfilePage({
           {mainTab === "connections" ? (
             <ConnectionsPanel requests={mockConnectionRequests} connections={mockConnections} />
           ) : (
-            <EventsPanel going={goingEvents} created={createdEvents} />
+            <EventsPanel going={goingEvents} created={createdEvents} onLeaveEvent={handleLeaveEvent} />
           )}
         </div>
 
