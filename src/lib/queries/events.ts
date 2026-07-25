@@ -1,6 +1,74 @@
 import { createClient } from "@/lib/supabase/server";
 import type { GoingVisibility } from "@/lib/mutations/event-interests";
 
+export type EventEditData = {
+  id: string;
+  title: string;
+  categoryId: string;
+  startDate: string; // "YYYY-MM-DD"
+  startTime: string; // "HH:MM"
+  venueName: string;
+  description: string;
+  admission: "free" | "paid";
+  price: number | undefined;
+  coverImageUrl: string;
+  status: string;
+};
+
+/**
+ * Fetches an event for the edit form, pre-shaped to match
+ * CreateEventInput's field names. Returns null if the event doesn't exist
+ * OR the caller isn't its organizer — same treatment for both, so
+ * /events/[id]/edit can't be used to probe whether an event id exists.
+ *
+ * `admission`/`price` are derived from the stored `price` column (there's
+ * no separate admission-type column — schema.md just has `price numeric
+ * NOT NULL DEFAULT 0`), matching how the create form treats "Free" as
+ * price = 0.
+ */
+export async function getEventForEdit(
+  eventId: string,
+  userId: string
+): Promise<EventEditData | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("events")
+    .select(
+      "event_id, organizer_id, title, category_id, starts_at, venue_name, description, price, cover_image_url, status"
+    )
+    .eq("event_id", eventId)
+    .maybeSingle();
+
+  if (error || !data || data.organizer_id !== userId) {
+    return null;
+  }
+
+  const startsAt = new Date(data.starts_at);
+  const startDate = startsAt.toISOString().slice(0, 10);
+  const startTime = `${String(startsAt.getUTCHours()).padStart(2, "0")}:${String(
+    startsAt.getUTCMinutes()
+  ).padStart(2, "0")}`;
+
+  // PostgREST returns `numeric` columns as strings — same convention
+  // already used in queries/home-feed.ts.
+  const priceNum = parseFloat(data.price as unknown as string);
+
+  return {
+    id: data.event_id,
+    title: data.title,
+    categoryId: data.category_id,
+    startDate,
+    startTime,
+    venueName: data.venue_name,
+    description: data.description ?? "",
+    admission: priceNum > 0 ? "paid" : "free",
+    price: priceNum > 0 ? priceNum : undefined,
+    coverImageUrl: data.cover_image_url,
+    status: data.status,
+  };
+}
+
 export type EventDetails = {
   id: string;
   title: string;

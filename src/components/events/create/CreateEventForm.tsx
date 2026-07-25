@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, MapPin, Calendar, Clock } from "lucide-react";
-import { createEvent } from "@/lib/mutations/events";
+import { createEvent, updateEvent, cancelEvent } from "@/lib/mutations/events";
 import {
   eventTextFieldsSchema,
   combineStartsAt,
@@ -16,13 +16,28 @@ import {
 } from "@/lib/validation/eventCreation";
 import type { CreateEventCategory } from "@/components/events/create/CreateEventPage";
 
+type Admission = "free" | "paid";
+
+export type EventFormInitialValues = {
+  title: string;
+  categoryId: string;
+  startDate: string;
+  startTime: string;
+  venueName: string;
+  description: string;
+  admission: Admission;
+  price?: number;
+  coverImageUrl: string;
+};
+
 type CreateEventFormProps = {
   categories: CreateEventCategory[];
   locationReady: boolean;
   locationLabel: string | null;
-};
-
-type Admission = "free" | "paid";
+} & (
+  | { mode?: "create"; eventId?: undefined; initialValues?: undefined }
+  | { mode: "edit"; eventId: string; initialValues: EventFormInitialValues }
+);
 
 type FormErrors = Partial<
   Record<"title" | "categoryId" | "startDate" | "startTime" | "venueName" | "description" | "price" | "image" | "form", string>
@@ -74,35 +89,41 @@ const chipActive = "border-[#FFEA00] bg-[#FFEA00] text-black shadow-[0_3px_8px_r
 const inputBase =
   "w-full rounded-[10px] border-2 border-[#262626] bg-black px-4 py-3.5 text-[15px] font-medium text-white outline-none transition focus:border-[#FFEA00] focus:shadow-[0_0_10px_rgba(255,234,0,0.08)]";
 
-export default function CreateEventForm({
-  categories,
-  locationReady,
-  locationLabel,
-}: CreateEventFormProps) {
+export default function CreateEventForm(props: CreateEventFormProps) {
+  const { categories, locationReady, locationLabel } = props;
+  const isEditing = props.mode === "edit";
+  const initialValues = isEditing ? props.initialValues : undefined;
+
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [title, setTitle] = useState("");
-  const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState(todayIso());
-  const [startTime, setStartTime] = useState("18:00");
-  const [venueName, setVenueName] = useState("");
-  const [description, setDescription] = useState("");
-  const [admission, setAdmission] = useState<Admission>("free");
-  const [price, setPrice] = useState("");
+  const [title, setTitle] = useState(initialValues?.title ?? "");
+  const [categoryId, setCategoryId] = useState<string | null>(initialValues?.categoryId ?? null);
+  const [startDate, setStartDate] = useState(initialValues?.startDate ?? todayIso());
+  const [startTime, setStartTime] = useState(initialValues?.startTime ?? "18:00");
+  const [venueName, setVenueName] = useState(initialValues?.venueName ?? "");
+  const [description, setDescription] = useState(initialValues?.description ?? "");
+  const [admission, setAdmission] = useState<Admission>(initialValues?.admission ?? "free");
+  const [price, setPrice] = useState(initialValues?.price ? String(initialValues.price) : "");
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  // In edit mode this starts as the existing remote cover URL; in create
+  // mode it starts null (no photo picked yet). Either way it's just "the
+  // URL to show in the picker" — a freshly-picked file's object URL looks
+  // the same to this state either way.
+  const [coverPreview, setCoverPreview] = useState<string | null>(initialValues?.coverImageUrl ?? null);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
-  const [createdEventId, setCreatedEventId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [savedEventId, setSavedEventId] = useState<string | null>(null);
 
-  // Revoke the object URL whenever it's replaced or the component unmounts,
-  // so previews don't leak memory across several image picks.
+  // Revoke the object URL whenever it's replaced or the component unmounts
+  // — but only if it's actually a blob: URL we created (a freshly-picked
+  // file), never the initial remote cover URL passed in for editing.
   useEffect(() => {
     return () => {
-      if (coverPreview) URL.revokeObjectURL(coverPreview);
+      if (coverPreview?.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
     };
   }, [coverPreview]);
 
@@ -138,7 +159,7 @@ export default function CreateEventForm({
     }
 
     setErrors((prev) => ({ ...prev, image: undefined }));
-    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    if (coverPreview?.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
     setCoverFile(file);
     setCoverPreview(URL.createObjectURL(file));
   }
@@ -173,7 +194,10 @@ export default function CreateEventForm({
       return;
     }
 
-    if (!locationReady) {
+    // The location gate only applies to creating a brand-new event — city/
+    // area are resolved once at creation and never touched again on edit
+    // (see PATCH /api/events/[id]), so there's nothing to re-check here.
+    if (!isEditing && !locationReady) {
       setErrors({
         form: "Select a specific area in the location toggle before posting an event.",
       });
@@ -183,7 +207,7 @@ export default function CreateEventForm({
     setErrors({});
     setSubmitting(true);
 
-    const result = await createEvent({
+    const payload = {
       title: parsed.data.title,
       categoryId: parsed.data.categoryId,
       startDate: parsed.data.startDate,
@@ -193,7 +217,9 @@ export default function CreateEventForm({
       admission: parsed.data.admission,
       price: parsed.data.price,
       coverImage: coverFile,
-    });
+    };
+
+    const result = isEditing ? await updateEvent(props.eventId, payload) : await createEvent(payload);
 
     setSubmitting(false);
 
@@ -202,10 +228,29 @@ export default function CreateEventForm({
       return;
     }
 
-    setCreatedEventId(result.data.id);
+    setSavedEventId(result.data.id);
   }
 
-  if (createdEventId) {
+  async function handleCancelEvent() {
+    if (!isEditing || cancelling) return;
+    const confirmed = window.confirm(
+      "Cancel this event? Everyone who's marked interest will still see it as cancelled — this can't be undone."
+    );
+    if (!confirmed) return;
+
+    setCancelling(true);
+    const result = await cancelEvent(props.eventId);
+    setCancelling(false);
+
+    if (!result.ok) {
+      setErrors({ form: result.error });
+      return;
+    }
+
+    router.push("/profile");
+  }
+
+  if (savedEventId) {
     return (
       <div className="flex min-h-[70vh] flex-col items-center justify-center gap-5 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#FFEA00]">
@@ -220,16 +265,18 @@ export default function CreateEventForm({
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-extrabold">Event Published!</h2>
+        <h2 className="text-2xl font-extrabold">{isEditing ? "Changes Saved!" : "Event Published!"}</h2>
         <p className="max-w-xs text-sm text-[#8e8e8e]">
-          Your event is now live{locationLabel ? ` and visible to everyone in ${locationLabel}` : ""}.
+          {isEditing
+            ? "Your changes are live."
+            : `Your event is now live${locationLabel ? ` and visible to everyone in ${locationLabel}` : ""}.`}
         </p>
         <button
           type="button"
-          onClick={() => router.push(`/events/${createdEventId}`)}
+          onClick={() => router.push(`/events/${savedEventId}`)}
           className="h-[52px] w-full max-w-xs rounded-[10px] bg-[#FFEA00] text-base font-extrabold text-black shadow-[0_4px_12px_rgba(255,234,0,0.15)] transition active:scale-[0.97]"
         >
-          Awesome
+          {isEditing ? "View Event" : "Awesome"}
         </button>
       </div>
     );
@@ -237,7 +284,7 @@ export default function CreateEventForm({
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-5">
-      {!locationReady && (
+      {!isEditing && !locationReady && (
         <p className="rounded-[10px] border border-[#ff453a]/40 bg-[#ff453a]/10 px-4 py-3 text-sm font-medium text-[#ff453a]">
           Select a specific area in the location toggle before posting an event.
         </p>
@@ -469,14 +516,25 @@ export default function CreateEventForm({
         {errors.description && <p className="text-xs font-semibold text-[#ff453a]">{errors.description}</p>}
       </div>
 
-      <div className="pb-6 pt-2">
+      <div className="flex flex-col gap-3 pb-6 pt-2">
         <button
           type="submit"
-          disabled={submitting || !locationReady}
+          disabled={submitting || (!isEditing && !locationReady)}
           className="h-[52px] w-full rounded-[10px] bg-[#FFEA00] text-base font-extrabold text-black shadow-[0_4px_12px_rgba(255,234,0,0.15)] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {submitting ? "Publishing…" : "Publish Event"}
+          {submitting ? (isEditing ? "Saving…" : "Publishing…") : isEditing ? "Save Changes" : "Publish Event"}
         </button>
+
+        {isEditing && (
+          <button
+            type="button"
+            onClick={handleCancelEvent}
+            disabled={cancelling}
+            className="h-[48px] w-full rounded-[10px] border-2 border-[#ff453a] text-base font-extrabold text-[#ff453a] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {cancelling ? "Cancelling…" : "Cancel Event"}
+          </button>
+        )}
       </div>
     </form>
   );

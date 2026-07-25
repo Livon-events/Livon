@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import ProfileHeader from "./ProfileHeader";
 import BioSection from "./BioSection";
 import LinksSection from "./LinksSection";
@@ -31,6 +32,7 @@ export default function UserProfilePage({
   createdEvents,
   goingEvents: initialGoingEvents,
 }: UserProfilePageProps) {
+  const router = useRouter();
   const [mainTab, setMainTab] = useState<ProfileMainTab>("connections");
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -44,9 +46,7 @@ export default function UserProfilePage({
 
   // Local copy so the "leave" (X) button can remove an event from view
   // immediately after un-marking interest, without waiting on a full
-  // server-component re-fetch. "Created" events don't need this yet — the
-  // wrench/"manage" action isn't wired to anything yet (out of scope for
-  // now, see EventsPanel).
+  // server-component re-fetch.
   const [goingEvents, setGoingEvents] = useState(initialGoingEvents);
 
   async function handleLeaveEvent(eventId: string) {
@@ -60,6 +60,14 @@ export default function UserProfilePage({
     if (!result.ok) {
       setGoingEvents(previous);
     }
+  }
+
+  function handleManageEvent(eventId: string) {
+    // The wrench action opens the same create-event form in edit mode
+    // (src/app/events/[id]/edit) rather than a separate management
+    // screen — includes both editing the event's details and cancelling
+    // it (see the Cancel Event button on that page).
+    router.push(`/events/${eventId}/edit`);
   }
 
   return (
@@ -90,7 +98,12 @@ export default function UserProfilePage({
           {mainTab === "connections" ? (
             <ConnectionsPanel requests={mockConnectionRequests} connections={mockConnections} />
           ) : (
-            <EventsPanel going={goingEvents} created={createdEvents} onLeaveEvent={handleLeaveEvent} />
+            <EventsPanel
+              going={goingEvents}
+              created={createdEvents}
+              onLeaveEvent={handleLeaveEvent}
+              onManageEvent={handleManageEvent}
+            />
           )}
         </div>
 
