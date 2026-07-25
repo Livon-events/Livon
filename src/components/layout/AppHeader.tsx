@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { useLocationPicker, type LocationArea } from "@/hooks/useLocationPicker";
+import { useHeaderSearch } from "@/hooks/useHeaderSearch";
 
 
 type AppHeaderProps = {
@@ -24,45 +26,99 @@ export default function AppHeader({
   const { sheetOpen, selectedArea, areas: pickerAreas, openSheet, closeSheet, selectArea } =
     useLocationPicker({ userId, cityId, areas, initialAreaId, hasAccountPreference });
 
+  const {
+    active: searchActive,
+    query,
+    open: openSearch,
+    close: closeSearch,
+    handleChange: handleSearchChange,
+  } = useHeaderSearch();
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus the input the moment it mounts (i.e. the instant search opens),
+  // rather than requiring a second tap.
+  useEffect(() => {
+    if (searchActive) searchInputRef.current?.focus();
+  }, [searchActive]);
+
   return (
     <>
       <header className="fixed left-0 right-0 top-0 z-[100] border-b-[3.5px] border-[#FFEA00] bg-black px-2.5 py-3">
         <div className="flex w-full items-center justify-between gap-3">
-          {/* Logo */}
-          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg">
-            <svg viewBox="0 0 100 100" className="block h-full w-full">
-              <rect width="100" height="100" rx="12" fill="white" />
-              <ellipse cx="40" cy="50" rx="14" ry="24" transform="rotate(-30 40 50)" stroke="black" strokeWidth="5" fill="none" />
-              <ellipse cx="60" cy="50" rx="14" ry="24" transform="rotate(-30 60 50)" stroke="black" strokeWidth="5" fill="none" />
-              <path d="M 43 27 A 14 24 0 0 1 52 35" stroke="white" strokeWidth="6" fill="none" transform="rotate(-30 40 50)" />
-              <ellipse cx="40" cy="50" rx="14" ry="24" transform="rotate(-30 40 50)" stroke="black" strokeWidth="5" fill="none" />
-            </svg>
+          {!searchActive && (
+            <>
+              {/* Logo */}
+              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg">
+                <svg viewBox="0 0 100 100" className="block h-full w-full">
+                  <rect width="100" height="100" rx="12" fill="white" />
+                  <ellipse cx="40" cy="50" rx="14" ry="24" transform="rotate(-30 40 50)" stroke="black" strokeWidth="5" fill="none" />
+                  <ellipse cx="60" cy="50" rx="14" ry="24" transform="rotate(-30 60 50)" stroke="black" strokeWidth="5" fill="none" />
+                  <path d="M 43 27 A 14 24 0 0 1 52 35" stroke="white" strokeWidth="6" fill="none" transform="rotate(-30 40 50)" />
+                  <ellipse cx="40" cy="50" rx="14" ry="24" transform="rotate(-30 40 50)" stroke="black" strokeWidth="5" fill="none" />
+                </svg>
+              </div>
+
+              {/* Location filter trigger */}
+              <button
+                type="button"
+                onClick={openSheet}
+                className="flex flex-grow select-none flex-col items-start justify-center text-left"
+              >
+                <span className="text-[21px] font-bold leading-[1.15] tracking-[-0.3px] text-white underline decoration-2 underline-offset-[3px]">
+                  {cityName}
+                </span>
+                <span className="mt-0.5 text-[13.5px] font-medium tracking-[-0.1px] text-[#a1a1a6]">
+                  {selectedArea.name}
+                </span>
+              </button>
+            </>
+          )}
+
+          {/* Search — a single capsule that's either the "Search" trigger
+              button (collapsed) or the actual text input (expanded).
+              There is no second search bar anywhere else; /search itself
+              is a pure results view now. */}
+          <div
+            className={`flex h-10 shrink-0 select-none items-center gap-2.5 rounded-full border-2 border-white pl-1 pr-1 transition-all ${
+              searchActive ? "w-full" : "pl-4"
+            }`}
+          >
+            {searchActive ? (
+              <>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
+                  <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
+                </span>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="Search events and people"
+                  className="min-w-0 flex-1 bg-transparent text-[15px] font-medium text-white placeholder:text-[#a1a1a6] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={closeSearch}
+                  aria-label="Close search"
+                  className="shrink-0 px-2 text-white"
+                >
+                  <X className="h-[18px] w-[18px]" />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={openSearch}
+                className="flex w-full items-center justify-between gap-2.5 py-0 pr-1 transition-transform active:scale-95"
+              >
+                <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
+                  <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
+                </span>
+              </button>
+            )}
           </div>
-
-          {/* Location filter trigger */}
-          <button
-            type="button"
-            onClick={openSheet}
-            className="flex flex-grow select-none flex-col items-start justify-center text-left"
-          >
-            <span className="text-[21px] font-bold leading-[1.15] tracking-[-0.3px] text-white underline decoration-2 underline-offset-[3px]">
-              {cityName}
-            </span>
-            <span className="mt-0.5 text-[13.5px] font-medium tracking-[-0.1px] text-[#a1a1a6]">
-              {selectedArea.name}
-            </span>
-          </button>
-
-          {/* Search capsule */}
-          <button
-            type="button"
-            className="flex h-10 shrink-0 select-none items-center justify-between gap-2.5 rounded-full border-2 border-white py-0 pl-4 pr-1 transition-transform active:scale-95 active:bg-white/10"
-          >
-            <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
-              <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
-            </span>
-          </button>
         </div>
       </header>
 

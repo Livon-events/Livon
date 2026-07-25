@@ -10,6 +10,11 @@ interface PublicProfilePageProps {
   connectionsCount: number;
   connectionState: ConnectionState;
   featuredEvents: FeaturedEvent[];
+  // Anon visitors can view this page as of docs/FR/search.md, but can't
+  // send connection requests (connections RLS is unchanged) — passed
+  // down so ConnectButton can show a sign-in prompt instead of a Connect
+  // button that would just fail silently.
+  isViewerSignedIn: boolean;
 }
 
 // Discovery-oriented view of another user, per
@@ -22,6 +27,7 @@ export default function PublicProfilePage({
   connectionsCount,
   connectionState,
   featuredEvents,
+  isViewerSignedIn,
 }: PublicProfilePageProps) {
   return (
     <div className="flex justify-center min-h-screen bg-black px-5 pt-4 pb-16 font-body">
@@ -37,7 +43,11 @@ export default function PublicProfilePage({
         <hr className="border-none h-0.5 bg-[#FFE600] w-full mb-6" />
 
         <div className="flex gap-4 mb-7">
-          <ConnectButton profileUserId={profile.userId} initialState={connectionState} />
+          <ConnectButton
+            profileUserId={profile.userId}
+            initialState={connectionState}
+            isViewerSignedIn={isViewerSignedIn}
+          />
           <PublicLinksButton
             tiktokUrl={profile.tiktokUrl}
             instagramUrl={profile.instagramUrl}

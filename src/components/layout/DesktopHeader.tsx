@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, X, Home, User, Plus } from "lucide-react";
 import { useLocationPicker, type LocationArea } from "@/hooks/useLocationPicker";
-
+import { useHeaderSearch } from "@/hooks/useHeaderSearch";
 
 type DesktopHeaderProps = {
   userId: string | null;
@@ -26,6 +27,20 @@ export default function DesktopHeader({
   const pathname = usePathname();
   const { sheetOpen, selectedArea, areas: pickerAreas, openSheet, closeSheet, selectArea } =
     useLocationPicker({ userId, cityId, areas, initialAreaId, hasAccountPreference });
+
+  const {
+    active: searchActive,
+    query,
+    open: openSearch,
+    close: closeSearch,
+    handleChange: handleSearchChange,
+  } = useHeaderSearch();
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchActive) searchInputRef.current?.focus();
+  }, [searchActive]);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname?.startsWith(href);
@@ -60,16 +75,48 @@ export default function DesktopHeader({
             </button>
           </div>
 
-          {/* Center: wide search capsule */}
-          <button
-            type="button"
-            className="flex h-[42px] w-full max-w-[798px] shrink items-center justify-between gap-2.5 rounded-full border-2 border-white py-0 pl-5 pr-1 transition-all hover:bg-white/[0.04] active:scale-[0.995] active:bg-white/[0.08]"
+          {/* Center: search — single capsule, collapsed trigger or
+              expanded input. No second search bar on /search itself. */}
+          <div
+            className={`flex h-[42px] w-full max-w-[798px] shrink items-center gap-2.5 rounded-full border-2 border-white pl-1 pr-1 transition-all ${
+              searchActive ? "" : "pl-5"
+            }`}
           >
-            <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
-              <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
-            </span>
-          </button>
+            {searchActive ? (
+              <>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
+                  <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
+                </span>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="Search events and people"
+                  className="min-w-0 flex-1 bg-transparent text-[15px] font-medium text-white placeholder:text-[#a1a1a6] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={closeSearch}
+                  aria-label="Close search"
+                  className="shrink-0 px-2 text-white"
+                >
+                  <X className="h-[18px] w-[18px]" />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={openSearch}
+                className="flex w-full items-center justify-between gap-2.5 py-0 pr-1 transition-all hover:bg-white/[0.04] active:scale-[0.995]"
+              >
+                <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
+                  <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
+                </span>
+              </button>
+            )}
+          </div>
 
           {/* Right: nav links */}
           <nav className="shrink-0">

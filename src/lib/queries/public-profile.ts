@@ -12,10 +12,13 @@ import { getCountdownLabel } from "@/lib/format/eventCard";
  * matching what the reference mockup actually shows, not the fuller
  * Connections/Events-tabs spec in docs/FR/user-profile-fr.md.
  *
- * Every query here assumes an authenticated caller. RLS on `users` has no
- * `anon` SELECT policy at all (see docs/db/rls-policies.md), so an
- * anonymous visitor can't read *any* profile — the page route redirects to
- * /login before any of these run.
+ * `getPublicProfile` is reachable by anonymous callers too, per
+ * docs/FR/search.md — it goes through `get_public_profile`, a
+ * SECURITY DEFINER function, rather than a direct `users` table select,
+ * since `users` itself still has no `anon` SELECT policy at all (see
+ * docs/db/rls-policies.md). Only public-safe fields are exposed (never
+ * email). `getConnectionState` still requires a real viewer id and is
+ * skipped entirely by the page route for anonymous visitors.
  */
 
 export type PublicProfile = {
@@ -43,9 +46,7 @@ export async function getPublicProfile(userId: string): Promise<PublicProfile | 
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from("users")
-    .select("user_id, username, bio, avatar_url, tiktok_url, instagram_url, facebook_url")
-    .eq("user_id", userId)
+    .rpc("get_public_profile", { p_user_id: userId })
     .maybeSingle<PublicProfileRow>();
 
   if (error || !data) {

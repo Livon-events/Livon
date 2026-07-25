@@ -23,20 +23,19 @@ export default async function ProfileByIdPage({ params }: ProfileByIdPageProps) 
     data: { user: viewer },
   } = await supabase.auth.getUser();
 
-  // `users` RLS has no `anon` SELECT policy at all (docs/db/rls-policies.md)
-  // — every query below would just come back empty for a logged-out
-  // visitor, so redirect straight to login rather than rendering a broken
-  // page.
-  if (!viewer) {
-    redirect(`/login?next=/profile/${userId}`);
-  }
-
-  // Viewing your own id here — send back to the real own-profile page
-  // (edit surface, Created/Going tabs) instead of the read-only view.
-  if (viewer.id === userId) {
+  // Viewing your own id here while signed in — send back to the real
+  // own-profile page (edit surface, Created/Going tabs) instead of the
+  // read-only view.
+  if (viewer && viewer.id === userId) {
     redirect("/profile");
   }
 
+  // As of docs/FR/search.md, this page no longer redirects anonymous
+  // visitors to /login. `getPublicProfile` now goes through a
+  // SECURITY DEFINER function (`get_public_profile`) that's a deliberate,
+  // narrow exception to `users`' anon-closed RLS — see
+  // docs/db/rls-policies.md and the updated header comment in
+  // lib/queries/public-profile.ts.
   const profile = await getPublicProfile(userId);
   if (!profile) {
     notFound();
@@ -44,7 +43,10 @@ export default async function ProfileByIdPage({ params }: ProfileByIdPageProps) 
 
   const [connectionsCount, connectionState, featuredEvents] = await Promise.all([
     getPublicConnectionsCount(userId),
-    getConnectionState(viewer.id, userId),
+    // getConnectionState needs a real viewer id — for an anonymous
+    // visitor there's no relationship to resolve, so it's skipped
+    // entirely rather than called with a placeholder id.
+    viewer ? getConnectionState(viewer.id, userId) : Promise.resolve({ status: "none" as const }),
     getPublicUpcomingHostedEvents(userId),
   ]);
 
@@ -54,6 +56,7 @@ export default async function ProfileByIdPage({ params }: ProfileByIdPageProps) 
       connectionsCount={connectionsCount}
       connectionState={connectionState}
       featuredEvents={featuredEvents}
+      isViewerSignedIn={!!viewer}
     />
   );
 }
