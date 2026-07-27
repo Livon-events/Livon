@@ -1,8 +1,8 @@
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getCategories } from "@/lib/queries/categories";
-import { getEventForEdit } from "@/lib/queries/events";
-import CreateEventPage from "@/components/events/create/CreateEventPage";
+import { createClient } from "@/shared/supabase/server";
+import { getCategories } from "@/modules/categories/queries";
+import { getEventForEdit } from "@/modules/events/queries";
+import { CreateEventPage } from "@/modules/events";
 
 type EditEventRouteProps = {
   params: Promise<{ id: string }>;

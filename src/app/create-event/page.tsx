@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getCategories } from "@/lib/queries/categories";
-import { getOrganizerLocationContext } from "@/lib/queries/users";
-import CreateEventPage from "@/components/events/create/CreateEventPage";
+import { createClient } from "@/shared/supabase/server";
+import { getCategories } from "@/modules/categories/queries";
+import { getOrganizerLocationContext } from "@/modules/users/queries";
+import { CreateEventPage } from "@/modules/events";
 
 export default async function CreateEventRoute() {
   const supabase = await createClient();

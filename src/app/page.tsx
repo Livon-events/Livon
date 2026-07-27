@@ -1,7 +1,7 @@
-import EventCardGrid from "@/components/events/card/EventCardGrid";
-import CategoryFilterBar from "@/components/events/CategoryFilterBar";
-import { getHomeFeed } from "@/lib/queries/home-feed";
-import { getCategories } from "@/lib/queries/categories";
+import { EventCardGrid } from "@/modules/events";
+import { CategoryFilterBar } from "@/modules/feed";
+import { getHomeFeed } from "@/modules/feed/queries";
+import { getCategories } from "@/modules/categories/queries";
 
 type HomeProps = {
   searchParams: Promise<{ category?: string }>;

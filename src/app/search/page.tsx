@@ -1,5 +1,5 @@
-import { searchEvents, searchPeople } from "@/lib/queries/search";
-import SearchResults from "@/components/search/SearchResults";
+import { searchEvents, searchPeople } from "@/modules/search/queries";
+import { SearchResults } from "@/modules/search";
 
 type SearchPageProps = {
   searchParams: Promise<{ q?: string }>;

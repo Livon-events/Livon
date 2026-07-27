@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getProfileCreatedEvents, getProfileGoingEvents } from "@/lib/queries/profile-events";
-import UserProfilePage from "@/components/profile/UserProfilePage";
+import { createClient } from "@/shared/supabase/server";
+import { getOwnProfileBasics } from "@/modules/users/queries";
+import { getEventsOrganizedBy, getEventsUserIsGoingTo } from "@/modules/events/queries";
+import { getConnectionRequests, getConnections } from "@/modules/connections/queries";
+import { UserProfilePage } from "@/modules/users";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -14,24 +16,23 @@ export default async function ProfilePage() {
     redirect("/login?next=/profile");
   }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("username, bio, avatar_url")
-    .eq("user_id", user.id)
-    .single();
-
-  const [createdEvents, goingEvents] = await Promise.all([
-    getProfileCreatedEvents(user.id),
-    getProfileGoingEvents(user.id),
+  const [profile, createdEvents, goingEvents, connectionRequests, connections] = await Promise.all([
+    getOwnProfileBasics(user.id),
+    getEventsOrganizedBy(user.id),
+    getEventsUserIsGoingTo(user.id),
+    getConnectionRequests(user.id),
+    getConnections(user.id),
   ]);
 
   return (
     <UserProfilePage
       username={profile?.username ?? user.email ?? "User"}
       bio={profile?.bio ?? null}
-      avatarUrl={profile?.avatar_url ?? undefined}
+      avatarUrl={profile?.avatarUrl ?? undefined}
       createdEvents={createdEvents}
       goingEvents={goingEvents}
+      connectionRequests={connectionRequests}
+      connections={connections}
     />
   );
 }

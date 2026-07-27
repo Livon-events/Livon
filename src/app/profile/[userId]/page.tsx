@@ -1,12 +1,9 @@
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import {
-  getPublicProfile,
-  getPublicConnectionsCount,
-  getConnectionState,
-  getPublicUpcomingHostedEvents,
-} from "@/lib/queries/public-profile";
-import PublicProfilePage from "@/components/profile/view/PublicProfilePage";
+import { createClient } from "@/shared/supabase/server";
+import { getPublicProfile } from "@/modules/users/queries";
+import { getConnectionsCountFor, getConnectionStateBetween } from "@/modules/connections/queries";
+import { getUpcomingActiveEventsOrganizedBy } from "@/modules/events/queries";
+import { PublicProfilePage } from "@/modules/users";
 
 type ProfileByIdPageProps = {
   params: Promise<{ userId: string }>;
@@ -42,12 +39,14 @@ export default async function ProfileByIdPage({ params }: ProfileByIdPageProps) 
   }
 
   const [connectionsCount, connectionState, featuredEvents] = await Promise.all([
-    getPublicConnectionsCount(userId),
-    // getConnectionState needs a real viewer id — for an anonymous
+    getConnectionsCountFor(userId),
+    // getConnectionStateBetween needs a real viewer id — for an anonymous
     // visitor there's no relationship to resolve, so it's skipped
     // entirely rather than called with a placeholder id.
-    viewer ? getConnectionState(viewer.id, userId) : Promise.resolve({ status: "none" as const }),
-    getPublicUpcomingHostedEvents(userId),
+    viewer
+      ? getConnectionStateBetween(viewer.id, userId)
+      : Promise.resolve({ status: "none" as const }),
+    getUpcomingActiveEventsOrganizedBy(userId),
   ]);
 
   return (

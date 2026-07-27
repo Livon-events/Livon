@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
-import { LoginForm } from "@/components/auth/LoginForm";
+import { GoogleSignInButton } from "@/modules/auth";
+import { LoginForm } from "@/modules/auth";
 
 type LoginPageProps = {
   searchParams: Promise<{ next?: string }>;

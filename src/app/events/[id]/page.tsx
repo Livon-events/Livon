@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import EventDetailsPage from "@/components/events/details/EventDetailsPage";
-import { getEventDetails } from "@/lib/queries/events";
+import { EventDetailsPage } from "@/modules/events";
+import { getEventDetails } from "@/modules/events/queries";
 
 type EventPageProps = {
   params: Promise<{ id: string }>;
