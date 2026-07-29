@@ -25,9 +25,10 @@ export type EventCardData = {
 
 type EventCardProps = {
   event: EventCardData;
+  priority?: boolean;
 };
 
-export default function EventCard({ event }: EventCardProps) {
+export default function EventCard({ event, priority = false }: EventCardProps) {
   return (
     <Link
       href={`/events/${event.id}`}
@@ -52,6 +53,7 @@ export default function EventCard({ event }: EventCardProps) {
               fill
               sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
               className="object-cover"
+              priority={priority}
             />
           )}
         </div>
