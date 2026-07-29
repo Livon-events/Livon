@@ -23,7 +23,7 @@ export default function ConnectionRow({
       <div className="flex flex-col gap-3 bg-[#17181A] rounded-2xl px-3 py-3">
         <div className="flex items-center gap-3.5">
           <div
-            className="w-11 h-11 rounded-full bg-[#d11a8c] flex-shrink-0 bg-cover bg-center"
+            className="w-11 h-11 rounded-full bg-[#3A3A3C] flex-shrink-0 bg-cover bg-center"
             style={connection.avatarUrl ? { backgroundImage: `url(${connection.avatarUrl})` } : undefined}
           />
           <div className="flex-1 min-w-0">
@@ -53,7 +53,7 @@ export default function ConnectionRow({
   return (
     <div className="flex items-center gap-3.5 bg-[#17181A] rounded-2xl px-3 py-2.5">
       <div
-        className="w-11 h-11 rounded-full bg-[#d11a8c] flex-shrink-0 bg-cover bg-center"
+        className="w-11 h-11 rounded-full bg-[#3A3A3C] flex-shrink-0 bg-cover bg-center"
         style={connection.avatarUrl ? { backgroundImage: `url(${connection.avatarUrl})` } : undefined}
       />
       <div className="flex-1 min-w-0">

@@ -19,7 +19,7 @@ export default function EventDetailsCard({ event }: EventDetailsCardProps) {
       {/* Poster — 4px gap from the card border on all sides, matching the
           mockup's .poster-wrap/.poster treatment. */}
       <div className="bg-black p-1">
-        <div className="relative aspect-[16/7] min-h-[180px] w-full overflow-hidden rounded-md bg-[#CC00AA] sm:min-h-[220px]">
+        <div className="relative aspect-[16/7] min-h-[180px] w-full overflow-hidden rounded-md bg-[#3A3A3C] sm:min-h-[220px]">
           {event.coverImageUrl && (
             <Image
               src={event.coverImageUrl}

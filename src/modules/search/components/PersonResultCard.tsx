@@ -15,7 +15,7 @@ export default function PersonResultCard({ person }: PersonResultCardProps) {
       className="flex items-center gap-3 rounded-xl bg-[#161616] p-2.5 transition-colors active:bg-[#1e1e1e]"
     >
       <div
-        className="h-12 w-12 shrink-0 rounded-full bg-[#d11a8c] bg-cover bg-center"
+        className="h-12 w-12 shrink-0 rounded-full bg-[#3A3A3C] bg-cover bg-center"
         style={person.avatarUrl ? { backgroundImage: `url(${person.avatarUrl})` } : undefined}
       />
       <div className="min-w-0 flex-1">

@@ -16,7 +16,7 @@ export default function EventResultCard({ event }: EventResultCardProps) {
       href={`/events/${event.id}`}
       className="flex items-center gap-3 rounded-xl bg-[#161616] p-2.5 transition-colors active:bg-[#1e1e1e]"
     >
-      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-[#CC00AA]">
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-[#3A3A3C]">
         {event.coverImageUrl && (
           <Image
             src={event.coverImageUrl}

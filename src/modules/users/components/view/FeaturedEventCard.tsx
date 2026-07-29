@@ -15,7 +15,7 @@ export default function FeaturedEventCard({ event }: FeaturedEventCardProps) {
       href={`/events/${event.id}`}
       className="flex items-center gap-4 rounded-2xl border-[3px] border-white p-1.5 transition-colors hover:border-[#FFE600]"
     >
-      <div className="relative h-[74px] w-[74px] shrink-0 overflow-hidden rounded-[10px] bg-[#d11a8c]">
+      <div className="relative h-[74px] w-[74px] shrink-0 overflow-hidden rounded-[10px] bg-[#3A3A3C]">
         {event.coverImageUrl && (
           <Image
             src={event.coverImageUrl}

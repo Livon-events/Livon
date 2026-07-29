@@ -45,7 +45,7 @@ export default function EventCard({ event, priority = false }: EventCardProps) {
       />
 
       <div className="relative z-10 m-[3px] mt-[5px] flex flex-1 flex-col overflow-hidden rounded-[10px] bg-black">
-        <div className="relative m-[4px] aspect-[1200/630] w-[calc(100%-8px)] shrink-0 overflow-hidden rounded-[9px] bg-[#CC00AA]">
+        <div className="relative m-[4px] aspect-[1200/630] w-[calc(100%-8px)] shrink-0 overflow-hidden rounded-[9px] bg-[#3A3A3C]">
           {event.coverImageUrl && (
             <Image
               src={event.coverImageUrl}

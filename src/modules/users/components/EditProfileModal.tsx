@@ -142,7 +142,7 @@ export default function EditProfileModal({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={pending}
-              className="relative w-24 h-24 rounded-full bg-[#d11a8c] bg-cover bg-center flex-shrink-0 disabled:opacity-60"
+              className="relative w-24 h-24 rounded-full bg-[#3A3A3C] bg-cover bg-center flex-shrink-0 disabled:opacity-60"
               style={avatarPreview ? { backgroundImage: `url(${avatarPreview})` } : undefined}
               aria-label="Change profile picture"
             >

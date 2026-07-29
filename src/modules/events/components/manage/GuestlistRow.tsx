@@ -18,9 +18,9 @@ export default function GuestlistRow({ attendee }: GuestlistRowProps) {
     <div className="flex items-center justify-between py-2.5">
       {/* Left: Avatar + Handle */}
       <div className="flex items-center gap-3.5 min-w-0">
-        {/* Magenta Avatar Circle */}
+        {/* Gray placeholder shown until the attendee's avatar image loads */}
         <div
-          className="w-10 h-10 rounded-full bg-[#D91B96] shrink-0 bg-cover bg-center"
+          className="w-10 h-10 rounded-full bg-[#3A3A3C] shrink-0 bg-cover bg-center"
           style={
             attendee.avatarUrl
               ? { backgroundImage: `url(${attendee.avatarUrl})` }
