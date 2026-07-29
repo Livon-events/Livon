@@ -84,3 +84,14 @@ export function getProfileEventDateLabel(startsAt: Date): string {
   const month = startsAt.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
   return `${weekday}, ${day} ${month}`;
 }
+
+/**
+ * Event management date label: "Dec 25, 2026" — Month DD, YYYY.
+ * Matches the Event Management mockup layout.
+ */
+export function getEventManagementDateLabel(startsAt: Date): string {
+  const month = startsAt.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  const day = startsAt.getUTCDate();
+  const year = startsAt.getUTCFullYear();
+  return `${month} ${day}, ${year}`;
+}

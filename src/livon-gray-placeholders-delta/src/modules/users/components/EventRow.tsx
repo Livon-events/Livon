@@ -21,7 +21,7 @@ export default function EventRow({ event, actionLabel, onAction }: EventRowProps
         className="flex flex-1 min-w-0 items-center gap-3.5"
       >
         <div
-          className="w-14 h-14 rounded-xl bg-[#d11a8c] flex-shrink-0 bg-cover bg-center"
+          className="w-14 h-14 rounded-xl bg-[#3A3A3C] flex-shrink-0 bg-cover bg-center"
           style={event.imageUrl ? { backgroundImage: `url(${event.imageUrl})` } : undefined}
         />
         <div className="flex-1 min-w-0">

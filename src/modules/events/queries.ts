@@ -9,13 +9,14 @@ import {
   getConnectionsAttendingList,
 } from "@/modules/rsvp/queries";
 import { isConnectedTo } from "@/modules/connections/queries";
-import { getProfileEventDateLabel, getCountdownLabel } from "@/modules/events/format";
+import { getProfileEventDateLabel, getEventManagementDateLabel, getCountdownLabel } from "@/modules/events/format";
 import type {
   EventSummary,
   FeaturedEvent,
   EventEditData,
   EventDetails,
   PeekPageData,
+  EventManagementData,
 } from "@/modules/events/types";
 
 export type { EventEditData, EventDetails, PeekPageData };
@@ -351,3 +352,91 @@ export async function getUpcomingActiveEventsOrganizedBy(userId: string): Promis
       };
     });
 }
+
+type EventManagementDataRow = {
+  event_id: string;
+  organizer_id: string;
+  venue_name: string;
+  starts_at: string;
+  area_name: string | null;
+  attending_count: number;
+  shares_count: number;
+  attendees: Array<{
+    user_id: string;
+    username: string | null;
+    avatar_url: string | null;
+    instagram_url: string | null;
+    facebook_url: string | null;
+    tiktok_url: string | null;
+  }>;
+};
+
+/**
+ * Fetches management data for an event in a single round trip, via the
+ * `get_event_management_data` SECURITY DEFINER function (see
+ * docs/db/functions.md). Returns null if the event does not exist OR the
+ * caller isn't its organizer — the function checks `organizer_id =
+ * auth.uid()` internally and returns null itself in either case, so this
+ * one RPC call replaces what used to be an `events` select (to resolve
+ * organizer/venue/date) followed by three further calls
+ * (`event_going_count`, `get_event_share_count`, `get_event_guestlist`).
+ *
+ * Consolidating them isn't just fewer requests for its own sake: the old
+ * shape needed the `events` select to resolve first before the other
+ * three could even be issued (their inputs didn't depend on it, but the
+ * null/not-organizer check gating the whole page did), so it was two
+ * sequential round trips no matter how parallel the second batch was.
+ * This function does the same underlying work (guestlist join, two
+ * counts) in one query — each count/subquery still runs once, not once
+ * per guestlist row, so cost doesn't increase with attendee count.
+ */
+export async function getEventManagementData(
+  eventId: string,
+  userId: string
+): Promise<EventManagementData | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .rpc("get_event_management_data", { p_event_id: eventId })
+    .maybeSingle<EventManagementDataRow>();
+
+  if (error) {
+    throw new Error(`getEventManagementData failed: ${error.message}`);
+  }
+
+  // The function already scopes to organizer_id = auth.uid() internally,
+  // so this should always hold — but userId is checked explicitly here too
+  // as defense in depth against a stale/mismatched session being passed in.
+  if (!data || data.organizer_id !== userId) {
+    return null;
+  }
+
+  const startsAt = new Date(data.starts_at);
+  const dateLabel = getEventManagementDateLabel(startsAt);
+
+  const attendees = data.attendees.map((row) => {
+    const socials: Array<"instagram" | "facebook" | "tiktok"> = [];
+    if (row.instagram_url) socials.push("instagram");
+    if (row.facebook_url) socials.push("facebook");
+    if (row.tiktok_url) socials.push("tiktok");
+
+    return {
+      id: row.user_id,
+      handle: row.username ? `@${row.username}` : "@user",
+      avatarUrl: row.avatar_url ?? undefined,
+      socials,
+    };
+  });
+
+  return {
+    eventId: data.event_id,
+    locationName: data.area_name ?? "Maseru",
+    locationSub: data.venue_name || "Maseru central",
+    dateLabel,
+    attendingCount: data.attending_count,
+    sharesCount: data.shares_count,
+    attendees,
+  };
+}
+
+

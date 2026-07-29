@@ -81,3 +81,19 @@ export type EventDetails = {
   // docs/FR/going-rsvp-privacy.md — null whenever isGoing is false.
   myVisibility: GoingVisibility | null;
 };
+
+export type EventManagementData = {
+  eventId: string;
+  locationName: string;
+  locationSub: string;
+  dateLabel: string;
+  attendingCount: number;
+  sharesCount: number;
+  attendees: Array<{
+    id: string;
+    handle: string;
+    avatarUrl?: string;
+    socials?: Array<"instagram" | "facebook" | "tiktok">;
+  }>;
+};
+

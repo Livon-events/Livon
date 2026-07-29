@@ -24,6 +24,13 @@ export { default as EventActionBar } from "./components/details/EventActionBar";
 export { default as EventDetailsCard } from "./components/details/EventDetailsCard";
 export { default as EventDetailsPage } from "./components/details/EventDetailsPage";
 export { default as PeekPage } from "./components/peek/PeekPage";
+export { default as EventManagementPage } from "./components/manage/EventManagementPage";
+export { default as EventManagementHeader } from "./components/manage/EventManagementHeader";
+export { default as EventDateMetric } from "./components/manage/EventDateMetric";
+export { default as AttendingCountMetric } from "./components/manage/AttendingCountMetric";
+export { default as SharesCountMetric } from "./components/manage/SharesCountMetric";
+export { default as GuestlistSection } from "./components/manage/GuestlistSection";
+export { default as GuestlistRow } from "./components/manage/GuestlistRow";
 
 // Server-only — deliberately not re-exported here. `createEventOnServer` /
 // `updateEventOnServer` pull in `sharp` via modules/events/images.ts.
