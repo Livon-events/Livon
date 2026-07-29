@@ -5,15 +5,24 @@ import { useEffect, useRef } from "react";
 export default function EventCardBackground({ eventId }: { eventId: string }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
+  // Last-drawn measurements — lets drawCard() no-op (and skip the DOM
+  // writes below) when a resize/observer tick fires but nothing about
+  // this card's own layout actually changed, per bug: repeated redraws
+  // with identical values were still causing a visible flicker.
+  const lastRef = useRef<{ w: number; h: number; x1: number; x2: number } | null>(null);
 
   useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const card = svg.parentElement;
+    if (!card) return;
+
     const drawCard = () => {
-      const card = document.getElementById(`eventCard-${eventId}`);
-      const btn = document.getElementById(`peekBtn-${eventId}`);
-      const svg = svgRef.current;
+      const btn = card.querySelector<HTMLElement>(`#peekBtn-${CSS.escape(eventId)}`);
       const path = pathRef.current;
 
-      if (!card || !btn || !svg || !path) return;
+      if (!btn || !path) return;
 
       const W = card.offsetWidth;
       const H = card.offsetHeight;
@@ -24,8 +33,15 @@ export default function EventCardBackground({ eventId }: { eventId: string }) {
       const btnRect = btn.getBoundingClientRect();
 
       const gap = 5; // visible yellow gap between peek button and notch
-      const x1 = btnRect.left - cardRect.left - gap;
-      const x2 = btnRect.right - cardRect.left + gap;
+      const x1 = Math.round(btnRect.left - cardRect.left - gap);
+      const x2 = Math.round(btnRect.right - cardRect.left + gap);
+
+      const last = lastRef.current;
+      if (last && last.w === W && last.h === H && last.x1 === x1 && last.x2 === x2) {
+        return; // nothing actually changed — skip the redraw entirely
+      }
+      lastRef.current = { w: W, h: H, x1, x2 };
+
       const d = 46;   // notch depth = head height
       const r = 12;   // card outer corner radius
       const nr = 10;   // notch corner radius
@@ -58,22 +74,23 @@ export default function EventCardBackground({ eventId }: { eventId: string }) {
       );
     };
 
-    // Draw on mount and resize
-    const raf1 = requestAnimationFrame(() => requestAnimationFrame(drawCard));
-    window.addEventListener("resize", drawCard);
+    let pendingFrame: number | null = null;
+    const scheduleDraw = () => {
+      if (pendingFrame !== null) return; // already coalesced into a pending frame
+      pendingFrame = requestAnimationFrame(() => {
+        pendingFrame = null;
+        drawCard();
+      });
+    };
 
-    // Also handle resizing of the card itself if content changes
-    let resizeObserver: ResizeObserver | null = null;
-    const card = document.getElementById(`eventCard-${eventId}`);
-    if (card) {
-      resizeObserver = new ResizeObserver(() => drawCard());
-      resizeObserver.observe(card);
-    }
+    scheduleDraw();
+
+    const resizeObserver = new ResizeObserver(() => scheduleDraw());
+    resizeObserver.observe(card);
 
     return () => {
-      cancelAnimationFrame(raf1);
-      window.removeEventListener("resize", drawCard);
-      if (resizeObserver) resizeObserver.disconnect();
+      if (pendingFrame !== null) cancelAnimationFrame(pendingFrame);
+      resizeObserver.disconnect();
     };
   }, [eventId]);
 

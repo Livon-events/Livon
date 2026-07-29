@@ -33,7 +33,7 @@ export default function EventCard({ event, priority = false }: EventCardProps) {
     <Link
       href={`/events/${event.id}`}
       id={`eventCard-${event.id}`}
-      className="relative flex h-full w-full flex-col text-white"
+      className="relative flex h-full w-full flex-col overflow-hidden text-white"
     >
       <EventCardBackground eventId={event.id} />
 

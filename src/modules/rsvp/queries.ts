@@ -73,3 +73,78 @@ export async function getConnectionsGoingCount(eventId: string, viewerId: string
 
   return (data ?? []).filter((row) => row.user_id !== viewerId).length;
 }
+
+/**
+ * Total "going" count for an event, unfiltered by visibility — the Peek
+ * page's Interests number (docs/FR/peek.md). A plain count against
+ * `event_interests` can't be used here: `event_interests_select_own_or_connection`
+ * RLS would silently under-count for anyone who isn't connected to every
+ * attendee. `event_going_count` is a SECURITY DEFINER RPC that returns
+ * nothing but the integer (see docs/db/functions.md), the same "count-only"
+ * exception `connections.getConnectionsCountFor` already relies on.
+ */
+export async function getEventGoingCount(eventId: string): Promise<number> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("event_going_count", { p_event_id: eventId });
+
+  if (error) {
+    throw new Error(`getEventGoingCount failed: ${error.message}`);
+  }
+
+  return data ?? 0;
+}
+
+export type PeekAttendee = {
+  userId: string;
+  username: string;
+  avatarUrl: string | null;
+};
+
+type PeekAttendeeRow = {
+  user_id: string;
+  created_at: string;
+  user: { username: string | null; avatar_url: string | null } | null;
+};
+
+/**
+ * The Peek page's "Connections attending" list (docs/FR/peek.md) — every
+ * connection with a `visible` interest row on this event, most-recently-
+ * marked-going first. Relies on the same
+ * `event_interests_select_own_or_connection` RLS policy as
+ * `getConnectionsGoingCount`: a plain select already comes back scoped to
+ * just the viewer's own row plus `visible` rows from accepted connections,
+ * so excluding the viewer's own row and the host's row here is all this
+ * function needs to do itself.
+ *
+ * `hostId` is excluded deliberately even if the host also has a `going`
+ * row: the host isn't "attending" their own event as a guest, so they're
+ * never counted or listed here — distinct from the button's `host_bonus`,
+ * which does include them.
+ */
+export async function getConnectionsAttendingList(
+  eventId: string,
+  viewerId: string,
+  hostId: string
+): Promise<PeekAttendee[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("event_interests")
+    .select("user_id, created_at, user:users!user_id ( username, avatar_url )")
+    .eq("event_id", eventId)
+    .order("created_at", { ascending: false })
+    .returns<PeekAttendeeRow[]>();
+
+  if (error) {
+    throw new Error(`getConnectionsAttendingList failed: ${error.message}`);
+  }
+
+  return (data ?? [])
+    .filter((row) => row.user_id !== viewerId && row.user_id !== hostId)
+    .map((row) => ({
+      userId: row.user_id,
+      username: row.user?.username ?? "User",
+      avatarUrl: row.user?.avatar_url ?? null,
+    }));
+}

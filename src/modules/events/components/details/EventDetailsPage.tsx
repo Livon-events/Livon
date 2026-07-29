@@ -10,7 +10,7 @@ type EventDetailsPageProps = {
 export default function EventDetailsPage({ event }: EventDetailsPageProps) {
   return (
     <main className="min-h-screen bg-black text-white">
-      <div className="mx-auto w-[min(calc(100%-24px),798px)] pb-[104px] sm:w-[min(calc(100%-48px),798px)]">
+      <div className="mx-auto w-[min(calc(100%-24px),798px)] pb-24 sm:w-[min(calc(100%-48px),798px)] sm:pb-12">
         <h1 className="mb-1 text-2xl font-extrabold leading-tight sm:mb-2 sm:text-[32px]">
           Event details
         </h1>
@@ -30,9 +30,11 @@ export default function EventDetailsPage({ event }: EventDetailsPageProps) {
           description={event.description ?? ""}
           peekConnectionsCount={event.peekConnectionsCount}
         />
-      </div>
 
-      <EventActionBar eventId={event.id} initialGoing={event.isGoing} initialVisibility={event.myVisibility} />
+        <div className="mt-6 sm:mt-8">
+          <EventActionBar eventId={event.id} initialGoing={event.isGoing} initialVisibility={event.myVisibility} />
+        </div>
+      </div>
     </main>
   );
 }

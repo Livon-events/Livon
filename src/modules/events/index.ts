@@ -1,4 +1,4 @@
-export type { EventEditData, EventDetails, EventSummary, FeaturedEvent } from "./types";
+export type { EventEditData, EventDetails, EventSummary, FeaturedEvent, PeekPageData, PeekAttendee } from "./types";
 export { IMAGE_MAX_BYTES } from "./validation";
 export { createEvent, updateEvent, cancelEvent } from "./mutations";
 export type { CreateEventInput, UpdateEventInput } from "./mutations";
@@ -23,6 +23,7 @@ export { default as EventAboutSection } from "./components/details/EventAboutSec
 export { default as EventActionBar } from "./components/details/EventActionBar";
 export { default as EventDetailsCard } from "./components/details/EventDetailsCard";
 export { default as EventDetailsPage } from "./components/details/EventDetailsPage";
+export { default as PeekPage } from "./components/peek/PeekPage";
 
 // Server-only — deliberately not re-exported here. `createEventOnServer` /
 // `updateEventOnServer` pull in `sharp` via modules/events/images.ts.
@@ -33,4 +34,4 @@ export { default as EventDetailsPage } from "./components/details/EventDetailsPa
 // client (next/headers), which breaks any Client Component that ends up
 // importing this file transitively. Server Components, Route Handlers,
 // and other modules' server-only files import it directly:
-//   import { getEventDetails } from "@/modules/events/queries";
+//   import { getEventDetails, getPeekPageData } from "@/modules/events/queries";

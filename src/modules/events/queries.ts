@@ -1,12 +1,24 @@
 import "server-only";
 import { createClient } from "@/shared/supabase/server";
 import type { GoingVisibility } from "@/modules/rsvp";
-import { getMyInterest, getConnectionsGoingCount, getEventIdsUserIsGoingTo } from "@/modules/rsvp/queries";
+import {
+  getMyInterest,
+  getConnectionsGoingCount,
+  getEventIdsUserIsGoingTo,
+  getEventGoingCount,
+  getConnectionsAttendingList,
+} from "@/modules/rsvp/queries";
 import { isConnectedTo } from "@/modules/connections/queries";
 import { getProfileEventDateLabel, getCountdownLabel } from "@/modules/events/format";
-import type { EventSummary, FeaturedEvent, EventEditData, EventDetails } from "@/modules/events/types";
+import type {
+  EventSummary,
+  FeaturedEvent,
+  EventEditData,
+  EventDetails,
+  PeekPageData,
+} from "@/modules/events/types";
 
-export type { EventEditData, EventDetails };
+export type { EventEditData, EventDetails, PeekPageData };
 
 /**
  * All reads of the `events` table live in this one file — merged during
@@ -145,6 +157,43 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
     peekConnectionsCount,
     isGoing,
     myVisibility,
+  };
+}
+
+/**
+ * Data for the Peek page (docs/FR/peek.md) — reached from the Peek button
+ * on either the feed card or the event details "About" section. Only
+ * needs `event_id` (to look up the host, so it can be excluded from the
+ * attendees list) and the signed-in viewer, per the FR's inputs/outputs
+ * section. Returns null if the event doesn't exist, so the route can
+ * 404 the same way `getEventForEdit`/`getEventDetails` do.
+ */
+export async function getPeekPageData(eventId: string): Promise<PeekPageData | null> {
+  const supabase = await createClient();
+
+  const { data: event, error } = await supabase
+    .from("events")
+    .select("event_id, organizer_id")
+    .eq("event_id", eventId)
+    .maybeSingle();
+
+  if (error || !event) {
+    return null;
+  }
+
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
+
+  const [goingCount, attendingConnections] = await Promise.all([
+    getEventGoingCount(eventId),
+    viewer ? getConnectionsAttendingList(eventId, viewer.id, event.organizer_id) : Promise.resolve([]),
+  ]);
+
+  return {
+    eventId,
+    goingCount,
+    attendingConnections,
   };
 }
 
