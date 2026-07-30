@@ -25,7 +25,6 @@ export { default as EventDetailsCard } from "./components/details/EventDetailsCa
 export { default as EventDetailsPage } from "./components/details/EventDetailsPage";
 export { default as PeekPage } from "./components/peek/PeekPage";
 export { default as EventManagementPage } from "./components/manage/EventManagementPage";
-export { default as EventManagementHeader } from "./components/manage/EventManagementHeader";
 export { default as EventDateMetric } from "./components/manage/EventDateMetric";
 export { default as AttendingCountMetric } from "./components/manage/AttendingCountMetric";
 export { default as SharesCountMetric } from "./components/manage/SharesCountMetric";

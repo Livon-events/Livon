@@ -10,17 +10,18 @@ import ConnectionsPanel from "./ConnectionsPanel";
 import EventsPanel from "./EventsPanel";
 import EditProfileModal from "./EditProfileModal";
 import { SignOutButton } from "@/modules/auth";
-// Social links are still mock-only — a separate gap from connections/events
-// below (see docs/FR for the profile-links queries this would need).
-import { mockSocialLinks } from "@/modules/users/mock";
+import { updateSocialLink } from "@/modules/users/mutations";
 import { markNotGoing } from "@/modules/rsvp";
 import { acceptConnectionRequest, removeConnection } from "@/modules/connections";
-import type { ConnectionUser, EventSummary, ProfileMainTab } from "./types";
+import type { ConnectionUser, EventSummary, ProfileMainTab, SocialLink } from "./types";
 
 interface UserProfilePageProps {
   username: string;
   bio?: string | null;
   avatarUrl?: string;
+  tiktokUrl?: string | null;
+  instagramUrl?: string | null;
+  facebookUrl?: string | null;
   createdEvents: EventSummary[];
   goingEvents: EventSummary[];
   connectionRequests: ConnectionUser[];
@@ -31,6 +32,9 @@ export default function UserProfilePage({
   username: initialUsername,
   bio: initialBio,
   avatarUrl: initialAvatarUrl,
+  tiktokUrl,
+  instagramUrl,
+  facebookUrl,
   createdEvents,
   goingEvents: initialGoingEvents,
   connectionRequests: initialConnectionRequests,
@@ -47,6 +51,16 @@ export default function UserProfilePage({
   const [username, setUsername] = useState(initialUsername);
   const [bio, setBio] = useState(initialBio ?? null);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
+
+  // Links section (docs/FR/user-profile-fr.md §3) — three fixed platform
+  // slots, each with its own independent submit button (LinksSection
+  // handles per-row draft/validation state itself; this just holds the
+  // last-confirmed value per slot so a failed save can roll back).
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
+    { id: "tiktok", platform: "tiktok", placeholder: "tiktok.com/@username", value: tiktokUrl ?? "" },
+    { id: "instagram", platform: "instagram", placeholder: "instagram.com/username", value: instagramUrl ?? "" },
+    { id: "facebook", platform: "facebook", placeholder: "facebook.com/username", value: facebookUrl ?? "" },
+  ]);
 
   // Local copy so the "leave" (X) button can remove an event from view
   // immediately after un-marking interest, without waiting on a full
@@ -108,6 +122,25 @@ export default function UserProfilePage({
     }
   }
 
+  async function handleLinkSubmit(id: string, value: string) {
+    // LinksSection has already run validateSocialLink and blocked the
+    // call entirely if that failed — by the time this fires the value is
+    // known-good client-side. This only has to handle the save itself.
+    const previous = socialLinks;
+    setSocialLinks((links) => links.map((link) => (link.id === id ? { ...link, value } : link)));
+
+    const platform = previous.find((link) => link.id === id)?.platform;
+    if (!platform) return;
+
+    const result = await updateSocialLink(platform, value);
+    if (!result.ok) {
+      // Silent rollback, same as handleAcceptRequest/handleDeclineRequest
+      // above — LinksSection re-syncs its draft from this prop on the
+      // next render, so the row snaps back to the pre-save value.
+      setSocialLinks(previous);
+    }
+  }
+
   function handleManageEvent(eventId: string) {
     // The wrench action opens the same create-event form in edit mode
     // (src/app/events/[id]/edit) rather than a separate management
@@ -131,7 +164,7 @@ export default function UserProfilePage({
         {/* Yellow divider line */}
         <hr className="border-none h-0.5 bg-[#FFE600] w-full mb-3" />
 
-        <LinksSection links={mockSocialLinks} onEdit={() => setIsEditOpen(true)} />
+        <LinksSection links={socialLinks} onEdit={() => setIsEditOpen(true)} onLinkSubmit={handleLinkSubmit} />
 
         <div className="relative z-[1]">
           <ProfileTabs

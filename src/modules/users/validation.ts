@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { SocialLink } from "./types";
 
 /**
  * Single source of truth for profile-edit limits + validation, shared by
@@ -42,3 +43,64 @@ export const profileFieldsSchema = z.object({
 });
 
 export type ProfileFieldsInput = z.infer<typeof profileFieldsSchema>;
+
+// --- Social links (docs/FR/user-profile-fr.md §3) ---------------------
+//
+// Three fixed platform slots, no user-defined links — so "reject
+// inappropriate links" here means "reject anything that isn't actually a
+// link to that platform," not general content moderation. A URL's
+// destination content can't be judged in the browser at all (or trusted
+// even if it could be); this only rejects malformed input and wrong-
+// platform/wrong-scheme links before they're ever sent. The route
+// handler that eventually persists these MUST import and re-run this
+// same function — this file is the shared source of truth, same as
+// USERNAME_PATTERN/BIO_MAX above.
+
+export const SOCIAL_LINK_MAX_LENGTH = 200;
+
+const PLATFORM_HOSTS: Record<SocialLink["platform"], readonly string[]> = {
+  tiktok: ["tiktok.com"],
+  instagram: ["instagram.com"],
+  facebook: ["facebook.com", "fb.com"],
+};
+
+/**
+ * Validates one link against its platform slot. Returns `null` when the
+ * value is valid (or empty — clearing a slot is always allowed), or a
+ * user-facing error string otherwise.
+ *
+ * Deliberately uses the `URL` constructor rather than a regex for the
+ * scheme/host check: it's the only reliable way to reject
+ * `javascript:`/`data:`/other dangerous schemes and to read the real host
+ * (as opposed to matching "tiktok.com" anywhere in the string, which
+ * `evil.com/tiktok.com` would also match).
+ */
+export function validateSocialLink(platform: SocialLink["platform"], raw: string): string | null {
+  const value = raw.trim();
+  if (value === "") return null; // empty clears the slot
+
+  if (value.length > SOCIAL_LINK_MAX_LENGTH) {
+    return `Link must be ${SOCIAL_LINK_MAX_LENGTH} characters or fewer`;
+  }
+
+  let url: URL;
+  try {
+    // No-scheme input ("tiktok.com/me") is a common paste — try once with
+    // https:// prepended before giving up, rather than rejecting it outright.
+    url = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`);
+  } catch {
+    return "Enter a valid link";
+  }
+
+  if (url.protocol !== "https:") {
+    return "Link must use https://";
+  }
+
+  const host = url.hostname.toLowerCase().replace(/^(www|vm|vt|m)\./, "");
+  const allowed = PLATFORM_HOSTS[platform];
+  if (!allowed.some((h) => host === h || host.endsWith(`.${h}`))) {
+    return `Enter a ${platform} link`;
+  }
+
+  return null;
+}

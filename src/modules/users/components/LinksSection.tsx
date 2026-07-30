@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import type { SocialLink } from "./types";
 import { useLinksDropdown } from "./useLinksDropdown";
+import { validateSocialLink } from "@/modules/users/validation";
 
 interface LinksSectionProps {
   links: SocialLink[];
@@ -54,6 +56,53 @@ function ArrowIcon() {
 export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit }: LinksSectionProps) {
   const { isOpen, toggle, close } = useLinksDropdown();
 
+  // Each row has its own submit button and is fully independent of the
+  // others (and of EditProfileModal's separate form) — so validation,
+  // errors, and the "typed but not yet submitted" value are all tracked
+  // per link id here rather than lifted to the parent.
+  const [draftValues, setDraftValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(links.map((link) => [link.id, link.value]))
+  );
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+
+  // Re-sync drafts when the parent hands back new canonical `links` (e.g.
+  // after a successful save updates state from the server response).
+  // Deliberately NOT a useEffect — that would setState synchronously
+  // during an effect, triggering a redundant extra render (the lint rule
+  // that flagged this). React's own recommended fix for "adjust state
+  // when a prop changes" is to compare against the previous prop value
+  // during render itself: https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const [prevLinks, setPrevLinks] = useState(links);
+  if (links !== prevLinks) {
+    setPrevLinks(links);
+    setDraftValues(Object.fromEntries(links.map((link) => [link.id, link.value])));
+  }
+
+  function handleChange(link: SocialLink, value: string) {
+    setDraftValues((prev) => ({ ...prev, [link.id]: value }));
+    if (errors[link.id]) {
+      setErrors((prev) => ({ ...prev, [link.id]: undefined }));
+    }
+    onLinkChange?.(link.id, value);
+  }
+
+  function handleSubmit(link: SocialLink) {
+    const value = draftValues[link.id] ?? link.value;
+    const error = validateSocialLink(link.platform, value);
+
+    if (error) {
+      // Blocked: never reaches onLinkSubmit. Cleared: the field snaps
+      // back to the last known-good value rather than sitting on
+      // rejected input, so the row's state stays unambiguous.
+      setErrors((prev) => ({ ...prev, [link.id]: error }));
+      setDraftValues((prev) => ({ ...prev, [link.id]: link.value }));
+      return;
+    }
+
+    setErrors((prev) => ({ ...prev, [link.id]: undefined }));
+    onLinkSubmit?.(link.id, value.trim());
+  }
+
   return (
     <div className="relative z-20 mb-7">
       <div className="flex items-center justify-between">
@@ -92,27 +141,45 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
           max-h-[min(65dvh,280px)] overflow-y-auto overscroll-contain
           ${isOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-1.5"}`}
       >
-        {links.map((link) => (
-          <div key={link.id} className="flex items-center gap-2.5">
-            <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-white">
-              <LinkIcon platform={link.platform} />
+        {links.map((link) => {
+          const value = draftValues[link.id] ?? link.value;
+          const error = errors[link.id];
+          return (
+            <div key={link.id} className="flex flex-col gap-1">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-white">
+                  <LinkIcon platform={link.platform} />
+                </div>
+                <input
+                  type="text"
+                  placeholder={link.placeholder}
+                  value={value}
+                  aria-invalid={Boolean(error)}
+                  onChange={(e) => handleChange(link, e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSubmit(link);
+                    }
+                  }}
+                  className={`flex-1 h-12 bg-[#1F2023] border-2 rounded-xl px-3.5 text-white text-[15px] outline-none placeholder:text-[#AEAEB2] focus:border-[#FFE600] ${
+                    error ? "border-[#ff453a]" : "border-[#1F2023]"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleSubmit(link)}
+                  className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFE600] text-black flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
+                >
+                  <ArrowIcon />
+                </button>
+              </div>
+              {error && (
+                <p className="pl-[42px] text-xs font-semibold text-[#ff453a]">{error}</p>
+              )}
             </div>
-            <input
-              type="text"
-              placeholder={link.placeholder}
-              value={link.value}
-              onChange={(e) => onLinkChange?.(link.id, e.target.value)}
-              className="flex-1 h-12 bg-[#1F2023] border-2 border-[#1F2023] rounded-xl px-3.5 text-white text-[15px] outline-none placeholder:text-[#AEAEB2] focus:border-[#FFE600]"
-            />
-            <button
-              type="button"
-              onClick={() => onLinkSubmit?.(link.id, link.value)}
-              className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFE600] text-black flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
-            >
-              <ArrowIcon />
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {isOpen && (

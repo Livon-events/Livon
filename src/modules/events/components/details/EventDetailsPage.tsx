@@ -32,7 +32,12 @@ export default function EventDetailsPage({ event }: EventDetailsPageProps) {
         />
 
         <div className="mt-6 sm:mt-8">
-          <EventActionBar eventId={event.id} initialGoing={event.isGoing} initialVisibility={event.myVisibility} />
+          <EventActionBar
+            eventId={event.id}
+            eventTitle={event.title}
+            initialGoing={event.isGoing}
+            initialVisibility={event.myVisibility}
+          />
         </div>
       </div>
     </main>

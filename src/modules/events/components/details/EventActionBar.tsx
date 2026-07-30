@@ -1,11 +1,13 @@
 "use client";
 
-import { Share2 } from "lucide-react";
+import { Check, Share2 } from "lucide-react";
 import { useGoingAction, type GoingVisibility } from "@/modules/rsvp";
 import { GoingPrivacyPopup } from "@/modules/rsvp";
+import { useShareEvent } from "@/modules/invites";
 
 type EventActionBarProps = {
   eventId: string;
+  eventTitle: string;
   initialGoing?: boolean;
   initialVisibility?: GoingVisibility | null;
 };
@@ -15,15 +17,16 @@ type EventActionBarProps = {
 // useGoingAction hook — also used by EventCardActions on the feed card.
 export default function EventActionBar({
   eventId,
+  eventTitle,
   initialGoing = false,
   initialVisibility = null,
 }: EventActionBarProps) {
   const { going, popup, handleButtonClick, closePopup, selectChangePrivacy, selectNotGoing, choosePrivacy } =
     useGoingAction(eventId, initialGoing, initialVisibility);
+  const { share, copied, error } = useShareEvent(eventId);
 
   const handleShareClick = () => {
-    // TODO: trigger the invite-link share flow for `eventId` per
-    // docs/FR/invite-links.md.
+    void share(eventTitle);
   };
 
   return (
@@ -57,9 +60,24 @@ export default function EventActionBar({
         aria-label="Share event"
         className="flex min-h-[44px] flex-[0_0_31%] items-center justify-center gap-2 rounded-md bg-[#FFEA00] text-base font-extrabold text-black transition-transform active:scale-[0.98] sm:min-h-[48px] sm:flex-[0_0_196px]"
       >
-        <Share2 className="h-5 w-5" strokeWidth={2.5} />
-        Share
+        {copied ? (
+          <>
+            <Check className="h-5 w-5" strokeWidth={2.5} />
+            Copied!
+          </>
+        ) : (
+          <>
+            <Share2 className="h-5 w-5" strokeWidth={2.5} />
+            Share
+          </>
+        )}
       </button>
+
+      {error && (
+        <p className="absolute -top-8 right-0 rounded-md bg-black px-2 py-1 text-[12px] font-semibold text-red-400">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

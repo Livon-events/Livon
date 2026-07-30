@@ -54,6 +54,8 @@ Notes: Delete is only allowed if **no one has expressed interest** in the event 
 
 Notes: The SELECT policy is the most complex one in the schema — it's what makes "going" visible to connections but not strangers, respecting the per-row `visibility` flag. Any feature touching event_interests reads (e.g. "who's going" on an event card) needs to account for this: a viewer only sees interests that are either their own, or `visible` + from a mutually-accepted connection.
 
+Exception: `get_event_management_data` (see `functions.md`) deliberately bypasses this policy for an event's own organizer, returning the full guestlist regardless of any guest's `visibility` choice or connection status. This is intentional — the privacy toggle is meant to hide a guest from other guests/connections, not from the event's own host — but it's worth flagging since it's not yet stated in any FR doc.
+
 ---
 
 ## connections
@@ -89,6 +91,8 @@ Notes: **Neither table has a SELECT policy** — clients can write view-log rows
 | Creators can delete own invite links | DELETE | authenticated | using: `creator_id = (select auth.uid())` |
 
 Notes: **No UPDATE policy** — invite links are immutable once created (can only be deleted, not edited). Also no anon SELECT — a creator can only see their *own* invite links, meaning the actual invite redemption flow (someone clicking a shared link) must go through a `SECURITY DEFINER` function like `redeem_invite` rather than a direct table read, since the clicker isn't the creator.
+
+Second exception: `get_event_management_data` (see `functions.md`) also bypasses `invite_links_select_own` — it returns a total invite-link count for an event across *every* creator, not just the caller's own links, scoped to the event's organizer only. This is a distinct metric from `click_count` (still never exposed anywhere, per `docs/FR/invite-links.md`); it only surfaces how many links exist, not their click stats.
 
 ---
 

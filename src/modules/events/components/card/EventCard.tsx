@@ -76,6 +76,7 @@ export default function EventCard({ event, priority = false }: EventCardProps) {
 
         <EventCardActions
           eventId={event.id}
+          eventTitle={event.title}
           initialInterested={event.isGoing}
           initialVisibility={event.myVisibility}
         />

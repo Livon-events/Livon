@@ -64,6 +64,9 @@ export type OwnProfileBasics = {
   username: string | null;
   bio: string | null;
   avatarUrl: string | null;
+  tiktokUrl: string | null;
+  instagramUrl: string | null;
+  facebookUrl: string | null;
 };
 
 /**
@@ -85,7 +88,7 @@ export async function getOwnProfileBasics(userId: string): Promise<OwnProfileBas
 
   const { data, error } = await supabase
     .from("users")
-    .select("username, bio, avatar_url")
+    .select("username, bio, avatar_url, tiktok_url, instagram_url, facebook_url")
     .eq("user_id", userId)
     .single();
 
@@ -97,6 +100,9 @@ export async function getOwnProfileBasics(userId: string): Promise<OwnProfileBas
     username: data.username,
     bio: data.bio,
     avatarUrl: data.avatar_url,
+    tiktokUrl: data.tiktok_url,
+    instagramUrl: data.instagram_url,
+    facebookUrl: data.facebook_url,
   };
 }
 

@@ -1,4 +1,6 @@
 import { createClient } from "@/shared/supabase/client";
+import { validateSocialLink } from "@/modules/users/validation";
+import type { SocialLink } from "@/modules/users/types";
 
 type Result<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -105,4 +107,60 @@ export async function updateLocationPreference(input: {
   }
 
   return { ok: true, data: undefined };
+}
+
+const SOCIAL_LINK_COLUMN: Record<SocialLink["platform"], "tiktok_url" | "instagram_url" | "facebook_url"> = {
+  tiktok: "tiktok_url",
+  instagram: "instagram_url",
+  facebook: "facebook_url",
+};
+
+/**
+ * Persists one of the three fixed social-link slots
+ * (`docs/FR/user-profile-fr.md` §3) to `users.tiktok_url` /
+ * `instagram_url` / `facebook_url`. Called per-row from `LinksSection`,
+ * independent of `updateProfile`/`EditProfileModal`'s own form.
+ *
+ * `LinksSection` already calls `validateSocialLink` before this ever
+ * fires, so this repeat check is defense-in-depth (fails fast, avoids a
+ * round trip for something the DB would reject anyway) — not the primary
+ * gate. The actual authoritative boundary is now three `CHECK`
+ * constraints on `users` (`users_tiktok_url_format` etc., see
+ * `docs/db/schema.md`), which enforce the same https+platform-domain
+ * shape at the DB layer regardless of how the write reaches it. RLS
+ * itself only ever proved ownership of the row, never content — a
+ * previously-flagged gap, now closed at the schema level rather than by
+ * adding a SECURITY DEFINER RPC in front of a plain column update.
+ */
+export async function updateSocialLink(
+  platform: SocialLink["platform"],
+  value: string
+): Promise<Result<{ value: string }>> {
+  const trimmed = value.trim();
+  const validationError = validateSocialLink(platform, trimmed);
+  if (validationError) {
+    return { ok: false, error: validationError };
+  }
+
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  const column = SOCIAL_LINK_COLUMN[platform];
+  const { error } = await supabase
+    .from("users")
+    .update({ [column]: trimmed === "" ? null : trimmed })
+    .eq("user_id", user.id);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  return { ok: true, data: { value: trimmed } };
 }

@@ -5,10 +5,9 @@ export type { PublicProfile, OrganizerLocationContext, OwnProfileBasics } from "
 // Import directly:
 //   import { getPublicProfile } from "@/modules/users/queries";
 export { AVATAR_MAX_BYTES } from "./validation";
-export { updateProfile, updateLocationPreference } from "./mutations";
+export { updateProfile, updateLocationPreference, updateSocialLink } from "./mutations";
 export type { UpdateProfileInput, UpdateProfileData } from "./mutations";
 export type { SocialLink, ConnectionsSubTab, EventsSubTab, ProfileMainTab } from "./types";
-export { mockSocialLinks } from "./mock";
 
 export { default as BioSection } from "./components/BioSection";
 export { default as ConnectionRow } from "./components/ConnectionRow";

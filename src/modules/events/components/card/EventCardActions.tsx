@@ -1,11 +1,13 @@
 "use client";
 
-import { Share2 } from "lucide-react";
+import { Check, Share2 } from "lucide-react";
 import { useGoingAction, type GoingVisibility } from "@/modules/rsvp";
 import { GoingPrivacyPopup } from "@/modules/rsvp";
+import { useShareEvent } from "@/modules/invites";
 
 type EventCardActionsProps = {
   eventId: string;
+  eventTitle: string;
   initialInterested?: boolean;
   initialVisibility?: GoingVisibility | null;
 };
@@ -15,17 +17,18 @@ type EventCardActionsProps = {
 // docs/FR/going-rsvp-privacy.md, via the shared useGoingAction hook.
 export default function EventCardActions({
   eventId,
+  eventTitle,
   initialInterested = false,
   initialVisibility = null,
 }: EventCardActionsProps) {
   const { going, popup, handleButtonClick, closePopup, selectChangePrivacy, selectNotGoing, choosePrivacy } =
     useGoingAction(eventId, initialInterested, initialVisibility);
+  const { share, copied, error } = useShareEvent(eventId);
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // TODO: trigger the invite-link share flow for `eventId` per
-    // docs/fr/invite-links.md.
+    void share(eventTitle);
   };
 
   return (
@@ -68,8 +71,18 @@ export default function EventCardActions({
         aria-label="Share event"
         className="flex h-[50px] shrink-0 basis-1/4 items-center justify-center rounded-[6px] bg-[#FFEA00] text-black transition-transform active:scale-[0.96]"
       >
-        <Share2 className="h-5 w-5" strokeWidth={2.5} />
+        {copied ? (
+          <Check className="h-5 w-5" strokeWidth={2.5} />
+        ) : (
+          <Share2 className="h-5 w-5" strokeWidth={2.5} />
+        )}
       </button>
+
+      {error && (
+        <p className="absolute -top-8 right-0 rounded-[6px] bg-black px-2 py-1 text-[12px] font-semibold text-red-400">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
