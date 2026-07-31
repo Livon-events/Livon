@@ -18,7 +18,7 @@ const LABEL: Record<ConnectionState["status"], string> = {
 };
 
 const buttonClasses =
-  "font-display text-lg max-[380px]:text-base font-extrabold text-center rounded-xl py-3 max-[380px]:py-3.5 transition-transform active:scale-[0.97]";
+  "font-display text-lg max-[380px]:text-base font-extrabold text-center rounded-xl py-3 max-[380px]:py-3 transition-transform active:scale-[0.97]";
 
 export default function ConnectButton({
   profileUserId,
