@@ -72,11 +72,6 @@ export function LoginForm({ next }: LoginFormProps) {
         autoComplete="current-password"
         value={password}
         onChange={setPassword}
-        labelRightSlot={
-          <a href="#" className="forgot-link">
-            Forgot password?
-          </a>
-        }
       />
 
       <button type="submit" className="submit-btn" disabled={pending}>
