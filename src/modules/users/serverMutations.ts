@@ -66,6 +66,21 @@ export async function applyProfileUpdate(
   let previousAvatarUrl: string | null = null;
 
   const avatarEntry = formData.get("avatar");
+
+  // TEMPORARY DIAGNOSTIC — remove once the Android-mobile silent-skip bug
+  // is root-caused. This logs the shape of whatever arrived in the
+  // "avatar" field so we can see why `instanceof File` might be failing
+  // for some clients while the exact same code path works from a laptop.
+  console.log("avatar upload debug:", {
+    present: formData.has("avatar"),
+    isFile: avatarEntry instanceof File,
+    type: typeof avatarEntry,
+    constructorName: (avatarEntry as { constructor?: { name?: string } })?.constructor?.name,
+    size: (avatarEntry as { size?: number })?.size,
+    name: (avatarEntry as { name?: string })?.name,
+    mimeType: (avatarEntry as { type?: string })?.type,
+  });
+
   if (avatarEntry instanceof File && avatarEntry.size > 0) {
     const processed = await processAvatarImage(avatarEntry);
     if (!processed.ok) {
