@@ -1,5 +1,5 @@
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "@/shared/supabase/server";
+import { resolveUsernameToUserId } from "@/modules/users/queries";
 
 type UsernameResolverPageProps = {
   params: Promise<{ username: string }>;
@@ -18,33 +18,23 @@ type UsernameResolverPageProps = {
  * and every card type — a smaller, safer change than altering
  * `get_home_feed`'s return columns.
  *
- * Requires sign-in for the same reason `/profile/[userId]` does: `users`
- * RLS has no `anon` SELECT policy, so the lookup itself would come back
- * empty for a logged-out visitor. Redirects to login with `next` pointing
- * back at this same resolver, so the redirect chain completes once
- * they're signed in.
+ * Open to anonymous visitors, same as `/profile/[userId]` itself: the
+ * lookup goes through `resolveUsernameToUserId` -> `resolve_username_to_user_id`,
+ * a `SECURITY DEFINER` function granted to `anon` + `authenticated`
+ * (see docs/db/rls-policies.md, docs/db/functions.md) — this used to be a
+ * direct `users` table select, which came back empty for a logged-out
+ * visitor since `users` has no `anon` SELECT policy, forcing a login
+ * redirect before the visitor ever reached the (already anon-friendly)
+ * profile page. That's what this route no longer does.
  */
 export default async function UsernameResolverPage({ params }: UsernameResolverPageProps) {
   const { username } = await params;
-  const supabase = await createClient();
 
-  const {
-    data: { user: viewer },
-  } = await supabase.auth.getUser();
+  const userId = await resolveUsernameToUserId(username);
 
-  if (!viewer) {
-    redirect(`/login?next=/users/${encodeURIComponent(username)}`);
-  }
-
-  const { data, error } = await supabase
-    .from("users")
-    .select("user_id")
-    .eq("username", username)
-    .maybeSingle();
-
-  if (error || !data) {
+  if (!userId) {
     notFound();
   }
 
-  redirect(`/profile/${data.user_id}`);
+  redirect(`/profile/${userId}`);
 }

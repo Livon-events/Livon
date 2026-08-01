@@ -60,6 +60,34 @@ export async function getPublicProfile(userId: string): Promise<PublicProfile | 
   };
 }
 
+/**
+ * Resolves a `username` to its `user_id`, for the `/users/[username]` ->
+ * `/profile/[userId]` bridge (see that route's header comment). Goes
+ * through `resolve_username_to_user_id`, a `SECURITY DEFINER` function
+ * granted to `anon` + `authenticated` — same pattern as `getPublicProfile`
+ * / `get_public_profile` — since a direct `users` table select would come
+ * back empty for a logged-out visitor (`users` has no `anon` SELECT
+ * policy, per docs/db/rls-policies.md). Exact-match, case-sensitive
+ * lookup, matching `users.username`'s actual (non-functional) unique
+ * index — usernames are already lowercased at signup, so this is a
+ * non-issue in practice (see docs/db/schema.md's `users` notes).
+ *
+ * Returns null if no such username exists.
+ */
+export async function resolveUsernameToUserId(username: string): Promise<string | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("resolve_username_to_user_id", {
+    p_username: username,
+  });
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data as string;
+}
+
 export type OwnProfileBasics = {
   username: string | null;
   bio: string | null;
