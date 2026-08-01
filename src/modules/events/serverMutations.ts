@@ -122,9 +122,13 @@ export async function createEventOnServer(
 
     const objectPath = `${userId}/${randomUUID()}.${processed.data.extension}`;
 
+    // Uint8Array, not a raw Node Buffer — same fix as
+    // modules/users/serverMutations.ts's avatar upload. Passing a plain
+    // Buffer to supabase-js's storage upload let it get coerced through a
+    // lossy string/UTF-8 path, corrupting the binary image bytes.
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .upload(objectPath, processed.data.buffer, {
+      .upload(objectPath, new Uint8Array(processed.data.buffer), {
         contentType: processed.data.contentType,
         upsert: false,
       });
@@ -244,9 +248,11 @@ export async function updateEventOnServer(
 
     const objectPath = `${userId}/${randomUUID()}.${processed.data.extension}`;
 
+    // Uint8Array, not a raw Node Buffer — see the comment on the same call
+    // in createEventOnServer above.
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .upload(objectPath, processed.data.buffer, {
+      .upload(objectPath, new Uint8Array(processed.data.buffer), {
         contentType: processed.data.contentType,
         upsert: false,
       });
