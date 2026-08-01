@@ -67,20 +67,6 @@ export async function applyProfileUpdate(
 
   const avatarEntry = formData.get("avatar");
 
-  // TEMPORARY DIAGNOSTIC — remove once the Android-mobile silent-skip bug
-  // is root-caused. This logs the shape of whatever arrived in the
-  // "avatar" field so we can see why `instanceof File` might be failing
-  // for some clients while the exact same code path works from a laptop.
-  console.log("avatar upload debug:", {
-    present: formData.has("avatar"),
-    isFile: avatarEntry instanceof File,
-    type: typeof avatarEntry,
-    constructorName: (avatarEntry as { constructor?: { name?: string } })?.constructor?.name,
-    size: (avatarEntry as { size?: number })?.size,
-    name: (avatarEntry as { name?: string })?.name,
-    mimeType: (avatarEntry as { type?: string })?.type,
-  });
-
   if (avatarEntry instanceof File && avatarEntry.size > 0) {
     const processed = await processAvatarImage(avatarEntry);
     if (!processed.ok) {
@@ -89,9 +75,16 @@ export async function applyProfileUpdate(
 
     const objectPath = `${userId}/${randomUUID()}.${processed.data.extension}`;
 
+    // IMPORTANT: pass a Uint8Array, not the raw Node Buffer, to
+    // supabase-js's storage upload. Handing it a plain Buffer let it get
+    // coerced through a lossy string/UTF-8 path somewhere in the
+    // fetch/multipart layer, silently corrupting the binary image bytes
+    // (every non-UTF8-valid byte got replaced with the UTF-8 "replacement
+    // character", inflating and corrupting the file). Wrapping it as a
+    // Uint8Array (a real binary view) forces the binary-safe path.
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .upload(objectPath, processed.data.buffer, {
+      .upload(objectPath, new Uint8Array(processed.data.buffer), {
         contentType: processed.data.contentType,
         upsert: false,
       });
