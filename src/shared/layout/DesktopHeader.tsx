@@ -78,8 +78,8 @@ export default function DesktopHeader({
           {/* Center: search — single capsule, collapsed trigger or
               expanded input. No second search bar on /search itself. */}
           <div
-            className={`flex h-[42px] w-full max-w-[798px] shrink items-center gap-2.5 rounded-full border-2 border-white pl-1 pr-1 transition-all ${
-              searchActive ? "" : "pl-5"
+            className={`flex h-[42px] w-full max-w-[798px] shrink items-center gap-2.5 rounded-full border-2 border-white transition-all ${
+              searchActive ? "pl-1 pr-1" : "pl-5 pr-[3px]"
             }`}
           >
             {searchActive ? (
@@ -108,7 +108,7 @@ export default function DesktopHeader({
               <button
                 type="button"
                 onClick={openSearch}
-                className="flex w-full items-center justify-between gap-2.5 py-0 pr-1 transition-all hover:bg-white/[0.04] active:scale-[0.995]"
+                className="flex w-full items-center justify-between gap-2.5 py-0 pr-0 transition-all hover:bg-white/[0.04] active:scale-[0.995]"
               >
                 <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">

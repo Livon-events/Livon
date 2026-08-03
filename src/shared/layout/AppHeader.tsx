@@ -80,8 +80,8 @@ export default function AppHeader({
               There is no second search bar anywhere else; /search itself
               is a pure results view now. */}
           <div
-            className={`flex h-10 shrink-0 select-none items-center gap-2.5 rounded-full border-2 border-white pl-1 pr-1 transition-all ${
-              searchActive ? "w-full" : "pl-4"
+            className={`flex h-10 shrink-0 select-none items-center gap-2.5 rounded-full border-2 border-white transition-all ${
+              searchActive ? "w-full pl-1 pr-1" : "pl-4 pr-[3px]"
             }`}
           >
             {searchActive ? (
@@ -110,7 +110,7 @@ export default function AppHeader({
               <button
                 type="button"
                 onClick={openSearch}
-                className="flex w-full items-center justify-between gap-2.5 py-0 pr-1 transition-transform active:scale-95"
+                className="flex w-full items-center justify-between gap-2.5 py-0 pr-0 transition-transform active:scale-95"
               >
                 <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
