@@ -83,25 +83,41 @@ export function useLocationPicker({
       return;
     }
 
-    if (!stored || stored.cityId !== cityId) return;
+    if (stored && stored.cityId === cityId) {
+      const resolvedAreaId = stored.areaId ?? ALL_AREAS_ID;
+      // Deliberate one-time post-hydration sync from localStorage
+      // (unavailable during SSR, so it can't be a lazy useState initializer
+      // without causing a hydration mismatch against the server-rendered
+      // default). Guarded by `reconciled.current` above, so this can't
+      // cascade.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedAreaId(resolvedAreaId);
 
-    const resolvedAreaId = stored.areaId ?? ALL_AREAS_ID;
-    // Deliberate one-time post-hydration sync from localStorage
-    // (unavailable during SSR, so it can't be a lazy useState initializer
-    // without causing a hydration mismatch against the server-rendered
-    // default). Guarded by `reconciled.current` above, so this can't
-    // cascade.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedAreaId(resolvedAreaId);
+      if (userId && !hasAccountPreference) {
+        // First login on a device that already had a local preference —
+        // push it up to the account per location-toggle.md.
+        updateLocationPreference({ cityId, areaId: stored.areaId }).catch(() => {
+          // Best-effort — the UI already reflects the selection either way.
+        });
+      }
+      // Logged-out case: nothing further to do, local state above is enough.
+      return;
+    }
 
-    if (userId && !hasAccountPreference) {
-      // First login on a device that already had a local preference —
-      // push it up to the account per location-toggle.md.
-      updateLocationPreference({ cityId, areaId: stored.areaId }).catch(() => {
-        // Best-effort — the UI already reflects the selection either way.
+    // No localStorage entry (or wrong city) — persist the server-resolved
+    // default so the DB and localStorage stay in sync with what the header
+    // is already displaying. Without this, a logged-in user with no prior
+    // preference would see e.g. "Maseru Central" in the header but
+    // `preferred_area_id` would remain null in the DB, blocking event
+    // creation.
+    const realAreaId = selectedAreaId === ALL_AREAS_ID ? null : selectedAreaId;
+    writeStoredLocationPreference({ cityId, areaId: realAreaId });
+
+    if (userId && !hasAccountPreference && realAreaId) {
+      updateLocationPreference({ cityId, areaId: realAreaId }).catch(() => {
+        // Best-effort — same as the localStorage-adoption path above.
       });
     }
-    // Logged-out case: nothing further to do, local state above is enough.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, hasAccountPreference, cityId]);
 
