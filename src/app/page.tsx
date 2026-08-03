@@ -20,7 +20,7 @@ export default async function Home() {
 
   return (
     <main
-      className="min-h-screen bg-black pb-[calc(4rem+env(safe-area-inset-bottom,0px)+1.5rem)] md:pb-0"
+      className="min-h-screen bg-black pt-4 md:pt-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px)+1.5rem)] md:pb-0"
     >
       {/* CategoryFilterBar hidden for MVP — uncomment when there are enough events
       <CategoryFilterBar
