@@ -35,7 +35,7 @@ export default function EventManagementPage({
           {/* Metric 1: Event Date display */}
           <EventDateMetric dateLabel={dateLabel} />
 
-          {/* Metric 2: Attending Count */}
+          {/* Metric 2: Interested Count */}
           <AttendingCountMetric count={attendingCount} />
 
           {/* Metric 3: Shares Count */}

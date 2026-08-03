@@ -51,7 +51,7 @@ export default function EventActionBar({
             : "border-none bg-[#FFEA00] text-black"
         }`}
       >
-        {going ? "Going" : "Interested"}
+        Interested
       </button>
       <button
         type="button"
