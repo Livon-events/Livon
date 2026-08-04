@@ -276,7 +276,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           onClick={() => router.push(`/events/${savedEventId}`)}
           className="h-[52px] w-full max-w-xs rounded-[10px] bg-[#FFEA00] text-base font-extrabold text-black shadow-[0_4px_12px_rgba(255,234,0,0.15)] transition active:scale-[0.97]"
         >
-          {isEditing ? "View Event" : "Awesome"}
+          {isEditing ? "View Event" : "Done"}
         </button>
       </div>
     );
