@@ -6,7 +6,7 @@ export const PAGE_CONTAINER_CLASSES = "mx-auto w-full max-w-[1400px] px-3 lg:px-
 
 export const metadata: Metadata = {
   title: "Livon",
-  description: "Livon — campus event discovery",
+  description: "Livon — event discovery platform",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
