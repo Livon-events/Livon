@@ -78,14 +78,24 @@ export async function signInWithEmail(input: {
 /**
  * Kicks off the Google OAuth handshake. Supabase redirects the browser
  * to Google, then back to /auth/callback to exchange the code for a session.
+ *
+ * `next` is forwarded as a query param on the callback URL so the callback
+ * route (app/auth/callback/route.ts) knows where to send the user after
+ * exchanging the code — otherwise it falls back to /profile, dropping
+ * whatever protected page originally redirected them to login/signup.
  */
-export async function signInWithGoogle(): Promise<Result> {
+export async function signInWithGoogle(next?: string): Promise<Result> {
   const supabase = createClient();
+
+  const callbackUrl = new URL("/auth/callback", window.location.origin);
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    callbackUrl.searchParams.set("next", next);
+  }
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: callbackUrl.toString(),
     },
   });
 

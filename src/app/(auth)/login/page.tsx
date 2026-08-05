@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/shared/supabase/server";
 import { GoogleSignInButton } from "@/modules/auth";
 import { LoginForm } from "@/modules/auth";
 
@@ -6,8 +8,24 @@ type LoginPageProps = {
   searchParams: Promise<{ next?: string }>;
 };
 
+function safeNext(next: string | undefined): string {
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    return next;
+  }
+  return "/profile";
+}
+
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next } = await searchParams;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect(safeNext(next));
+  }
 
   return (
     <div className="auth-scope">
@@ -26,7 +44,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <h1 id="form-title">Sign in</h1>
           </header>
 
-          <GoogleSignInButton />
+          <GoogleSignInButton next={next} />
 
           <div className="divider">
             <span>or use your email</span>

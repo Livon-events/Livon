@@ -164,7 +164,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
     setCoverPreview(URL.createObjectURL(file));
   }
 
-  async function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) return;
 

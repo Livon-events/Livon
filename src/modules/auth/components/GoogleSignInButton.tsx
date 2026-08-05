@@ -3,14 +3,18 @@
 import { useState } from "react";
 import { signInWithGoogle } from "@/modules/auth/mutations";
 
-export function GoogleSignInButton() {
+interface GoogleSignInButtonProps {
+  next?: string;
+}
+
+export function GoogleSignInButton({ next }: GoogleSignInButtonProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleClick() {
     setError(null);
     setPending(true);
-    const result = await signInWithGoogle();
+    const result = await signInWithGoogle(next);
     if (!result.ok) {
       setError(result.error);
       setPending(false);
