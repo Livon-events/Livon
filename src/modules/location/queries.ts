@@ -56,3 +56,44 @@ export async function getLocationPickerData(): Promise<LocationPickerCity[]> {
       .map((area) => ({ id: area.area_id, name: area.name })),
   }));
 }
+
+export type LocationAreaWithCity = {
+  id: string;
+  name: string;
+  cityId: string;
+  cityName: string;
+};
+
+type AreaRow = {
+  area_id: string;
+  name: string;
+  city_id: string;
+  city: { name: string } | null;
+};
+
+/**
+ * Resolves a single area id to its name + parent city. Used by
+ * `modules/events/serverMutations.ts` to re-verify the area an organiser
+ * picked on the create-event form (per docs/FR/event-creation-form.md) —
+ * the client's copy of the areas list is never trusted directly, same
+ * pattern as the categoryId re-check in that file. `cityId`/`cityName`
+ * are derived from the area's own `city_id` FK, not supplied by the
+ * caller, so the pair returned is always internally consistent.
+ *
+ * Returns null if `areaId` doesn't match a real row.
+ */
+export async function getAreaById(areaId: string): Promise<LocationAreaWithCity | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("areas")
+    .select("area_id, name, city_id, city:cities!city_id ( name )")
+    .eq("area_id", areaId)
+    .maybeSingle<AreaRow>();
+
+  if (error || !data || !data.city) {
+    return null;
+  }
+
+  return { id: data.area_id, name: data.name, cityId: data.city_id, cityName: data.city.name };
+}

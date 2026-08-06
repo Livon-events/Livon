@@ -32,6 +32,12 @@ Defines the behavior, constraints, and validation rules for the event creation f
 - Quick-select chips: 12 PM, 2 PM, 6 PM, 8 PM.
 - Manual time picker available as an alternative.
 
+### Area
+- Required. Single-select from the Areas within a City (City → Area, same data as the header's location picker — see docs/FR/location-toggle.md — but a fully separate field with its own state).
+- Defaults to the organiser's current header location selection if one is resolved (pre-filled, changeable). Starts unselected if the header has no resolved area (e.g. scoped to "All areas", or no preference set yet).
+- Determines which feed(s) the event appears in (`events.city_id`/`area_id`). Resolved once at creation; not editable afterward.
+- Re-verified server-side against the live Areas table on submit — the client's selection is never trusted directly.
+
 ### Location
 - Free-text venue name field.
 - Max length: 60 characters — kept short intentionally; this is a venue label, not an address.

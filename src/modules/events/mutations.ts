@@ -5,6 +5,7 @@ type Result<T = undefined> = { ok: true; data: T } | { ok: false; error: string 
 export type CreateEventInput = {
   title: string;
   categoryId: string;
+  areaId: string;
   startDate: string; // "YYYY-MM-DD"
   startTime: string; // "HH:MM"
   venueName: string;
@@ -30,6 +31,7 @@ export async function createEvent(input: CreateEventInput): Promise<Result<{ id:
   const formData = new FormData();
   formData.set("title", input.title);
   formData.set("categoryId", input.categoryId);
+  formData.set("areaId", input.areaId);
   formData.set("startDate", input.startDate);
   formData.set("startTime", input.startTime);
   formData.set("venueName", input.venueName);
@@ -66,7 +68,7 @@ export async function createEvent(input: CreateEventInput): Promise<Result<{ id:
   return { ok: true, data: { id: body.id } };
 }
 
-export type UpdateEventInput = CreateEventInput & {
+export type UpdateEventInput = Omit<CreateEventInput, "areaId"> & {
   /** Only set when the organiser picked a new photo — omitted, the existing cover is left untouched. */
   coverImage: File | null;
 };

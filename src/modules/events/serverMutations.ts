@@ -4,7 +4,7 @@ import type { ServerMutationResult } from "@/shared/http";
 import { createClient } from "@/shared/supabase/server";
 import { checkRateLimit } from "@/shared/security/rateLimit";
 import { getCategories } from "@/modules/categories/queries";
-import { getOrganizerLocationContext } from "@/modules/users/queries";
+import { getAreaById } from "@/modules/location/queries";
 import { processEventCoverImage } from "@/modules/events/images";
 import { parseAndValidateEventFormData } from "@/modules/events/formParsing";
 import {
@@ -79,21 +79,19 @@ export async function createEventOnServer(
     return { ok: false, error: "Invalid category selected.", status: 400 };
   }
 
-  // city_id/area_id are never accepted from the client — resolved
-  // server-side from the organiser's current location preference, read
-  // fresh at submission time. This is a cross-module call into `users`
-  // (which owns `preferred_city_id`/`preferred_area_id`), not a direct
-  // query against `users` from here.
-  const location = await getOrganizerLocationContext(userId);
-  if (!location) {
-    return { ok: false, error: "Set your location before creating an event.", status: 400 };
+  // Area is chosen directly on the create-event form (see
+  // docs/FR/event-creation-form.md) — the header toggle only scopes the
+  // feed now, per docs/FR/location-toggle.md. Never trust the client's
+  // area name/city pairing: re-verify the submitted id against the live
+  // `areas` table and derive city_id from that row, same pattern as the
+  // categoryId re-check just above.
+  const rawAreaId = formData.get("areaId");
+  if (typeof rawAreaId !== "string" || rawAreaId.trim() === "") {
+    return { ok: false, error: "Please select an area for your event.", status: 400 };
   }
-  if (!location.areaId) {
-    return {
-      ok: false,
-      error: "Select a specific area in the location toggle before posting an event.",
-      status: 400,
-    };
+  const area = await getAreaById(rawAreaId.trim());
+  if (!area) {
+    return { ok: false, error: "Invalid area selected.", status: 400 };
   }
 
   const startsAt = combineStartsAt(startDate, startTime);
@@ -150,8 +148,8 @@ export async function createEventOnServer(
     .insert({
       organizer_id: userId,
       category_id: categoryId,
-      city_id: location.cityId,
-      area_id: location.areaId,
+      city_id: area.cityId,
+      area_id: area.id,
       title,
       description: description && description.length > 0 ? description : null,
       venue_name: venueName,

@@ -138,7 +138,7 @@ export async function getOwnProfileBasics(userId: string): Promise<OwnProfileBas
 export type OrganizerLocationContext = {
   cityId: string;
   cityName: string;
-  areaId: string | null; // null = "All Areas" — event creation must block on this
+  areaId: string | null; // null = "All Areas"
   areaName: string | null;
 };
 
@@ -150,12 +150,14 @@ type UserLocationRow = {
 };
 
 /**
- * Resolves the signed-in organiser's current City/Area, per
- * docs/FR/location-toggle.md — the event form itself has no location
- * field; `city_id`/`area_id` are set server-side from this account
- * preference. Called from `modules/events/serverMutations.ts` as a
- * cross-module read (events doesn't own `users`, so it calls this
- * function rather than querying `users` itself).
+ * Resolves the signed-in organiser's current header City/Area preference,
+ * per docs/FR/location-toggle.md. The header toggle is feed-scoping only —
+ * it no longer determines the event's city/area on creation (the
+ * create-event form has its own area field, see
+ * docs/FR/event-creation-form.md) — so this is used only to pre-fill that
+ * form field with a sensible default; it is not re-checked or trusted at
+ * submission time (see `modules/events/serverMutations.ts`, which
+ * validates the submitted `areaId` directly against the `areas` table).
  *
  * Returns null if there's no signed-in user, or no preference set yet at
  * all. Deliberately re-read fresh on every call (no caching).

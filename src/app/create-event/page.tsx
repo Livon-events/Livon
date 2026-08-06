@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/shared/supabase/server";
 import { getCategories } from "@/modules/categories/queries";
+import { getLocationPickerData } from "@/modules/location/queries";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
 import { CreateEventPage } from "@/modules/events";
 
@@ -15,23 +16,27 @@ export default async function CreateEventRoute() {
     redirect("/login?next=/create-event");
   }
 
-  const [categories, location] = await Promise.all([
+  const [categories, cities, location] = await Promise.all([
     getCategories(),
+    getLocationPickerData(),
     getOrganizerLocationContext(user.id),
   ]);
 
-  // Informational only — the /api/events route re-checks this fresh at
-  // submit time regardless, per docs/FR/location-toggle.md. Showing it here
-  // too just avoids someone filling out the whole form before finding out.
-  const locationReady = Boolean(location?.areaId);
-  const locationLabel =
-    location?.areaName && location.cityName ? `${location.areaName}, ${location.cityName}` : null;
+  // Pre-fill only — the host's current header selection is a sensible
+  // default for the form's own Area field, but it's just that: a default,
+  // freely changeable, and never re-read from the header at submission
+  // time (see modules/events/serverMutations.ts). A header with no
+  // resolved area (e.g. scoped to "All areas", or no preference set yet)
+  // simply leaves the picker unselected.
+  const initialCityId = location?.cityId ?? cities[0]?.id ?? null;
+  const initialAreaId = location?.areaId ?? null;
 
   return (
     <CreateEventPage
       categories={categories}
-      locationReady={locationReady}
-      locationLabel={locationLabel}
+      cities={cities}
+      initialCityId={initialCityId}
+      initialAreaId={initialAreaId}
     />
   );
 }

@@ -48,12 +48,6 @@ export default async function EditEventRoute({ params }: EditEventRouteProps) {
         coverImageUrl: event.coverImageUrl,
       }}
       categories={categories}
-      // The location gate only applies to creating a new event — editing
-      // never touches city/area (see PATCH /api/events/[id]), so these
-      // aren't used by the form in edit mode. Passed through only because
-      // CreateEventPage's props require them regardless of mode.
-      locationReady
-      locationLabel={null}
     />
   );
 }

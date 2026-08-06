@@ -1,7 +1,7 @@
 # FR: Header Location Toggle
 
 ## Overview
-A persistent location selector in the app header lets users scope their event feed to either a specific Area or all Areas within a City. The same selection also determines which City/Area gets assigned to a new event when an organiser posts one — organisers do not choose location in the event form.
+A persistent location selector in the app header lets users scope their event feed to either a specific Area or all Areas within a City. This selector is **feed-scoping only**: it has no effect on event creation. Organisers choose the Area their event is posted to directly on the create-event form — see docs/FR/event-creation-form.md.
 
 ---
 
@@ -22,7 +22,7 @@ These are the account-level persisted values. Logged-out/device-level persistenc
 2. **Select a specific Area** — feed and event listings scope to that Area only.
 3. **Select City + "All Areas"** — feed and event listings scope to all Areas within that City.
 4. **Return to the app later** — the previously selected location is restored automatically (no re-selection needed).
-5. **Create an event** — the organiser does not see a location field in the event form. The event's `city_id`/`area_id` are silently set from the header's current selection at time of submission.
+5. **Create an event** — unaffected by this toggle. The create-event form has its own Area field (see docs/FR/event-creation-form.md); the header's current selection is used only to pre-fill that field with a sensible default.
 
 ---
 
@@ -43,16 +43,13 @@ These are the account-level persisted values. Logged-out/device-level persistenc
 - This scoping applies wherever events are listed (main feed, search/browse), not just the primary feed.
 
 ### Event creation — location assignment
-- The event form has **no city/area input**.
-- On submit, the backend sets the event's `city_id` (and `area_id`, see below) from the organiser's **current header selection at time of submission** — not at time of form load, in case the header changes mid-session.
-- **If the header is scoped to "All Areas" at submission time: block event creation.** The organiser must switch to a specific Area in the header before they can post. Show a clear inline message (e.g. "Select a specific area in the location toggle before posting an event") rather than a generic form error.
+- Out of scope for this toggle. The create-event form owns its own Area field and validation — see docs/FR/event-creation-form.md. The header's resolved selection (account preference, or device storage when logged out) is read once, server-side, to pre-fill that field's default when the form loads; it is not read again at submission time, and the header can be changed freely afterward without affecting an in-progress or already-submitted form.
 
 ---
 
 ## Edge cases
 
-- **Organiser wants to post for a different area than their current header selection:** not supported directly — they must switch the header location first, then create the event. This is a deliberate constraint, not a bug; worth confirming this is acceptable UX before build.
-- **Header changed in another tab while form is open:** submission uses whatever the header state is at submit time (read fresh, not cached from form load), so a stale open tab could submit to an unexpected area. Acceptable for MVP; no cross-tab sync required.
+- **Header changed in another tab while a create-event form is open:** no effect — the form's Area field holds its own state once loaded, independent of the header from that point on.
 - **First-time login on a new device where account already has a preference:** account preference wins immediately, overwriting whatever default/local value was showing pre-login.
 - **User has account preference for a City/Area that gets removed or renamed later (admin-managed):** out of scope for MVP since Cities/Areas are admin-only and not expected to be deleted post-seed; if this becomes possible later, preference should fall back to default.
 - **Multiple cities in future:** toggle UI should support a City list even though only Maseru exists at launch — don't hardcode to a single city in implementation.
@@ -67,10 +64,7 @@ These are the account-level persisted values. Logged-out/device-level persistenc
 - Output: confirmation; client also updates local device storage to match
 
 **Event creation (client → server)**
-- Input: standard event fields — **no city_id/area_id from the client**
-- Server reads organiser's current header selection (from session/request context, sourced from account preference or device storage as applicable)
-- Validation: reject if resolved `area_id` is null (i.e. header is at "All Areas") — return an error the client maps to the inline message above
-- Output: created event with `city_id`/`area_id` set server-side from resolved header state
+- Out of scope for this toggle — see docs/FR/event-creation-form.md for the Area field's inputs/outputs and validation.
 
 **Feed / listing query**
 - Input: current resolved location (Area id, or City id with no Area)

@@ -15,6 +15,7 @@ import {
   IMAGE_MAX_BYTES,
 } from "@/modules/events/validation";
 import type { CreateEventCategory } from "@/modules/events/components/create/CreateEventPage";
+import type { LocationPickerCity } from "@/modules/location/queries";
 
 type Admission = "free" | "paid";
 
@@ -32,15 +33,21 @@ export type EventFormInitialValues = {
 
 type CreateEventFormProps = {
   categories: CreateEventCategory[];
-  locationReady: boolean;
-  locationLabel: string | null;
 } & (
-  | { mode?: "create"; eventId?: undefined; initialValues?: undefined }
+  | {
+      mode?: "create";
+      eventId?: undefined;
+      initialValues?: undefined;
+      cities: LocationPickerCity[];
+      /** Pre-fill only — from the host's current header selection, per docs/FR/location-toggle.md. Changeable, and null if the header has no resolved area (e.g. "All areas" or no preference yet). */
+      initialCityId: string | null;
+      initialAreaId: string | null;
+    }
   | { mode: "edit"; eventId: string; initialValues: EventFormInitialValues }
 );
 
 type FormErrors = Partial<
-  Record<"title" | "categoryId" | "startDate" | "startTime" | "venueName" | "description" | "price" | "image" | "form", string>
+  Record<"title" | "categoryId" | "areaId" | "startDate" | "startTime" | "venueName" | "description" | "price" | "image" | "form", string>
 >;
 
 function todayIso(): string {
@@ -90,15 +97,20 @@ const inputBase =
   "w-full rounded-[10px] border-2 border-[#262626] bg-black px-4 py-3.5 text-[15px] font-medium text-white outline-none transition focus:border-[#FFEA00] focus:shadow-[0_0_10px_rgba(255,234,0,0.08)]";
 
 export default function CreateEventForm(props: CreateEventFormProps) {
-  const { categories, locationReady, locationLabel } = props;
+  const { categories } = props;
   const isEditing = props.mode === "edit";
   const initialValues = isEditing ? props.initialValues : undefined;
+  const cities = useMemo(() => (isEditing ? [] : props.cities), [isEditing, props]);
 
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState(initialValues?.title ?? "");
   const [categoryId, setCategoryId] = useState<string | null>(initialValues?.categoryId ?? null);
+  const [cityId, setCityId] = useState<string | null>(
+    isEditing ? null : props.initialCityId ?? cities[0]?.id ?? null
+  );
+  const [areaId, setAreaId] = useState<string | null>(isEditing ? null : props.initialAreaId ?? null);
   const [startDate, setStartDate] = useState(initialValues?.startDate ?? todayIso());
   const [startTime, setStartTime] = useState(initialValues?.startTime ?? "18:00");
   const [venueName, setVenueName] = useState(initialValues?.venueName ?? "");
@@ -131,6 +143,26 @@ export default function CreateEventForm(props: CreateEventFormProps) {
     () => [...categories].sort((a, b) => a.name.localeCompare(b.name)),
     [categories]
   );
+
+  const sortedCities = useMemo(
+    () => [...cities].sort((a, b) => a.name.localeCompare(b.name)),
+    [cities]
+  );
+  const selectedCity = sortedCities.find((c) => c.id === cityId) ?? sortedCities[0] ?? null;
+  const availableAreas = useMemo(
+    () => [...(selectedCity?.areas ?? [])].sort((a, b) => a.name.localeCompare(b.name)),
+    [selectedCity]
+  );
+  const selectedAreaName = availableAreas.find((a) => a.id === areaId)?.name ?? null;
+  const locationLabel =
+    selectedAreaName && selectedCity ? `${selectedAreaName}, ${selectedCity.name}` : null;
+
+  function handleCityChange(nextCityId: string) {
+    setCityId(nextCityId);
+    // Area belongs to a specific city — switching city invalidates
+    // whatever area was picked under the old one.
+    setAreaId(null);
+  }
 
   function handlePickImage() {
     fileInputRef.current?.click();
@@ -194,32 +226,41 @@ export default function CreateEventForm(props: CreateEventFormProps) {
       return;
     }
 
-    // The location gate only applies to creating a brand-new event — city/
-    // area are resolved once at creation and never touched again on edit
-    // (see PATCH /api/events/[id]), so there's nothing to re-check here.
-    if (!isEditing && !locationReady) {
-      setErrors({
-        form: "Select a specific area in the location toggle before posting an event.",
-      });
+    // Area is required for a brand-new event — it's resolved once at
+    // creation and never touched again on edit (see PATCH
+    // /api/events/[id]), so there's nothing to re-check here in edit mode.
+    if (!isEditing && !areaId) {
+      setErrors({ areaId: "Please select an area for your event." });
       return;
     }
 
     setErrors({});
     setSubmitting(true);
 
-    const payload = {
-      title: parsed.data.title,
-      categoryId: parsed.data.categoryId,
-      startDate: parsed.data.startDate,
-      startTime: parsed.data.startTime,
-      venueName: parsed.data.venueName,
-      description: parsed.data.description ?? "",
-      admission: parsed.data.admission,
-      price: parsed.data.price,
-      coverImage: coverFile,
-    };
-
-    const result = isEditing ? await updateEvent(props.eventId, payload) : await createEvent(payload);
+    const result = isEditing
+      ? await updateEvent(props.eventId, {
+          title: parsed.data.title,
+          categoryId: parsed.data.categoryId,
+          startDate: parsed.data.startDate,
+          startTime: parsed.data.startTime,
+          venueName: parsed.data.venueName,
+          description: parsed.data.description ?? "",
+          admission: parsed.data.admission,
+          price: parsed.data.price,
+          coverImage: coverFile,
+        })
+      : await createEvent({
+          title: parsed.data.title,
+          categoryId: parsed.data.categoryId,
+          areaId: areaId as string,
+          startDate: parsed.data.startDate,
+          startTime: parsed.data.startTime,
+          venueName: parsed.data.venueName,
+          description: parsed.data.description ?? "",
+          admission: parsed.data.admission,
+          price: parsed.data.price,
+          coverImage: coverFile,
+        });
 
     setSubmitting(false);
 
@@ -284,12 +325,6 @@ export default function CreateEventForm(props: CreateEventFormProps) {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-5">
-      {!isEditing && !locationReady && (
-        <p className="rounded-[10px] border border-[#ff453a]/40 bg-[#ff453a]/10 px-4 py-3 text-sm font-medium text-[#ff453a]">
-          Select a specific area in the location toggle before posting an event.
-        </p>
-      )}
-
       {errors.form && (
         <p className="rounded-[10px] border border-[#ff453a]/40 bg-[#ff453a]/10 px-4 py-3 text-sm font-medium text-[#ff453a]">
           {errors.form}
@@ -372,6 +407,45 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         </div>
         {errors.categoryId && <p className="text-xs font-semibold text-[#ff453a]">{errors.categoryId}</p>}
       </div>
+
+      {/* Area — which City/Area is being posted to. Only shown when
+          creating: it's resolved once at creation and never re-editable
+          afterward (see PATCH /api/events/[id]). */}
+      {!isEditing && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">AREA</label>
+
+          {sortedCities.length > 1 && (
+            <div className="mb-1 flex flex-wrap gap-2">
+              {sortedCities.map((city) => (
+                <button
+                  key={city.id}
+                  type="button"
+                  onClick={() => handleCityChange(city.id)}
+                  className={`${chipBase} ${cityId === city.id ? chipActive : chipInactive}`}
+                >
+                  {city.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            {availableAreas.map((area) => (
+              <button
+                key={area.id}
+                type="button"
+                onClick={() => setAreaId(area.id)}
+                className={`${chipBase} ${areaId === area.id ? chipActive : chipInactive}`}
+              >
+                {area.name}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-[#8e8e8e]">Where the event will be listed. Visible on the feed to everyone in this area.</p>
+          {errors.areaId && <p className="text-xs font-semibold text-[#ff453a]">{errors.areaId}</p>}
+        </div>
+      )}
 
       {/* Date & time */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -519,7 +593,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
       <div className="flex flex-col gap-3 pb-6 pt-2">
         <button
           type="submit"
-          disabled={submitting || (!isEditing && !locationReady)}
+          disabled={submitting || (!isEditing && !areaId)}
           className="h-[52px] w-full rounded-[10px] bg-[#FFEA00] text-base font-extrabold text-black shadow-[0_4px_12px_rgba(255,234,0,0.15)] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting ? (isEditing ? "Saving…" : "Publishing…") : isEditing ? "Save Changes" : "Publish Event"}
