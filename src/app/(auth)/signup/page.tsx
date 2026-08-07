@@ -40,7 +40,6 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           </div>
 
           <header className="pass-head">
-            <p className="eyebrow">Get in</p>
             <h1 id="form-title">Create your account</h1>
           </header>
 

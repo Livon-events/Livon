@@ -40,7 +40,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
 
           <header className="pass-head">
-            <p className="eyebrow">Welcome back</p>
             <h1 id="form-title">Sign in</h1>
           </header>
 
