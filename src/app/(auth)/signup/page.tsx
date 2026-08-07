@@ -35,7 +35,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
         <section className="pass" aria-labelledby="form-title">
           <div className="pass-notch">
             <div className="logo-placeholder" aria-label="Livon logo placeholder">
-              <span>LOGO</span>
+              <span>Livon</span>
             </div>
           </div>
 

@@ -31,7 +31,7 @@ export default function EventRow({ event, actionLabel, onAction }: EventRowProps
             {event.location ? ` · ${event.location}` : ""}
           </div>
           {typeof event.attendeeCount === "number" && (
-            <div className="text-[12px] text-[#AEAEB2]">{event.attendeeCount} going</div>
+            <div className="text-[12px] text-[#AEAEB2]">{event.attendeeCount} interested</div>
           )}
         </div>
       </Link>
