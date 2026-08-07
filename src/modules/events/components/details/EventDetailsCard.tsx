@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { getPriceLabel, getEventDateTimeLabel } from "@/modules/events/format";
 import type { EventDetails } from "@/modules/events/queries";
+import PosterViewer from "./PosterViewer";
 
 type EventDetailsCardProps = {
   event: EventDetails;
@@ -19,17 +19,11 @@ export default function EventDetailsCard({ event }: EventDetailsCardProps) {
       {/* Poster — 4px gap from the card border on all sides, matching the
           mockup's .poster-wrap/.poster treatment. */}
       <div className="bg-black p-1">
-        <div className="relative aspect-[16/7] min-h-[180px] w-full overflow-hidden rounded-md bg-[#3A3A3C] sm:min-h-[220px]">
-          {event.coverImageUrl && (
-            <Image
-              src={event.coverImageUrl}
-              alt={event.title}
-              fill
-              sizes="(min-width: 768px) 798px, 100vw"
-              className="object-cover"
-            />
-          )}
-        </div>
+        {event.coverImageUrl ? (
+          <PosterViewer src={event.coverImageUrl} alt={event.title} />
+        ) : (
+          <div className="relative aspect-[16/7] min-h-[180px] w-full overflow-hidden rounded-md bg-[#3A3A3C] sm:min-h-[220px]" />
+        )}
       </div>
 
       <div className="px-2 pb-4 pt-3 sm:px-4 sm:pt-[18px]">
