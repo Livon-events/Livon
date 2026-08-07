@@ -275,7 +275,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   async function handleCancelEvent() {
     if (!isEditing || cancelling) return;
     const confirmed = window.confirm(
-      "Cancel this event? Everyone who's marked interest will still see it as cancelled — this can't be undone."
+      "Cancel this event? It will be permanently deleted, along with everyone's interest and view history for it — this can't be undone."
     );
     if (!confirmed) return;
 

@@ -127,19 +127,23 @@ export async function updateEvent(
 }
 
 /**
- * Cancels (soft — sets status = 'cancelled', never deletes) an event the
- * caller organizes. Unlike create/update, this touches no image and needs
- * no validation beyond "is this my event", so it's a plain client-side
- * call — same pattern as lib/mutations/event-interests.ts — rather than
- * routing through a Route Handler.
+ * Cancels an event the caller organizes by deleting it outright — no
+ * "archived" state, no "un-cancel". This deletes regardless of whether
+ * anyone has marked interest/going; see
+ * scripts/migrations/2026-08-hard-delete-cancelled-events.sql for the
+ * cascade behavior (event_tags, event_interests, event_views,
+ * anonymous_event_views, invite_links, invite_link_clicks all cascade
+ * from the event row) and the RLS change this depends on
+ * (events_delete_own — no more "only if no interest" guard).
  *
- * RLS ("Organizers can update own events": using + check
- * `organizer_id = auth.uid()`) is what actually enforces ownership here;
- * `.eq("organizer_id", user.id)` below is belt-and-braces, not the real
- * security boundary.
+ * Unlike create/update, this touches no image and needs no validation
+ * beyond "is this my event", so it's a plain client-side call — same
+ * pattern as lib/mutations/event-interests.ts — rather than routing
+ * through a Route Handler.
  *
- * Per docs/db/schema.md, events are archived, not deleted — this can't be
- * undone through the UI once cancelled (no "un-cancel" action exists).
+ * RLS ("events_delete_own": using `organizer_id = auth.uid()`) is what
+ * actually enforces ownership here; `.eq("organizer_id", user.id)` below
+ * is belt-and-braces, not the real security boundary.
  */
 export async function cancelEvent(eventId: string): Promise<Result> {
   const supabase = createClient();
@@ -154,7 +158,7 @@ export async function cancelEvent(eventId: string): Promise<Result> {
 
   const { error } = await supabase
     .from("events")
-    .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+    .delete()
     .eq("event_id", eventId)
     .eq("organizer_id", user.id);
 

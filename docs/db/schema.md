@@ -113,7 +113,7 @@ Locked for beta — no client access at all (see Key Learnings).
 
 **Indexes:** `events_organizer_id_idx`, `events_category_id_idx`, `events_city_id_idx`, `events_area_id_idx` — all plain btree, one per FK column. Added to back `get_home_feed`'s filtering/joins (previously the table had only its PK index).
 
-Notes: `status` is a two-value enum (`active` / `cancelled`) — rows are never deleted (archival over deletion). "Past" is a derived state computed from `starts_at`/`ends_at` at read time, not stored. No `CHECK` constraint on `status` values showed up here — likely enforced at application layer only; worth double-checking.
+Notes: **`status`/`cancelled_at` are now vestigial** (as of 2026-08) — cancelling an event hard-deletes the row (see `events_delete_own` in rls-policies.md and `scripts/migrations/2026-08-hard-delete-cancelled-events.sql`) instead of setting `status = 'cancelled'`, so every remaining row should read `status = 'active'`. Left in place rather than dropped since removing columns wasn't part of that change; worth a follow-up decision on whether to drop them. "Past" is a derived state computed from `starts_at`/`ends_at` at read time, not stored.
 
 ## event_tags
 

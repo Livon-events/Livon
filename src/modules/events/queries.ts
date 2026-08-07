@@ -229,8 +229,6 @@ function mapEventSummaryRow(row: EventSummaryRow): EventSummary {
  * `lib/queries/profile-events.ts`) since it's not exclusively a profile
  * concern, just an events-table read parameterized by organizer.
  *
- * Includes cancelled events deliberately — this is the organiser managing
- * their own events, so it shouldn't hide ones they've cancelled.
  */
 export async function getEventsOrganizedBy(userId: string): Promise<EventSummary[]> {
   const supabase = await createClient();
@@ -256,21 +254,15 @@ export async function getEventsOrganizedBy(userId: string): Promise<EventSummary
  * `events` table read, `rsvp` owns the `event_interests` id lookup, and
  * neither reaches into the other's table directly.
  */
-export async function getEventsByIds(
-  eventIds: string[],
-  options: { excludeCancelled?: boolean } = {}
-): Promise<EventSummary[]> {
+export async function getEventsByIds(eventIds: string[]): Promise<EventSummary[]> {
   if (eventIds.length === 0) return [];
 
   const supabase = await createClient();
 
-  let query = supabase.from("events").select(EVENT_SUMMARY_SELECT).in("event_id", eventIds);
-
-  if (options.excludeCancelled) {
-    query = query.neq("status", "cancelled");
-  }
-
-  const { data, error } = await query
+  const { data, error } = await supabase
+    .from("events")
+    .select(EVENT_SUMMARY_SELECT)
+    .in("event_id", eventIds)
     .order("starts_at", { ascending: false })
     .returns<EventSummaryRow[]>();
 
@@ -289,13 +281,13 @@ export async function getEventsByIds(
  * same "two round-trips" shape the original function already used, just
  * with the first round-trip now living in its owning module.
  *
- * Excludes cancelled events — unlike "Created", seeing an event you're
- * going to as if it's still upcoming after the organiser cancelled it
- * isn't useful.
+ * Cancelled events never show up here — cancelling deletes the event row,
+ * which cascades and removes the corresponding event_interests row too,
+ * so there's nothing left for `getEventIdsUserIsGoingTo` to return.
  */
 export async function getEventsUserIsGoingTo(userId: string): Promise<EventSummary[]> {
   const eventIds = await getEventIdsUserIsGoingTo(userId);
-  return getEventsByIds(eventIds, { excludeCancelled: true });
+  return getEventsByIds(eventIds);
 }
 
 type FeaturedEventRow = {

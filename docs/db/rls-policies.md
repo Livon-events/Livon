@@ -37,9 +37,9 @@ These all carry a single policy named `no_client_access`, `cmd = ALL`, `qual = f
 | Events are viewable by everyone | SELECT | anon, authenticated | `true` |
 | Authenticated users can create events | INSERT | authenticated | with check: `organizer_id = (select auth.uid())` |
 | Organizers can update own events | UPDATE | authenticated | using + check: `organizer_id = (select auth.uid())` |
-| events_delete_own_if_no_interest | DELETE | authenticated | using: `organizer_id = (select auth.uid()) AND NOT EXISTS (SELECT 1 FROM event_interests WHERE event_id = events.event_id)` |
+| events_delete_own | DELETE | authenticated | using: `organizer_id = (select auth.uid())` |
 
-Notes: Delete is only allowed if **no one has expressed interest** in the event — this is the enforcement mechanism behind "archival over deletion" in practice: once an event has interest, an organizer can only cancel it (`status = 'cancelled'`), not delete the row.
+Notes: As of 2026-08, `events_delete_own` replaced `events_delete_own_if_no_interest` (see `scripts/migrations/2026-08-hard-delete-cancelled-events.sql`) — the "only if no interest" guard is gone, so cancelling an event now always deletes it, even with interested/going users. Every FK pointing at `events.event_id` (`event_tags`, `event_interests`, `event_views`, `anonymous_event_views`, `invite_links`, and transitively `invite_link_clicks`) was switched to `ON DELETE CASCADE` in the same migration, so a delete cleans up dependents instead of erroring or orphaning rows.
 
 ---
 
