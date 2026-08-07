@@ -41,6 +41,8 @@ export default async function EditEventRoute({ params }: EditEventRouteProps) {
         categoryId: event.categoryId,
         startDate: event.startDate,
         startTime: event.startTime,
+        endDate: event.endDate,
+        endTime: event.endTime,
         venueName: event.venueName,
         description: event.description,
         admission: event.admission,

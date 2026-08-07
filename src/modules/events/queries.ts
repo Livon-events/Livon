@@ -45,7 +45,7 @@ export async function getEventForEdit(
   const { data, error } = await supabase
     .from("events")
     .select(
-      "event_id, organizer_id, title, category_id, starts_at, venue_name, description, price, cover_image_url, status"
+      "event_id, organizer_id, title, category_id, starts_at, ends_at, venue_name, description, price, cover_image_url, status"
     )
     .eq("event_id", eventId)
     .maybeSingle();
@@ -60,6 +60,16 @@ export async function getEventForEdit(
     startsAt.getUTCMinutes()
   ).padStart(2, "0")}`;
 
+  let endDate = "";
+  let endTime = "";
+  if (data.ends_at) {
+    const endsAt = new Date(data.ends_at);
+    endDate = endsAt.toISOString().slice(0, 10);
+    endTime = `${String(endsAt.getUTCHours()).padStart(2, "0")}:${String(
+      endsAt.getUTCMinutes()
+    ).padStart(2, "0")}`;
+  }
+
   // PostgREST returns `numeric` columns as strings.
   const priceNum = parseFloat(data.price as unknown as string);
 
@@ -69,6 +79,8 @@ export async function getEventForEdit(
     categoryId: data.category_id,
     startDate,
     startTime,
+    endDate,
+    endTime,
     venueName: data.venue_name,
     description: data.description ?? "",
     admission: priceNum > 0 ? "paid" : "free",
@@ -84,6 +96,7 @@ type EventDetailsRow = {
   description: string | null;
   venue_name: string;
   starts_at: string;
+  ends_at: string | null;
   cover_image_url: string;
   status: string;
   price: string; // numeric comes back as a string over PostgREST
@@ -110,7 +123,7 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
   const { data: event, error } = await supabase
     .from("events")
     .select(
-      `event_id, title, description, venue_name, starts_at,
+      `event_id, title, description, venue_name, starts_at, ends_at,
        cover_image_url, status, price, organizer_id,
        areas ( name ),
        categories ( name ),
@@ -153,6 +166,7 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
     hostUsername: event.organizer?.username ?? "",
     coverImageUrl: event.cover_image_url,
     startsAt: event.starts_at,
+    endsAt: event.ends_at,
     categoryName: event.categories?.name ?? "",
     status: event.status,
     peekConnectionsCount,

@@ -59,17 +59,40 @@ export function getTimeOrLiveLabel(
 }
 
 /**
- * Event details page date/time line: "25 Dec 2026 · 6:00 AM".
- * Per docs/FR/event-details-page.md, this is start date + start time only —
- * there is no end-time input on the creation form, so no range is shown
- * here (unlike the raw HTML mockup, which predates that FR resolution).
+ * Event details page date/time line.
+ *
+ * When `endsAt` is provided and on the same calendar day as `startsAt`:
+ *   "25 Dec 2026 · 6:00 AM – 10:00 PM"
+ * When `endsAt` is on a different day:
+ *   "25 Dec 2026, 6:00 AM – 26 Dec 2026, 10:00 PM"
+ * When no end time is set:
+ *   "25 Dec 2026 · 6:00 AM"
  */
-export function getEventDateTimeLabel(startsAt: Date): string {
-  const day = startsAt.getUTCDate();
-  const month = startsAt.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
-  const year = startsAt.getUTCFullYear();
-  const time = to12Hour(startsAt.getUTCHours(), startsAt.getUTCMinutes());
-  return `${day} ${month} ${year} \u00B7 ${time}`;
+export function getEventDateTimeLabel(startsAt: Date, endsAt?: Date | null): string {
+  const startDay = startsAt.getUTCDate();
+  const startMonth = startsAt.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  const startYear = startsAt.getUTCFullYear();
+  const startTime = to12Hour(startsAt.getUTCHours(), startsAt.getUTCMinutes());
+
+  if (!endsAt) {
+    return `${startDay} ${startMonth} ${startYear} \u00B7 ${startTime}`;
+  }
+
+  const endDay = endsAt.getUTCDate();
+  const endMonth = endsAt.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  const endYear = endsAt.getUTCFullYear();
+  const endTime = to12Hour(endsAt.getUTCHours(), endsAt.getUTCMinutes());
+
+  const sameDay =
+    startDay === endDay &&
+    startsAt.getUTCMonth() === endsAt.getUTCMonth() &&
+    startYear === endYear;
+
+  if (sameDay) {
+    return `${startDay} ${startMonth} ${startYear} \u00B7 ${startTime} \u2013 ${endTime}`;
+  }
+
+  return `${startDay} ${startMonth} ${startYear}, ${startTime} \u2013 ${endDay} ${endMonth} ${endYear}, ${endTime}`;
 }
 
 /**

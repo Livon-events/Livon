@@ -31,6 +31,8 @@ export type EventEditData = {
   categoryId: string;
   startDate: string; // "YYYY-MM-DD"
   startTime: string; // "HH:MM"
+  endDate: string;   // "YYYY-MM-DD" or "" if no end time set
+  endTime: string;   // "HH:MM" or "" if no end time set
   venueName: string;
   description: string;
   admission: "free" | "paid";
@@ -80,6 +82,8 @@ export type EventDetails = {
   // The viewer's own privacy choice on this event, per
   // docs/FR/going-rsvp-privacy.md — null whenever isGoing is false.
   myVisibility: GoingVisibility | null;
+  // Optional end time, set by the organizer. null when not provided.
+  endsAt: string | null;
 };
 
 export type EventManagementData = {

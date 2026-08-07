@@ -8,6 +8,8 @@ export type CreateEventInput = {
   areaId: string;
   startDate: string; // "YYYY-MM-DD"
   startTime: string; // "HH:MM"
+  endDate?: string;  // "YYYY-MM-DD" — optional
+  endTime?: string;  // "HH:MM"     — optional
   venueName: string;
   description: string;
   admission: "free" | "paid";
@@ -39,6 +41,12 @@ export async function createEvent(input: CreateEventInput): Promise<Result<{ id:
   formData.set("admission", input.admission);
   if (input.admission === "paid" && input.price !== undefined) {
     formData.set("price", String(input.price));
+  }
+  if (input.endDate) {
+    formData.set("endDate", input.endDate);
+  }
+  if (input.endTime) {
+    formData.set("endTime", input.endTime);
   }
   if (input.coverImage) {
     formData.set("cover", input.coverImage);
@@ -97,6 +105,12 @@ export async function updateEvent(
   formData.set("admission", input.admission);
   if (input.admission === "paid" && input.price !== undefined) {
     formData.set("price", String(input.price));
+  }
+  if (input.endDate) {
+    formData.set("endDate", input.endDate);
+  }
+  if (input.endTime) {
+    formData.set("endTime", input.endTime);
   }
   if (input.coverImage) {
     formData.set("cover", input.coverImage);

@@ -10,6 +10,7 @@ import { parseAndValidateEventFormData } from "@/modules/events/formParsing";
 import {
   eventTextFieldsSchema,
   combineStartsAt,
+  combineDateAndTime,
   MAX_YEARS_IN_FUTURE,
 } from "@/modules/events/validation";
 
@@ -62,6 +63,8 @@ export async function createEventOnServer(
     admission: formData.get("admission"),
     price:
       typeof rawPrice === "string" && rawPrice.trim() !== "" ? Number(rawPrice) : undefined,
+    endDate: formData.get("endDate") ?? "",
+    endTime: formData.get("endTime") ?? "",
   });
 
   if (!parsed.success) {
@@ -102,6 +105,20 @@ export async function createEventOnServer(
   maxFutureDate.setUTCFullYear(maxFutureDate.getUTCFullYear() + MAX_YEARS_IN_FUTURE);
   if (startsAt > maxFutureDate) {
     return { ok: false, error: "Start date is too far in the future.", status: 400 };
+  }
+
+  // Combine optional end date/time if provided.
+  let endsAt: Date | null = null;
+  const hasEndDate = parsed.data.endDate && parsed.data.endDate.length > 0;
+  const hasEndTime = parsed.data.endTime && parsed.data.endTime.length > 0;
+  if (hasEndDate && hasEndTime) {
+    endsAt = combineDateAndTime(parsed.data.endDate!, parsed.data.endTime!);
+    if (!endsAt) {
+      return { ok: false, error: "Enter a valid end date and time.", status: 400 };
+    }
+    if (endsAt <= startsAt) {
+      return { ok: false, error: "End time must be after the start time.", status: 400 };
+    }
   }
 
   // events.cover_image_url is NOT NULL — priority order: organiser's own
@@ -154,6 +171,7 @@ export async function createEventOnServer(
       description: description && description.length > 0 ? description : null,
       venue_name: venueName,
       starts_at: startsAt.toISOString(),
+      ends_at: endsAt ? endsAt.toISOString() : null,
       cover_image_url: coverImageUrl,
       status: "active",
       price: admission === "paid" ? price : 0,
@@ -221,7 +239,7 @@ export async function updateEventOnServer(
     return { ok: false, error: parsed.error, status: parsed.status };
   }
 
-  const { title, categoryId, venueName, description, admission, price, startsAt } = parsed.data;
+  const { title, categoryId, venueName, description, admission, price, startsAt, endsAt } = parsed.data;
 
   // city_id/area_id are intentionally left untouched on edit — see
   // docs/FR/location-toggle.md.
@@ -231,6 +249,7 @@ export async function updateEventOnServer(
     venue_name: venueName,
     description,
     starts_at: startsAt.toISOString(),
+    ends_at: endsAt ? endsAt.toISOString() : null,
     price: admission === "paid" ? price : 0,
   };
 

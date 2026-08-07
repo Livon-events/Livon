@@ -87,12 +87,43 @@ export const eventTextFieldsSchema = z.object({
     .positive("Enter a valid price")
     .max(PRICE_MAX, "Price is too high")
     .optional(),
+
+  // Optional end date/time — both must be provided together or both omitted.
+  // When set, the combined end timestamp must be after the start.
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "End date is invalid")
+    .optional()
+    .or(z.literal("")),
+  endTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "End time is invalid")
+    .optional()
+    .or(z.literal("")),
 }).superRefine((data, ctx) => {
   if (data.admission === "paid" && data.price === undefined) {
     ctx.addIssue({
       code: "custom",
       path: ["price"],
       message: "Please enter a valid price",
+    });
+  }
+
+  // If one of endDate/endTime is set, the other must be too.
+  const hasEndDate = data.endDate && data.endDate.length > 0;
+  const hasEndTime = data.endTime && data.endTime.length > 0;
+  if (hasEndDate && !hasEndTime) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["endTime"],
+      message: "Please select an end time",
+    });
+  }
+  if (hasEndTime && !hasEndDate) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["endDate"],
+      message: "Please select an end date",
     });
   }
 });
@@ -112,12 +143,20 @@ export type EventTextFields = z.infer<typeof eventTextFieldsSchema>;
  * which the regex alone can't catch.
  */
 export function combineStartsAt(startDate: string, startTime: string): Date | null {
-  const iso = `${startDate}T${startTime}:00.000Z`;
+  return combineDateAndTime(startDate, startTime);
+}
+
+/**
+ * Combines a date string ("YYYY-MM-DD") and a time string ("HH:MM") into a
+ * Date, returning null if the result isn't a real calendar date.
+ */
+export function combineDateAndTime(date: string, time: string): Date | null {
+  const iso = `${date}T${time}:00.000Z`;
   const parsed = new Date(iso);
   if (Number.isNaN(parsed.getTime())) return null;
 
   // Reject dates that JS "helpfully" rolled over (e.g. Feb 30 -> Mar 2).
-  const [y, m, d] = startDate.split("-").map(Number);
+  const [y, m, d] = date.split("-").map(Number);
   if (
     parsed.getUTCFullYear() !== y ||
     parsed.getUTCMonth() !== m - 1 ||

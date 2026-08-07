@@ -8,11 +8,11 @@ type EventDetailsCardProps = {
   event: EventDetails;
 };
 
-// The yellow-bordered card in the reference mockup. Excludes end time — no
-// end-time input exists on the creation form (see the FR's "Event Card
-// block" section), so the date/time line is start time only, not a range.
+// The yellow-bordered card in the reference mockup. Shows a time range
+// when the organizer has set an end time; otherwise start time only.
 export default function EventDetailsCard({ event }: EventDetailsCardProps) {
-  const dateTimeLabel = getEventDateTimeLabel(new Date(event.startsAt));
+  const endsAt = event.endsAt ? new Date(event.endsAt) : null;
+  const dateTimeLabel = getEventDateTimeLabel(new Date(event.startsAt), endsAt);
 
   return (
     <div className="overflow-hidden rounded-lg border-2 border-[#FFEA00]">

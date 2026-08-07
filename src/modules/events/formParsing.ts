@@ -3,6 +3,7 @@ import { getCategories } from "@/modules/categories/queries";
 import {
   eventTextFieldsSchema,
   combineStartsAt,
+  combineDateAndTime,
   MAX_YEARS_IN_FUTURE,
 } from "@/modules/events/validation";
 
@@ -14,6 +15,7 @@ export type ParsedEventFields = {
   admission: "free" | "paid";
   price: number | undefined;
   startsAt: Date;
+  endsAt: Date | null;
 };
 
 export type ParseEventFormResult =
@@ -41,6 +43,8 @@ export async function parseAndValidateEventFormData(
     description: formData.get("description") ?? "",
     admission: formData.get("admission"),
     price: typeof rawPrice === "string" && rawPrice.trim() !== "" ? Number(rawPrice) : undefined,
+    endDate: formData.get("endDate") ?? "",
+    endTime: formData.get("endTime") ?? "",
   });
 
   if (!parsed.success) {
@@ -66,6 +70,20 @@ export async function parseAndValidateEventFormData(
     return { ok: false, error: "Start date is too far in the future.", status: 400 };
   }
 
+  // Combine optional end date/time if provided.
+  let endsAt: Date | null = null;
+  const hasEndDate = parsed.data.endDate && parsed.data.endDate.length > 0;
+  const hasEndTime = parsed.data.endTime && parsed.data.endTime.length > 0;
+  if (hasEndDate && hasEndTime) {
+    endsAt = combineDateAndTime(parsed.data.endDate!, parsed.data.endTime!);
+    if (!endsAt) {
+      return { ok: false, error: "Enter a valid end date and time.", status: 400 };
+    }
+    if (endsAt <= startsAt) {
+      return { ok: false, error: "End time must be after the start time.", status: 400 };
+    }
+  }
+
   return {
     ok: true,
     categories,
@@ -80,6 +98,7 @@ export async function parseAndValidateEventFormData(
       admission: parsed.data.admission,
       price: parsed.data.price,
       startsAt,
+      endsAt,
     },
   };
 }
