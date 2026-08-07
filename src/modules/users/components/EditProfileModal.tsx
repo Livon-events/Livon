@@ -119,7 +119,7 @@ export default function EditProfileModal({
     <div className="fixed inset-0 z-[1100] flex items-center justify-center px-5">
       <div className="absolute inset-0 bg-black/70" onClick={pending ? undefined : onClose} aria-hidden="true" />
 
-      <div className="relative w-full max-w-[420px] max-h-[90dvh] overflow-y-auto rounded-2xl border border-[#1F2023] bg-[#17181A] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.6)]">
+      <div className="relative w-full max-w-[420px] max-h-[90vh] supports-[height:100dvh]:max-h-[90dvh] overflow-y-auto rounded-2xl border border-[#1F2023] bg-[#17181A] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.6)]">
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-display text-[20px] font-extrabold text-white">Edit profile</h2>
           <button

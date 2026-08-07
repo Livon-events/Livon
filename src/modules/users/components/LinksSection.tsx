@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import type { SocialLink } from "./types";
 import { useLinksDropdown } from "./useLinksDropdown";
 import { validateSocialLink } from "@/modules/users/validation";
@@ -53,22 +53,6 @@ function ArrowIcon() {
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="w-5 h-5"
-    >
-      <polyline points="6 12 10 16 18 8" />
-    </svg>
-  );
-}
-
 export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit }: LinksSectionProps) {
   const { isOpen, toggle, close } = useLinksDropdown();
 
@@ -80,17 +64,6 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
     Object.fromEntries(links.map((link) => [link.id, link.value]))
   );
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
-
-  // Brief "just saved" flash — id is cleared after 1.5 s so the button
-  // reverts to its resting state (checkmark stays, green glow fades).
-  const [justSaved, setJustSaved] = useState<Record<string, boolean>>({});
-
-  const flashSaved = useCallback((id: string) => {
-    setJustSaved((prev) => ({ ...prev, [id]: true }));
-    setTimeout(() => {
-      setJustSaved((prev) => ({ ...prev, [id]: false }));
-    }, 1500);
-  }, []);
 
   // Re-sync drafts when the parent hands back new canonical `links` (e.g.
   // after a successful save updates state from the server response).
@@ -128,7 +101,6 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
 
     setErrors((prev) => ({ ...prev, [link.id]: undefined }));
     onLinkSubmit?.(link.id, value.trim());
-    flashSaved(link.id);
   }
 
   return (
@@ -166,14 +138,12 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
         className={`absolute top-[calc(100%+12px)] inset-x-0 flex flex-col gap-2.5 
           bg-[#17181A] border border-[#1F2023] rounded-2xl p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.6)] 
           transition-all duration-[180ms] ease-out z-20
-          max-h-[min(65dvh,280px)] overflow-y-auto overscroll-contain
+          max-h-[min(65vh,280px)] supports-[height:100dvh]:max-h-[min(65dvh,280px)] overflow-y-auto overscroll-contain
           ${isOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-1.5"}`}
       >
         {links.map((link) => {
           const value = draftValues[link.id] ?? link.value;
           const error = errors[link.id];
-          const hasSavedValue = link.value.trim().length > 0;
-          const isSaving = justSaved[link.id];
           return (
             <div key={link.id} className="flex flex-col gap-1">
               <div className="flex items-center gap-2.5">
@@ -199,22 +169,11 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
                 <button
                   type="button"
                   onClick={() => handleSubmit(link)}
-                  className={`w-12 h-12 flex-shrink-0 border-none rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300 active:scale-[0.985] ${
-                    isSaving
-                      ? "bg-[#30D158] text-white shadow-[0_0_12px_rgba(48,209,88,0.4)]"
-                      : hasSavedValue
-                        ? "bg-[#FFE600] text-black"
-                        : "bg-[#FFE600] text-black"
-                  }`}
+                  className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFE600] text-black flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
                 >
-                  {hasSavedValue ? <CheckIcon /> : <ArrowIcon />}
+                  <ArrowIcon />
                 </button>
               </div>
-              {isSaving && (
-                <p className="pl-[42px] text-xs font-semibold text-[#30D158] animate-[fadeIn_200ms_ease-out]">
-                  Saved!
-                </p>
-              )}
               {error && (
                 <p className="pl-[42px] text-xs font-semibold text-[#ff453a]">{error}</p>
               )}
@@ -229,4 +188,3 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
     </div>
   );
 }
-
