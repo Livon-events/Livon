@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { createClient } from "@/shared/supabase/client";
 import {
   markGoing,
   changeGoingPrivacy,
@@ -54,9 +56,20 @@ export function useGoingAction(
   const [visibility, setVisibility] = useState<GoingVisibility | null>(initialVisibility);
   const [popup, setPopup] = useState<GoingPopupMode>("closed");
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
   async function handleButtonClick() {
     setError(null);
+
+    // Gate: redirect anonymous visitors to login instead of silently
+    // failing with "Not signed in." from the mutation layer.
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.push(`/login?next=${encodeURIComponent(pathname)}`);
+      return;
+    }
 
     if (!PRIVACY_PROMPT_ENABLED) {
       if (going) {
