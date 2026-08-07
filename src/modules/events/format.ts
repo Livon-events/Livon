@@ -51,7 +51,13 @@ export function getTimeOrLiveLabel(
 ): string {
   const effectiveEnd = endsAt ?? new Date(startsAt.getTime() + 8 * 60 * 60 * 1000);
 
-  if (now.getTime() >= startsAt.getTime() && now.getTime() < effectiveEnd.getTime()) {
+  // TEMP PATCH: startsAt/endsAt store local Maseru wall-clock digits
+  // mislabeled as UTC. Shifting `now` by +2h (Maseru's fixed UTC+2, no
+  // DST) makes it comparable. Remove this shift once starts_at/ends_at
+  // are migrated to true UTC — see get_home_feed's matching patch.
+  const shiftedNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+
+  if (shiftedNow.getTime() >= startsAt.getTime() && shiftedNow.getTime() < effectiveEnd.getTime()) {
     return "Live";
   }
 

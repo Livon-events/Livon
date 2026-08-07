@@ -338,6 +338,11 @@ export async function getUpcomingActiveEventsOrganizedBy(userId: string): Promis
   }
 
   const now = new Date();
+  // TEMP PATCH: starts_at/ends_at store local Maseru wall-clock digits
+  // mislabeled as UTC. Shifting `now` by +2h (Maseru's fixed UTC+2, no
+  // DST) makes it comparable. Remove this shift once starts_at/ends_at
+  // are migrated to true UTC — see get_home_feed's matching patch.
+  const shiftedNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
   return (data ?? [])
     .filter((row) => {
@@ -345,7 +350,7 @@ export async function getUpcomingActiveEventsOrganizedBy(userId: string): Promis
       const effectiveEnd = row.ends_at
         ? new Date(row.ends_at)
         : new Date(startsAt.getTime() + 8 * 60 * 60 * 1000);
-      return now.getTime() < effectiveEnd.getTime();
+      return shiftedNow.getTime() < effectiveEnd.getTime();
     })
     .map((row) => {
       const startsAt = new Date(row.starts_at);
