@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/shared/supabase/server";
 import { GoogleSignInButton } from "@/modules/auth";
@@ -34,8 +35,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <main className="stage">
         <section className="pass" aria-labelledby="form-title">
           <div className="pass-notch">
-            <div className="logo-placeholder" aria-label="Livon logo placeholder">
-              <span>Livon</span>
+            <div className="logo-placeholder" aria-label="Livon logo">
+              <Image src="/logo.png" alt="Livon" width={44} height={50} priority />
             </div>
           </div>
 

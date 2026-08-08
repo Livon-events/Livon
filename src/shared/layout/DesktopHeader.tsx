@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Search, X, Home, User, Plus } from "lucide-react";
 import { useLocationPicker, type LocationArea } from "@/modules/location";
@@ -51,14 +52,8 @@ export default function DesktopHeader({
         <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-8">
           {/* Left: logo + location */}
           <div className="flex shrink-0 items-center gap-4">
-            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg">
-              <svg viewBox="0 0 100 100" className="block h-full w-full">
-                <rect width="100" height="100" rx="12" fill="white" />
-                <ellipse cx="40" cy="50" rx="14" ry="24" transform="rotate(-30 40 50)" stroke="black" strokeWidth="5" fill="none" />
-                <ellipse cx="60" cy="50" rx="14" ry="24" transform="rotate(-30 60 50)" stroke="black" strokeWidth="5" fill="none" />
-                <path d="M 43 27 A 14 24 0 0 1 52 35" stroke="white" strokeWidth="6" fill="none" transform="rotate(-30 40 50)" />
-                <ellipse cx="40" cy="50" rx="14" ry="24" transform="rotate(-30 40 50)" stroke="black" strokeWidth="5" fill="none" />
-              </svg>
+            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-lg flex items-center justify-center">
+              <Image src="/logo.png" alt="Livon" width={44} height={44} className="h-full w-full object-contain" priority />
             </div>
 
             <button
