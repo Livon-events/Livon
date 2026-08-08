@@ -1,6 +1,8 @@
 import { EventCardGrid } from "@/modules/events";
 // import { CategoryFilterBar } from "@/modules/feed";
 import { getHomeFeed } from "@/modules/feed/queries";
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/next"
 // import { getCategories } from "@/modules/categories/queries";
 
 // type HomeProps = {
@@ -22,6 +24,8 @@ export default async function Home() {
     <main
       className="min-h-screen bg-black pt-4 md:pt-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px)+1.5rem)] md:pb-0"
     >
+      <SpeedInsights/>
+      <Analytics/>
       {/* CategoryFilterBar hidden for MVP — uncomment when there are enough events
       <CategoryFilterBar
         categories={categories.map((c) => c.name)}
