@@ -48,6 +48,7 @@ export default function PosterViewer({ src, alt }: PosterViewerProps) {
           src={src}
           alt={alt}
           fill
+          priority
           sizes="(min-width: 768px) 798px, 100vw"
           className="object-cover"
         />
