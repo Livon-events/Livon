@@ -126,12 +126,12 @@ export default function AppHeader({
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className={`w-full origin-bottom rounded-t-3xl border-t border-[#222222] bg-[#121212] px-5 pt-4 transition-transform duration-[350ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
+          className={`flex w-full max-h-[85dvh] flex-col origin-bottom rounded-t-3xl border-t border-[#222222] bg-[#121212] px-5 pt-4 transition-transform duration-[350ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
             sheetOpen ? "translate-y-0" : "translate-y-full"
           }`}
           style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 16px))" }}
         >
-          <div className="relative mb-4 flex items-center justify-between border-b border-[#1f1f1f] pb-4">
+          <div className="relative mb-4 flex shrink-0 items-center justify-between border-b border-[#1f1f1f] pb-4">
             <div className="absolute -top-1.5 left-1/2 h-1 w-[38px] -translate-x-1/2 rounded-full bg-[#333333]" />
             <h3 className="text-lg font-semibold tracking-[-0.2px] text-white">Select Area in {cityName}</h3>
             <button
@@ -144,8 +144,8 @@ export default function AppHeader({
             </button>
           </div>
 
-          <div className="relative min-h-[280px] overflow-y-auto">
-            <ul className="flex flex-col gap-2">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <ul className="flex flex-col gap-2 pb-1">
               {pickerAreas.map((area) => {
                 const isActive = area.id === selectedArea.id;
                 return (
