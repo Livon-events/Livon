@@ -175,8 +175,8 @@ export default function DesktopHeader({
             </button>
           </div>
 
-          <div className="max-h-[300px] overflow-y-auto">
-            <ul className="flex flex-col gap-2">
+          <div className="max-h-[min(60vh,420px)] overflow-y-auto">
+            <ul className="flex flex-col gap-2 pb-2">
               {pickerAreas.map((area) => {
                 const active = area.id === selectedArea.id;
                 return (

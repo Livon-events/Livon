@@ -120,7 +120,7 @@ export default function AppHeader({
       {/* Bottom sheet overlay */}
       <div
         onClick={closeSheet}
-        className={`fixed inset-0 z-[200] flex items-end bg-black/65 transition-opacity duration-[250ms] ease-out ${
+        className={`fixed inset-0 z-[1100] flex items-end bg-black/65 transition-opacity duration-[250ms] ease-out ${
           sheetOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
@@ -145,7 +145,7 @@ export default function AppHeader({
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <ul className="flex flex-col gap-2 pb-1">
+            <ul className="flex flex-col gap-2 pb-6">
               {pickerAreas.map((area) => {
                 const isActive = area.id === selectedArea.id;
                 return (
