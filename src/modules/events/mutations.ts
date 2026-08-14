@@ -1,6 +1,20 @@
 import { createClient } from "@/shared/supabase/client";
+import { downscaleImageInBrowser } from "@/shared/images/downscaleImageInBrowser";
+import {
+  errorName,
+  fetchWithUploadTimeout,
+  messageForUploadFailure,
+  reportUploadFailure,
+} from "@/shared/uploads";
 
 type Result<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
+
+/** Matches server OUTPUT_MAX_WIDTH/HEIGHT in modules/events/images.ts. */
+const COVER_DOWNSCALE = {
+  maxEdge: 1600,
+  quality: 0.9,
+  skipUnderBytes: 600 * 1024,
+} as const;
 
 export type CreateEventInput = {
   title: string;
@@ -48,18 +62,28 @@ export async function createEvent(input: CreateEventInput): Promise<Result<{ id:
   if (input.endTime) {
     formData.set("endTime", input.endTime);
   }
+  let uploadedBytes: number | undefined;
   if (input.coverImage) {
-    formData.set("cover", input.coverImage);
+    const cover = await downscaleImageInBrowser(input.coverImage, COVER_DOWNSCALE);
+    uploadedBytes = cover.size;
+    formData.set("cover", cover);
   }
 
   let response: Response;
   try {
-    response = await fetch("/api/events", {
+    response = await fetchWithUploadTimeout("/api/events", {
       method: "POST",
       body: formData,
     });
-  } catch {
-    return { ok: false, error: "Network error — please check your connection and try again." };
+  } catch (error) {
+    console.error("createEvent upload failed", error);
+    reportUploadFailure({
+      route: "/api/events",
+      errorName: errorName(error),
+      originalBytes: input.coverImage?.size,
+      uploadedBytes,
+    });
+    return { ok: false, error: messageForUploadFailure(error) };
   }
 
   let body: { id?: string; error?: string } | null = null;
@@ -112,18 +136,28 @@ export async function updateEvent(
   if (input.endTime) {
     formData.set("endTime", input.endTime);
   }
+  let uploadedBytes: number | undefined;
   if (input.coverImage) {
-    formData.set("cover", input.coverImage);
+    const cover = await downscaleImageInBrowser(input.coverImage, COVER_DOWNSCALE);
+    uploadedBytes = cover.size;
+    formData.set("cover", cover);
   }
 
   let response: Response;
   try {
-    response = await fetch(`/api/events/${eventId}`, {
+    response = await fetchWithUploadTimeout(`/api/events/${eventId}`, {
       method: "PATCH",
       body: formData,
     });
-  } catch {
-    return { ok: false, error: "Network error — please check your connection and try again." };
+  } catch (error) {
+    console.error("updateEvent upload failed", error);
+    reportUploadFailure({
+      route: "/api/events/[id]",
+      errorName: errorName(error),
+      originalBytes: input.coverImage?.size,
+      uploadedBytes,
+    });
+    return { ok: false, error: messageForUploadFailure(error) };
   }
 
   let body: { id?: string; error?: string } | null = null;

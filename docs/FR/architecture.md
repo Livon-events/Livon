@@ -117,10 +117,13 @@ src/shared/
     server.ts        -- server-side Supabase client
     client.ts         -- browser Supabase client
     middleware.ts
-  images/             -- generic Sharp primitives only (buffer handling,
-                         decompression-bomb guard). Domain-specific processing
-                         (avatar 400x400 vs event cover 1200x630) lives in the
-                         owning module (users/, events/), not here.
+  images/             -- browser downscale helper (`downscaleImageInBrowser.ts`)
+                         plus generic Sharp primitives (buffer handling,
+                         decompression-bomb guard) when those exist. Domain-specific
+                         processing (avatar 400x400 vs event cover 1600) lives in
+                         the owning module (users/, events/), not here. Client-side
+                         resizing is a bandwidth optimization only — it is never
+                         a reason to trust uploaded bytes or skip the server pipeline.
   security/
     rateLimit.ts
   anonSession.ts       -- localStorage-backed anonymous session id, used by

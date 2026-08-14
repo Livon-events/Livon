@@ -1,6 +1,20 @@
 import { createClient } from "@/shared/supabase/client";
+import { downscaleImageInBrowser } from "@/shared/images/downscaleImageInBrowser";
+import {
+  errorName,
+  fetchWithUploadTimeout,
+  messageForUploadFailure,
+  reportUploadFailure,
+} from "@/shared/uploads";
 import { validateSocialLink } from "@/modules/users/validation";
 import type { SocialLink } from "@/modules/users/types";
+
+/** Matches server OUTPUT_SIZE in modules/users/images.ts. */
+const AVATAR_DOWNSCALE = {
+  maxEdge: 400,
+  quality: 0.9,
+  skipUnderBytes: 600 * 1024,
+} as const;
 
 type Result<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -38,18 +52,28 @@ export async function updateProfile(input: UpdateProfileInput): Promise<Result<U
   const formData = new FormData();
   formData.set("username", input.username.toLowerCase());
   formData.set("bio", input.bio);
+  let uploadedBytes: number | undefined;
   if (input.avatarFile) {
-    formData.set("avatar", input.avatarFile);
+    const avatar = await downscaleImageInBrowser(input.avatarFile, AVATAR_DOWNSCALE);
+    uploadedBytes = avatar.size;
+    formData.set("avatar", avatar);
   }
 
   let response: Response;
   try {
-    response = await fetch("/api/profile", {
+    response = await fetchWithUploadTimeout("/api/profile", {
       method: "PATCH",
       body: formData,
     });
-  } catch {
-    return { ok: false, error: "Network error — please check your connection and try again." };
+  } catch (error) {
+    console.error("updateProfile upload failed", error);
+    reportUploadFailure({
+      route: "/api/profile",
+      errorName: errorName(error),
+      originalBytes: input.avatarFile?.size,
+      uploadedBytes,
+    });
+    return { ok: false, error: messageForUploadFailure(error) };
   }
 
   let body: { error?: string; username?: string; bio?: string | null; avatarUrl?: string | null };

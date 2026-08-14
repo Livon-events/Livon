@@ -205,8 +205,12 @@ export default function CreateEventForm(props: CreateEventFormProps) {
     setCoverPreview(URL.createObjectURL(file));
   }
 
-  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    void submitForm();
+  }
+
+  async function submitForm() {
     if (submitting) return;
 
     const parsed = eventTextFieldsSchema.safeParse({
@@ -362,9 +366,17 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-5">
       {errors.form && (
-        <p className="rounded-[10px] border border-[#ff453a]/40 bg-[#ff453a]/10 px-4 py-3 text-sm font-medium text-[#ff453a]">
-          {errors.form}
-        </p>
+        <div className="flex flex-col gap-2 rounded-[10px] border border-[#ff453a]/40 bg-[#ff453a]/10 px-4 py-3">
+          <p className="text-sm font-medium text-[#ff453a]">{errors.form}</p>
+          <button
+            type="button"
+            onClick={() => void submitForm()}
+            disabled={submitting}
+            className="self-start text-sm font-extrabold text-[#ff453a] underline underline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Try again
+          </button>
+        </div>
       )}
 
       {/* Cover image picker */}
@@ -697,7 +709,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           disabled={submitting || (!isEditing && !areaId)}
           className="h-[52px] w-full rounded-[10px] bg-[#FFEA00] text-base font-extrabold text-black shadow-[0_4px_12px_rgba(255,234,0,0.15)] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {submitting ? (isEditing ? "Saving…" : "Publishing…") : isEditing ? "Save Changes" : "Publish Event"}
+          {submitting ? (isEditing ? "Saving…" : "Uploading…") : isEditing ? "Save Changes" : "Publish Event"}
         </button>
 
         {isEditing && (
