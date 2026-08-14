@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/shared/supabase/server";
-import { isSameOriginRequest, isMultipartFormRequest, exceedsDeclaredContentLength, jsonError } from "@/shared/http";
+import { isSameOriginRequest, jsonError, readJsonOrMultipartFormData } from "@/shared/http";
 import { createEventOnServer } from "@/modules/events/serverMutations";
 import { IMAGE_MAX_BYTES } from "@/modules/events";
 
-// This route handles a potentially large multipart upload — force the
-// Node.js runtime (not Edge), which is required for `sharp` anyway.
+// The current client sends JSON after browser downscale. Legacy multipart
+// is still accepted. Either path reaches sharp here, so this stays on
+// Node.js.
 export const runtime = "nodejs";
 
 /**
@@ -28,21 +29,24 @@ export const runtime = "nodejs";
  * upload, insert, rollback-on-failure) lives in
  * `modules/events/serverMutations.ts`'s `createEventOnServer` — this route
  * is just the HTTP-layer adapter: origin/content-type/size checks, auth,
- * then delegate.
+ * then delegate. The image still goes through the unchanged sharp pipeline
+ * before anything is stored publicly.
  */
-const MAX_REQUEST_BYTES = IMAGE_MAX_BYTES + 64 * 1024;
+const MAX_MULTIPART_REQUEST_BYTES = IMAGE_MAX_BYTES + 64 * 1024;
+const MAX_JSON_REQUEST_BYTES = Math.ceil((IMAGE_MAX_BYTES * 4) / 3) + 32 * 1024;
 
 export async function POST(request: NextRequest) {
   if (!isSameOriginRequest(request)) {
     return jsonError("Request rejected.", 403);
   }
 
-  if (!isMultipartFormRequest(request)) {
-    return jsonError("Invalid request format.", 400);
-  }
-
-  if (exceedsDeclaredContentLength(request, MAX_REQUEST_BYTES)) {
-    return jsonError("Request is too large.", 413);
+  const parsed = await readJsonOrMultipartFormData(request, {
+    maxMultipartBytes: MAX_MULTIPART_REQUEST_BYTES,
+    maxJsonBytes: MAX_JSON_REQUEST_BYTES,
+    fileFields: { cover: { maxBytes: IMAGE_MAX_BYTES } },
+  });
+  if (!parsed.ok) {
+    return jsonError(parsed.error, parsed.status);
   }
 
   const supabase = await createClient();
@@ -54,14 +58,7 @@ export async function POST(request: NextRequest) {
     return jsonError("You must be signed in to create an event.", 401);
   }
 
-  let formData: FormData;
-  try {
-    formData = await request.formData();
-  } catch {
-    return jsonError("Could not read the submitted form.", 400);
-  }
-
-  const result = await createEventOnServer(user.id, formData);
+  const result = await createEventOnServer(user.id, parsed.formData);
 
   if (!result.ok) {
     return jsonError(result.error, result.status);

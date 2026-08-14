@@ -16,6 +16,55 @@ const COVER_DOWNSCALE = {
   skipUnderBytes: 600 * 1024,
 } as const;
 
+type JsonCover = { name: string; type: string; data: string };
+
+async function fileToBase64(file: File): Promise<string> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
+
+async function eventJsonBody(
+  input: Omit<CreateEventInput, "coverImage" | "areaId"> & {
+    areaId?: string;
+    coverImage: File | null;
+  }
+): Promise<{ body: string; uploadedBytes?: number }> {
+  let cover: JsonCover | undefined;
+  let uploadedBytes: number | undefined;
+  if (input.coverImage) {
+    const file = await downscaleImageInBrowser(input.coverImage, COVER_DOWNSCALE);
+    uploadedBytes = file.size;
+    cover = {
+      name: file.name,
+      type: file.type,
+      data: await fileToBase64(file),
+    };
+  }
+
+  return {
+    uploadedBytes,
+    body: JSON.stringify({
+      title: input.title,
+      categoryId: input.categoryId,
+      areaId: input.areaId,
+      startDate: input.startDate,
+      startTime: input.startTime,
+      endDate: input.endDate,
+      endTime: input.endTime,
+      venueName: input.venueName,
+      description: input.description,
+      admission: input.admission,
+      price: input.admission === "paid" ? input.price : undefined,
+      cover,
+    }),
+  };
+}
+
 export type CreateEventInput = {
   title: string;
   categoryId: string;
@@ -39,41 +88,27 @@ export type CreateEventInput = {
  * requires `sharp`, a server-only native module (see
  * docs/FR/architecture.md), so the real work happens in the
  * `/api/events` Route Handler and this function is a thin wrapper around
- * that request. Client Components should still only ever call this
+ * that request. The cover is sent as JSON (base64), not multipart, because
+ * the failing Wi-Fi rejected multipart POSTs to this host while small JSON
+ * beacons arrived. Client Components should still only ever call this
  * function — never `fetch("/api/events")` inline — so the endpoint has a
  * single, typed call site.
  */
 export async function createEvent(input: CreateEventInput): Promise<Result<{ id: string }>> {
-  const formData = new FormData();
-  formData.set("title", input.title);
-  formData.set("categoryId", input.categoryId);
-  formData.set("areaId", input.areaId);
-  formData.set("startDate", input.startDate);
-  formData.set("startTime", input.startTime);
-  formData.set("venueName", input.venueName);
-  formData.set("description", input.description);
-  formData.set("admission", input.admission);
-  if (input.admission === "paid" && input.price !== undefined) {
-    formData.set("price", String(input.price));
-  }
-  if (input.endDate) {
-    formData.set("endDate", input.endDate);
-  }
-  if (input.endTime) {
-    formData.set("endTime", input.endTime);
-  }
-  let uploadedBytes: number | undefined;
-  if (input.coverImage) {
-    const cover = await downscaleImageInBrowser(input.coverImage, COVER_DOWNSCALE);
-    uploadedBytes = cover.size;
-    formData.set("cover", cover);
+  let payload: { body: string; uploadedBytes?: number };
+  try {
+    payload = await eventJsonBody(input);
+  } catch (error) {
+    console.error("createEvent image encode failed", error);
+    return { ok: false, error: "Could not read the photo. Please try another image." };
   }
 
   let response: Response;
   try {
     response = await fetchWithUploadTimeout("/api/events", {
       method: "POST",
-      body: formData,
+      headers: { "content-type": "application/json" },
+      body: payload.body,
     });
   } catch (error) {
     console.error("createEvent upload failed", error);
@@ -81,7 +116,7 @@ export async function createEvent(input: CreateEventInput): Promise<Result<{ id:
       route: "/api/events",
       errorName: errorName(error),
       originalBytes: input.coverImage?.size,
-      uploadedBytes,
+      uploadedBytes: payload.uploadedBytes,
     });
     return { ok: false, error: messageForUploadFailure(error) };
   }
@@ -119,35 +154,20 @@ export async function updateEvent(
   eventId: string,
   input: UpdateEventInput
 ): Promise<Result<{ id: string }>> {
-  const formData = new FormData();
-  formData.set("title", input.title);
-  formData.set("categoryId", input.categoryId);
-  formData.set("startDate", input.startDate);
-  formData.set("startTime", input.startTime);
-  formData.set("venueName", input.venueName);
-  formData.set("description", input.description);
-  formData.set("admission", input.admission);
-  if (input.admission === "paid" && input.price !== undefined) {
-    formData.set("price", String(input.price));
-  }
-  if (input.endDate) {
-    formData.set("endDate", input.endDate);
-  }
-  if (input.endTime) {
-    formData.set("endTime", input.endTime);
-  }
-  let uploadedBytes: number | undefined;
-  if (input.coverImage) {
-    const cover = await downscaleImageInBrowser(input.coverImage, COVER_DOWNSCALE);
-    uploadedBytes = cover.size;
-    formData.set("cover", cover);
+  let payload: { body: string; uploadedBytes?: number };
+  try {
+    payload = await eventJsonBody(input);
+  } catch (error) {
+    console.error("updateEvent image encode failed", error);
+    return { ok: false, error: "Could not read the photo. Please try another image." };
   }
 
   let response: Response;
   try {
     response = await fetchWithUploadTimeout(`/api/events/${eventId}`, {
       method: "PATCH",
-      body: formData,
+      headers: { "content-type": "application/json" },
+      body: payload.body,
     });
   } catch (error) {
     console.error("updateEvent upload failed", error);
@@ -155,7 +175,7 @@ export async function updateEvent(
       route: "/api/events/[id]",
       errorName: errorName(error),
       originalBytes: input.coverImage?.size,
-      uploadedBytes,
+      uploadedBytes: payload.uploadedBytes,
     });
     return { ok: false, error: messageForUploadFailure(error) };
   }

@@ -1,6 +1,8 @@
 # Task: Publish/upload reliability on weak networks
 
-**Status:** investigated, not yet implemented. Written 2026-08-14.
+**Status:** Phase 1 and Phase 3 (JSON-to-origin) implemented 2026-08-14;
+production network verification still required. Phase 2 and section 6
+were not done — both remain optional.
 
 Organizers on Wi-Fi hit `Network error — please check your connection and
 try again.` when publishing an event. The cause has been isolated to the
@@ -71,19 +73,20 @@ All three are mitigated by making the payload roughly ten times smaller.
 Only (2) and (3) would additionally require moving the transfer off our
 own function.
 
-### Open question — resolve before starting Phase 3
+### Open question — resolved after Phase 1
 
-Have someone on the failing Wi-Fi publish with a **deliberately tiny
-image** (a few hundred KB):
+Someone on the failing Wi-Fi published after Phase 1 (downscaled cover,
+still multipart to `/api/events`). It failed immediately. Multiple tiny
+`/api/client-errors` JSON beacons reached Vercel within seconds while no
+`/api/events` request arrived. That is the conditional case in the
+original write-up: this network rejects the **multipart** transfer to the
+Vercel host, not merely a large body.
 
-- **It publishes** → the problem is payload size against a weak uplink.
-  Phase 1 alone fixes it.
-- **It still fails** → something refuses the POST regardless of size.
-  Phase 1 helps but is not sufficient; do Phase 3.
-
-Also useful: ask how long the button spun before the error. Near-instant
-means outright rejection; 30 s to a couple of minutes means a stalled
-upload.
+That does **not** by itself prove the file must leave our origin. The
+beacons already showed that JSON to Vercel gets through. Phase 3
+therefore sends the downscaled cover as JSON to `/api/events`. Direct
+upload to Supabase Storage remains the fallback if that JSON POST also
+dies on the same Wi-Fi.
 
 ---
 
@@ -109,13 +112,15 @@ investigation implicates any of them.
 
 ### Change
 
-Client-side only, plus one optional new route:
+Client-side, plus the existing event routes:
 
 1. Downscale and re-encode the cover in the browser before uploading.
 2. Add a request timeout and honest, actionable failure messages.
 3. Give the organizer an explicit "Try again" that doesn't lose the form.
 4. (Optional, recommended) report client-side upload failures so they
    stop being invisible in the logs.
+5. Phase 3: send the downscaled cover as JSON to `/api/events`, not as
+   `multipart/form-data`. Keep `sharp` as the validation boundary.
 
 ---
 
@@ -265,21 +270,33 @@ a create is only safe with an idempotency guard. Two options:
 With one of those in place, a single automatic retry on transport failure
 becomes safe.
 
-## 5. Phase 3 (conditional) — take the file off our function
+## 5. Phase 3 (conditional) — stop sending multipart to our host
 
 Do this **only** if the small-image test in section 1 shows the POST
 failing regardless of size, which would mean a middlebox is refusing it.
-Upload the cover directly from the browser to Supabase Storage with a
-signed upload URL, then send only the resulting object path to
-`/api/events`. The large transfer then goes to `*.supabase.co` instead of
-our own host.
 
-This is a significant change and comes with a real cost: the server would
-no longer see the bytes before they land in storage, so the `sharp`
-validation boundary must be preserved some other way (e.g. process into
-its final location server-side after upload, and never serve an unvetted
-object). Do not start this without re-reading section 2's "do not change"
+The original write-up's next step was a signed upload URL to Supabase
+Storage, then a small JSON POST of the object path to `/api/events`. That
+is still the fallback if JSON to our own host also fails. It is a
+significant change: the server would no longer see the bytes before they
+land in storage, so the `sharp` validation boundary must be preserved
+some other way, and it adds a staging bucket, a second host, and orphaned
+objects. Do not start that without re-reading section 2's "do not change"
 list.
+
+### Implemented outcome
+
+After Phase 1, the affected phone still produced immediate transport
+failures on multipart `/api/events`, while tiny JSON beacons arrived.
+The client now downscales the cover, encodes it as base64, and POSTs
+small JSON to `/api/events` (PATCH for edits). The route reconstructs a
+`File` and hands it to the unchanged `createEventOnServer` /
+`updateEventOnServer` pipeline, so `sharp` still sees the bytes before
+anything is stored publicly. Legacy multipart is still accepted so a
+cached client is not stranded.
+
+If a publish on the failing Wi-Fi still never appears under
+`route:/api/events`, the signed-URL path above is the next step.
 
 ## 6. Optional follow-up: accept bigger source images
 
@@ -312,10 +329,11 @@ limit vs uploaded-payload limit), not one reused number.
 - [ ] "Try again" resubmits without losing any typed field or the picked
       photo.
 - [ ] Edit-event cover replacement and avatar upload both still work.
-- [ ] `npm run lint` passes, including the `boundaries` rules.
-- [ ] After deploy, a real publish appears as `POST 201` under
-      `route:/api/events` in Vercel logs, and the uploaded object in the
-      `event-covers` bucket is a few hundred KB rather than several MB.
+- [x] `npm run lint` passes, including the `boundaries` rules.
+- [ ] After deploy, a real publish from the failing Wi-Fi appears as
+      `POST 201` under `route:/api/events` in Vercel logs. If it still
+      never arrives, JSON-to-origin was not enough — do the signed-URL
+      fallback in section 5.
 
 ---
 
@@ -343,14 +361,14 @@ limit vs uploaded-payload limit), not one reused number.
 | Path | Role |
 |---|---|
 | `src/modules/events/components/create/CreateEventForm.tsx` | The form. Client component, used for both create and edit. `handleImageChange` line 180, `handleSubmit` line 208, error block line 364, helper text line 402. |
-| `src/modules/events/mutations.ts` | Client-safe `fetch` wrappers. `createEvent` line 32, `updateEvent` line 94. **All Phase 1 transport work happens here.** |
-| `src/app/api/events/route.ts` | POST adapter: same-origin, multipart, declared-size, auth checks, then delegates. |
+| `src/modules/events/mutations.ts` | Client-safe `fetch` wrappers. `createEvent` and `updateEvent` send JSON, not multipart. **All Phase 1 transport work and the Phase 3 body shape happen here.** |
+| `src/app/api/events/route.ts` | POST adapter: same-origin, JSON or legacy multipart, declared-size, auth checks, then delegates. |
 | `src/app/api/events/[id]/route.ts` | PATCH equivalent. |
 | `src/modules/events/serverMutations.ts` | `createEventOnServer` — validation, storage upload, insert, rollback. |
 | `src/modules/events/images.ts` | `sharp` pipeline. The security boundary. Do not weaken. |
 | `src/modules/events/validation.ts` | Shared limits + Zod schema. `IMAGE_MAX_BYTES` line 24. |
 | `src/modules/users/mutations.ts` | `updateProfile` line 37 — same avatar upload fragility. |
-| `src/shared/http.ts` | `isSameOriginRequest`, `exceedsDeclaredContentLength`, `isMultipartFormRequest`. |
+| `src/shared/http.ts` | `isSameOriginRequest`, `exceedsDeclaredContentLength`, `isMultipartFormRequest`, `readJsonOrMultipartFormData`. |
 | `src/shared/security/rateLimit.ts` | In-process rate limiter, reusable by a client-error endpoint. |
 
 **Environment notes:**
@@ -365,5 +383,6 @@ limit vs uploaded-payload limit), not one reused number.
   metered Wi-Fi. Treat a slow, lossy uplink as the normal case rather
   than the edge case — that assumption is the whole point of this task.
 
-**One known-unresolved item:** whether a tiny image publishes on the
-failing Wi-Fi (section 1). Phase 3 depends entirely on that answer.
+**One known-unresolved item:** whether a ~300 KB **JSON** POST to
+`/api/events` publishes on the failing Wi-Fi. Tiny JSON beacons did;
+multipart did not. That test decides whether this Phase 3 is enough.
