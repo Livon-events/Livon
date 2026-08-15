@@ -10,6 +10,7 @@ import {
 } from "@/modules/rsvp/queries";
 import { isConnectedTo } from "@/modules/connections/queries";
 import { getProfileEventDateLabel, getEventManagementDateLabel, getCountdownLabel } from "@/modules/events/format";
+import { isClaimableEvent } from "@/modules/events/platform";
 import type {
   EventSummary,
   FeaturedEvent,
@@ -101,6 +102,9 @@ type EventDetailsRow = {
   status: string;
   price: string; // numeric comes back as a string over PostgREST
   organizer_id: string;
+  claimed_at: string | null;
+  intended_claim_user_id: string | null;
+  intended_claim_email: string | null;
   areas: { name: string } | null;
   categories: { name: string } | null;
   organizer: { username: string } | null;
@@ -125,6 +129,7 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
     .select(
       `event_id, title, description, venue_name, starts_at, ends_at,
        cover_image_url, status, price, organizer_id,
+       claimed_at, intended_claim_user_id, intended_claim_email,
        areas ( name ),
        categories ( name ),
        organizer:users!organizer_id ( username )`
@@ -156,6 +161,26 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
     peekConnectionsCount = connectionsGoingCount + (hostIsConnected ? 1 : 0);
   }
 
+  const isClaimable = isClaimableEvent({
+    organizerId: event.organizer_id,
+    claimedAt: event.claimed_at,
+    hostUsername: event.organizer?.username ?? "",
+  });
+
+  const intendedEmail = event.intended_claim_email?.trim() || null;
+  const hasIntendedClaimant = Boolean(event.intended_claim_user_id || intendedEmail);
+  const claimNeedsOpsTransfer = isClaimable && !hasIntendedClaimant;
+
+  let canViewerClaim = false;
+  if (viewer && isClaimable && hasIntendedClaimant) {
+    if (event.intended_claim_user_id) {
+      canViewerClaim = viewer.id === event.intended_claim_user_id;
+    } else if (intendedEmail && viewer.email && viewer.email_confirmed_at) {
+      canViewerClaim =
+        viewer.email.trim().toLowerCase() === intendedEmail.toLowerCase();
+    }
+  }
+
   return {
     id: event.event_id,
     title: event.title,
@@ -172,6 +197,9 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
     peekConnectionsCount,
     isGoing,
     myVisibility,
+    isClaimable,
+    canViewerClaim,
+    claimNeedsOpsTransfer,
   };
 }
 

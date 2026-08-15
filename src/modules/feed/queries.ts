@@ -26,6 +26,8 @@ export type HomeFeedEvent = {
   // this purpose), so it's merged in afterward from event_interests.
   isGoing: boolean;
   myVisibility: GoingVisibility | null;
+  /** Livon-published, unclaimed — cards show "Published by Livon". */
+  isClaimable: boolean;
 };
 
 export type HomeFeedResult = {
@@ -54,6 +56,7 @@ type HomeFeedRow = {
   peek_connections_count: number;
   rank_score: number;
   total_going_count: number;
+  is_claimable: boolean;
 };
 
 export async function getHomeFeed({
@@ -115,6 +118,7 @@ export async function getHomeFeed({
     peekConnectionsCount: row.peek_connections_count,
     isGoing: myInterestByEventId.has(row.id),
     myVisibility: myInterestByEventId.get(row.id) ?? null,
+    isClaimable: Boolean(row.is_claimable),
   }));
 
   const lastRow = rows[rows.length - 1];

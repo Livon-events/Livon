@@ -84,6 +84,15 @@ export type EventDetails = {
   myVisibility: GoingVisibility | null;
   // Optional end time, set by the organizer. null when not provided.
   endsAt: string | null;
+  /** Livon-published and not yet claimed — show "Published by Livon". */
+  isClaimable: boolean;
+  /**
+   * Signed-in viewer may call claim_event (matches intended_claim_user_id
+   * or intended_claim_email). False when logged out or not invited.
+   */
+  canViewerClaim: boolean;
+  /** True when intended claimant fields are unset — ops must transfer in Supabase. */
+  claimNeedsOpsTransfer: boolean;
 };
 
 export type EventManagementData = {

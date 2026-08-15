@@ -14,10 +14,10 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "lucide-react": "^1.24.0",
-    "next": "^16.2.12",
+    "next": "^16.3.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "sharp": "^0.35.3",
+    "sharp": "0.35.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -27,9 +27,12 @@
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "16.3.1",
     "eslint-plugin-boundaries": "^7.1.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "sharp": "0.35.3"
   }
 }

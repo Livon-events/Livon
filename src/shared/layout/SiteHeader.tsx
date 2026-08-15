@@ -3,7 +3,7 @@ import DesktopHeader from "./DesktopHeader";
 import { createClient } from "@/shared/supabase/server";
 import { getLocationPickerData } from "@/modules/location/queries";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
-import { ALL_AREAS_ID } from "@/modules/location";
+import { ALL_AREAS_ID, DEFAULT_AREA_NAME, DEFAULT_CITY_NAME } from "@/modules/location";
 
 export default async function SiteHeader() {
   const supabase = await createClient();
@@ -12,7 +12,7 @@ export default async function SiteHeader() {
   } = await supabase.auth.getUser();
 
   const cities = await getLocationPickerData();
-  const defaultCity = cities[0];
+  const defaultCity = cities.find((city) => city.name === DEFAULT_CITY_NAME) ?? cities[0];
 
   const location = user ? await getOrganizerLocationContext(user.id) : null;
   const hasAccountPreference = Boolean(location);
@@ -29,7 +29,9 @@ export default async function SiteHeader() {
 
   const initialAreaId = location
     ? (location.areaId ?? ALL_AREAS_ID)
-    : (activeCity.areas[0]?.id ?? ALL_AREAS_ID);
+    : (activeCity.areas.find((area) => area.name === DEFAULT_AREA_NAME)?.id ??
+      activeCity.areas[0]?.id ??
+      ALL_AREAS_ID);
 
   return (
     <>

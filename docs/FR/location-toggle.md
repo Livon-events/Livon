@@ -34,7 +34,10 @@ These are the account-level persisted values. Logged-out/device-level persistenc
 - **On login:** if the account has a stored preference, it overrides whatever was in local device storage. If the account has no stored preference yet (first login), the current device-storage value (if any) is written up to the account; otherwise default applies.
 
 ### Default (no preference set anywhere)
-- Defaults to **Maseru → Maseru Central** (the only seeded area at launch).
+- Defaults to **Maseru → Maseru Central**. Maseru District community councils
+  are seeded as selectable areas; Manonyane is displayed as
+  **Roma (Manonyane)** so users can find the council by its best-known
+  settlement.
 - This default is applied client-side when there is no account preference and no device storage value — not written to the DB until the user actively changes it or an implicit first-write occurs per above.
 
 ### Feed / listing scoping

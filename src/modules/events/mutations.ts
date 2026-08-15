@@ -235,3 +235,47 @@ export async function cancelEvent(eventId: string): Promise<Result> {
   }
   return { ok: true, data: undefined };
 }
+
+/**
+ * Claims a Livon-published event for the signed-in invited host.
+ * Ownership transfer runs in `claim_event` (SECURITY DEFINER) — clients
+ * cannot UPDATE organizer_id directly via RLS.
+ */
+export async function claimEvent(eventId: string): Promise<Result> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { ok: false, error: "Sign in to claim this event." };
+  }
+
+  const { error } = await supabase.rpc("claim_event", { p_event_id: eventId });
+
+  if (error) {
+    const msg = error.message ?? "";
+    if (msg.includes("not_authenticated")) {
+      return { ok: false, error: "Sign in to claim this event." };
+    }
+    if (msg.includes("not_claimable")) {
+      return { ok: false, error: "This event cannot be claimed." };
+    }
+    if (msg.includes("not_invited")) {
+      return {
+        ok: false,
+        error: "This event can only be claimed by the invited organizer.",
+      };
+    }
+    if (msg.includes("email_not_verified")) {
+      return { ok: false, error: "Verify your email before claiming this event." };
+    }
+    if (msg.includes("event_not_found")) {
+      return { ok: false, error: "Event not found." };
+    }
+    return { ok: false, error: "Could not claim this event. Please try again." };
+  }
+
+  return { ok: true, data: undefined };
+}

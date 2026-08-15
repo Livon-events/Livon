@@ -31,6 +31,10 @@ export default function EventDetailsPage({ event }: EventDetailsPageProps) {
           peekConnectionsCount={event.peekConnectionsCount}
         />
 
+        {/* Host-claim CTA is off for now — listings are only published with
+            the organizer's permission, so the WhatsApp / "Are you the host?"
+            block is unused. Restore ClaimEventSection when claiming is needed. */}
+
         <div className="mt-6 sm:mt-8">
           <EventActionBar
             eventId={event.id}

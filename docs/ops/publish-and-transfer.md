@@ -10,7 +10,10 @@ Two jobs:
 1. **Publish** the event so it shows in the feed.  
 2. **Transfer** it to the real organizer when they have a Livon account.
 
-Until the Claim button ships, transfer is always done in Supabase (section 3). After Claim ships, they can do it themselves (section 2) and you only use Supabase if something gets stuck.
+**Claim is live.** You can either:
+
+- set `intended_claim_user_id` (or email) and have them tap **Claim this event**, or  
+- transfer yourself in Supabase (section 3) — still the fastest path when you are on a WhatsApp call with them.
 
 ---
 
@@ -73,11 +76,15 @@ Send the link:
 
 > Your event is live:  
 > `https://…/events/THE-ID`  
-> It is listed by Livon for now. When you have a Livon account, tell me your username and I will move it onto your profile.
+> It shows as **Published by Livon** for now.
 
-After the Claim button exists, change the last sentence to:
+If you already set `intended_claim_user_id` (or email) in Supabase:
 
 > Sign in, open that link, and tap **Claim this event**.
+
+If you have not bound them yet:
+
+> When you have a Livon account, tell me your username and I will move it onto your profile (or set you up to claim it).
 
 ### 2.5 While it is still yours
 
@@ -95,6 +102,16 @@ After you transfer (or they claim), those buttons belong to **them**. You cannot
 Use this when they have a Livon account and you are ready to put the listing under their name.
 
 **What “transfer” means:** the event’s `organizer_id` changes from your Livon user to theirs. The feed then shows **Hosted by their username**. They get Edit and Manage. You lose those in the app.
+
+### 3.0 Bind them for self-claim (optional, before they tap Claim)
+
+If you want them to tap **Claim this event** themselves:
+
+1. Table Editor → `users` → find their username → copy `user_id`.
+2. Table Editor → `events` → their event → set **`intended_claim_user_id`** to that id (or set **`intended_claim_email`** to the email they will sign up with).
+3. WhatsApp: ask them to sign in, open the event, tap **Claim this event**.
+
+If you skip this and transfer with section 3.3, you do not need the Claim button.
 
 ### 3.1 Before you transfer — checklist
 
@@ -168,12 +185,13 @@ SET
 WHERE event_id = 'EVENT_ID_FROM_THE_URL';
 ```
 
-### 3.5 They claim it themselves (after the Claim button ships)
+### 3.5 They claim it themselves
 
-1. They must be **signed in**.  
-2. They open the event details page.  
-3. They tap **Claim this event** and confirm.  
-4. You should see **Hosted by their username** on the card.
+1. You have set `intended_claim_user_id` or `intended_claim_email` (section 3.0).  
+2. They must be **signed in**.  
+3. They open the event details page.  
+4. They tap **Claim this event** and confirm.  
+5. You should see **Hosted by their username** on the card.
 
 If Claim says they are not the invited organizer, you probably have the wrong person bound, or they signed up with a different account. Look them up (section 3.2) and either:
 

@@ -103,10 +103,16 @@ Locked for beta — no client access at all (see Key Learnings).
 | `status` | text | NO | `'active'` |
 | `cancelled_at` | timestamptz | YES | — |
 | `price` | numeric | NO | `0` |
+| `claimed_at` | timestamptz | YES | — |
+| `claimed_by` | uuid | YES | — |
+| `intended_claim_user_id` | uuid | YES | — |
+| `intended_claim_email` | text | YES | — |
 
 **Constraints:**
 - PK: `event_id`
 - FK: `organizer_id` → `users.user_id`
+- FK: `claimed_by` → `users.user_id`
+- FK: `intended_claim_user_id` → `users.user_id`
 - FK: `category_id` → `categories.category_id`
 - FK: `city_id` → `cities.city_id`
 - FK: `area_id` → `areas.area_id`
@@ -114,6 +120,8 @@ Locked for beta — no client access at all (see Key Learnings).
 **Indexes:** `events_organizer_id_idx`, `events_category_id_idx`, `events_city_id_idx`, `events_area_id_idx` — all plain btree, one per FK column. Added to back `get_home_feed`'s filtering/joins (previously the table had only its PK index).
 
 Notes: **`status`/`cancelled_at` are now vestigial** (as of 2026-08) — cancelling an event hard-deletes the row (see `events_delete_own` in rls-policies.md and `scripts/migrations/2026-08-hard-delete-cancelled-events.sql`) instead of setting `status = 'cancelled'`, so every remaining row should read `status = 'active'`. Left in place rather than dropped since removing columns wasn't part of that change; worth a follow-up decision on whether to drop them. "Past" is a derived state computed from `starts_at`/`ends_at` at read time, not stored.
+
+**Claiming (2026-08):** Livon-published events use platform user `c0781e8f-980b-4a4c-aa98-097fa03ff509` (`livon` / `livonevents2026@gmail.com`) as `organizer_id` until claimed. Unclaimed = that organizer + `claimed_at IS NULL`. Hosts claim via `claim_event(event_id)` (see `functions.md`). Ops may also transfer by updating `organizer_id` in Table Editor (see `docs/ops/publish-and-transfer.md`).
 
 ## event_tags
 

@@ -11,6 +11,9 @@
 // at the point of persistence (see useLocationPicker's selectArea).
 export const ALL_AREAS_ID = "all";
 
+export const DEFAULT_CITY_NAME = "Maseru";
+export const DEFAULT_AREA_NAME = "Maseru Central";
+
 // Logged-out (and pre-hydration) persistence, per location-toggle.md:
 // "Logged-out users: selection is stored in browser storage (localStorage)
 // only." Bump the key if the stored shape ever changes.

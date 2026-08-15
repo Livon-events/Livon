@@ -5,7 +5,7 @@ import { getPriceLabel } from "@/modules/events/format";
 import EventCardHead from "./EventCardHead";
 import EventCardActions from "./EventCardActions";
 import EventCardBackground from "./EventCardBackground";
-import HostLink from "./HostLink";
+import EventHostLine from "./EventHostLine";
 import type { GoingVisibility } from "@/modules/rsvp";
 
 export type EventCardData = {
@@ -21,6 +21,7 @@ export type EventCardData = {
   peekConnectionsCount: number;
   isGoing: boolean;
   myVisibility: GoingVisibility | null;
+  isClaimable?: boolean;
 };
 
 type EventCardProps = {
@@ -69,9 +70,11 @@ export default function EventCard({ event, priority = false }: EventCardProps) {
             </p>
             <MapPin className="h-[20px] w-[20px] shrink-0" strokeWidth={2} />
           </div>
-          <p className="text-[14px]">
-            Hosted by <HostLink username={event.hostUsername} />
-          </p>
+          <EventHostLine
+            isClaimable={Boolean(event.isClaimable)}
+            hostUsername={event.hostUsername}
+            nestedInLink
+          />
         </div>
 
         <EventCardActions

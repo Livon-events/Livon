@@ -1,5 +1,11 @@
 export type { LocationPickerArea, LocationPickerCity } from "./queries";
-export { ALL_AREAS_ID, LOCATION_STORAGE_KEY, type StoredLocationPreference } from "./constants";
+export {
+  ALL_AREAS_ID,
+  DEFAULT_AREA_NAME,
+  DEFAULT_CITY_NAME,
+  LOCATION_STORAGE_KEY,
+  type StoredLocationPreference,
+} from "./constants";
 export { readStoredLocationPreference, writeStoredLocationPreference } from "./storage";
 export { useLocationPicker, type LocationArea } from "./hooks/useLocationPicker";
 

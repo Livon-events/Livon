@@ -21,12 +21,15 @@ RETURNS TABLE(
   id uuid, title text, price numeric, venue_name text, area text,
   host_username text, cover_image_url text, starts_at timestamptz,
   ends_at timestamptz, peek_connections_count integer,
-  rank_score integer, total_going_count integer
+  rank_score integer, total_going_count integer,
+  is_claimable boolean
 )
 ```
 `SQL`, `STABLE`, `SECURITY DEFINER`, `search_path = public`
 
 **Status: already built and appears complete** — this is not a "to-do," it exists in the live database.
+
+**Claiming note (2026-08):** `is_claimable` is true when `claimed_at IS NULL` and `organizer_id` is the user with username `livon` (looked up in SQL — works across prod and test even when UUIDs differ).
 
 **What it does:**
 - Pulls active events (`status = 'active'`) that haven't ended yet. "Ended" is derived: if `ends_at` is set, event is live until then; if `ends_at` is null, event is treated as live until `starts_at + 8 hours` (a fallback window for events with no explicit end time).
@@ -72,6 +75,27 @@ event_going_count(p_event_id uuid) RETURNS integer
 `SQL`, `STABLE`, `SECURITY DEFINER`, `search_path = public`
 
 Trivial wrapper: `count(*)` over `event_interests` for a given event, unfiltered by visibility. Simple public-facing "N going" helper — same underlying count as `total_going_count` inside `get_home_feed`, just exposed standalone (e.g. for an event-detail page that doesn't need the whole feed query).
+
+---
+
+## claim_event
+
+```
+claim_event(p_event_id uuid) RETURNS void
+```
+`plpgsql`, `SECURITY DEFINER`, `search_path = public`  
+`EXECUTE` granted to `authenticated` only (revoked from `PUBLIC`).
+
+Transfers a Livon-published unclaimed event to the caller:
+
+1. Requires `auth.uid()`.
+2. Event must be owned by platform user `c0781e8f-980b-4a4c-aa98-097fa03ff509` with `claimed_at IS NULL`.
+3. Caller must match `intended_claim_user_id`, or (if that is null) verified `auth.users.email` must match `intended_claim_email`. If both intended fields are null → `not_invited` (ops transfer only).
+4. Sets `organizer_id`, `claimed_by`, `claimed_at = now()`.
+
+Exception names used by the app: `not_authenticated`, `event_not_found`, `not_claimable`, `not_invited`, `email_not_verified`.
+
+See `docs/FR/event-claiming-plan.md` and `docs/ops/publish-and-transfer.md`.
 
 ---
 

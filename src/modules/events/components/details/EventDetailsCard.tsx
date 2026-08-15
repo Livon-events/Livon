@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { getPriceLabel, getEventDateTimeLabel } from "@/modules/events/format";
 import type { EventDetails } from "@/modules/events/queries";
 import PosterViewer from "./PosterViewer";
+import EventHostLine from "../card/EventHostLine";
 
 type EventDetailsCardProps = {
   event: EventDetails;
@@ -42,15 +42,12 @@ export default function EventDetailsCard({ event }: EventDetailsCardProps) {
           </span>
         </div>
 
-        <p className="mt-2 text-xs text-[#d1d5db] sm:mt-2.5 sm:text-sm">
-          Hosted by{" "}
-          <Link
-            href={`/users/${encodeURIComponent(event.hostUsername)}`}
-            className="font-semibold text-[#FFEA00] hover:underline"
-          >
-            {event.hostUsername}
-          </Link>
-        </p>
+        <div className="mt-2 sm:mt-2.5">
+          <EventHostLine
+            isClaimable={event.isClaimable}
+            hostUsername={event.hostUsername}
+          />
+        </div>
 
         <div className="mt-5 flex items-center justify-between sm:mt-7">
           <span className="rounded bg-[#242424] px-2.5 py-2 text-xs font-extrabold text-[#e5e7eb] sm:px-3.5 sm:text-sm">

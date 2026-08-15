@@ -29,11 +29,9 @@ type CityRow = {
  * though only Maseru exists at launch — don't hardcode to a single city")
  * this always fetches the real list rather than assuming one row.
  *
- * Ordered by name for determinism — there's no `is_default`/`sort_order`
- * column on either table (per docs/db/schema.md), so "first city, first
- * area" (alphabetical) is what currently resolves to the intended
- * Maseru → Maseru Central default. If a real ordering/default flag gets
- * added later, switch to that instead of relying on name sort.
+ * Ordered by name for deterministic display. The default is resolved
+ * explicitly by name in SiteHeader because alphabetical order no longer
+ * puts Maseru Central first now that all community councils are seeded.
  */
 export async function getLocationPickerData(): Promise<LocationPickerCity[]> {
   const supabase = await createClient();
