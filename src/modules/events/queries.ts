@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/shared/supabase/server";
 import type { GoingVisibility } from "@/modules/rsvp";
 import {
@@ -121,7 +122,10 @@ type EventDetailsRow = {
  * `rsvp` and `connections` respectively, so this function now composes
  * their exported query functions instead of reading those tables itself.
  */
-export async function getEventDetails(eventId: string): Promise<EventDetails | null> {
+/** Cached per request so `generateMetadata` and the page share one fetch. */
+export const getEventDetails = cache(async function getEventDetails(
+  eventId: string
+): Promise<EventDetails | null> {
   const supabase = await createClient();
 
   const { data: event, error } = await supabase
@@ -201,7 +205,7 @@ export async function getEventDetails(eventId: string): Promise<EventDetails | n
     canViewerClaim,
     claimNeedsOpsTransfer,
   };
-}
+});
 
 /**
  * Data for the Peek page (docs/FR/peek.md) — reached from the Peek button
