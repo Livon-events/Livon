@@ -30,11 +30,11 @@ These are the account-level persisted values. Logged-out/device-level persistenc
 
 ### Persistence
 - **Logged-in users:** selection is written to `Users.preferred_city_id` / `Users.preferred_area_id` on change. This is the source of truth across devices.
-- **Logged-out users:** selection is stored in browser storage (localStorage) only. Not synced anywhere.
+- **Logged-out users:** selection is stored in browser storage (localStorage) and mirrored to a cookie so the server-rendered feed can apply the same scope. Not synced to the account.
 - **On login:** if the account has a stored preference, it overrides whatever was in local device storage. If the account has no stored preference yet (first login), the current device-storage value (if any) is written up to the account; otherwise default applies.
 
 ### Default (no preference set anywhere)
-- Defaults to **Maseru → Maseru Central**. Maseru District community councils
+- Defaults to **Maseru → All areas**. Maseru District community councils
   are seeded as selectable areas; Manonyane is displayed as
   **Roma (Manonyane)** so users can find the council by its best-known
   settlement.

@@ -3,6 +3,7 @@ export {
   ALL_AREAS_ID,
   DEFAULT_AREA_NAME,
   DEFAULT_CITY_NAME,
+  LOCATION_COOKIE_KEY,
   LOCATION_STORAGE_KEY,
   type StoredLocationPreference,
 } from "./constants";

@@ -39,6 +39,10 @@ const DEFAULT_PAGE_SIZE = 12; // matches 3-col grid at the lg breakpoint
 
 type GetHomeFeedParams = {
   categoryId?: string | null;
+  /** Required for location-scoped feeds — events.city_id match. */
+  cityId?: string | null;
+  /** null/omitted = all areas in the city; set = events.area_id match. */
+  areaId?: string | null;
   cursor?: HomeFeedCursor | null;
   pageSize?: number;
 };
@@ -61,6 +65,8 @@ type HomeFeedRow = {
 
 export async function getHomeFeed({
   categoryId = null,
+  cityId = null,
+  areaId = null,
   cursor = null,
   pageSize = DEFAULT_PAGE_SIZE,
 }: GetHomeFeedParams = {}): Promise<HomeFeedResult> {
@@ -68,6 +74,8 @@ export async function getHomeFeed({
 
   const { data, error } = await supabase.rpc("get_home_feed", {
     p_category_id: categoryId,
+    p_city_id: cityId,
+    p_area_id: areaId,
     p_cursor_rank_score: cursor?.rankScore ?? null,
     p_cursor_total_going: cursor?.totalGoingCount ?? null,
     p_cursor_starts_at: cursor?.startsAt ?? null,

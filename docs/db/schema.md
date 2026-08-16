@@ -320,7 +320,7 @@ Previously flagged: `events` had no secondary indexes beyond its PK, and `connec
 
 `get_home_feed` was independently confirmed fast (mean ~7ms, 100% cache hit) via a Performance Advisor query-stats pull, prior to this indexing work — so no regression to worry about, and the new indexes should keep it fast as real data volume grows.
 
-Remaining, still deliberately deferred: no index on `users.preferred_city_id`/`preferred_area_id` (no location-filtering feature built yet — add when that's built, not before) and no index on the deny-all tables (`event_tags.tag_id`, `user_interests.category_id` — zero client access, not worth it until an internal function actually queries them at volume).
+Remaining, still deliberately deferred: no index on `users.preferred_city_id`/`preferred_area_id` (feed location filtering uses `events.city_id`/`area_id`, which are already indexed — add user-pref indexes only if preference lookups show up hot) and no index on the deny-all tables (`event_tags.tag_id`, `user_interests.category_id` — zero client access, not worth it until an internal function actually queries them at volume).
 
 ## Status
 

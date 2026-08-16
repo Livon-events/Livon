@@ -11,6 +11,8 @@ Derived from `pg_proc` on the `public` schema. Covers every function: signature,
 ```
 get_home_feed(
   p_category_id uuid DEFAULT NULL,
+  p_city_id uuid DEFAULT NULL,
+  p_area_id uuid DEFAULT NULL,
   p_cursor_rank_score integer DEFAULT NULL,
   p_cursor_total_going integer DEFAULT NULL,
   p_cursor_starts_at timestamptz DEFAULT NULL,
@@ -31,9 +33,11 @@ RETURNS TABLE(
 
 **Claiming note (2026-08):** `is_claimable` is true when `claimed_at IS NULL` and `organizer_id` is the user with username `livon` (looked up in SQL — works across prod and test even when UUIDs differ).
 
+**Location filters (2026-08):** `p_city_id` scopes to `events.city_id`; `p_area_id` further scopes to `events.area_id`. Null area = all areas in that city (or unscoped if city is also null). Matches docs/FR/location-toggle.md.
+
 **What it does:**
 - Pulls active events (`status = 'active'`) that haven't ended yet. "Ended" is derived: if `ends_at` is set, event is live until then; if `ends_at` is null, event is treated as live until `starts_at + 8 hours` (a fallback window for events with no explicit end time).
-- Optional `p_category_id` filter.
+- Optional `p_category_id`, `p_city_id`, and `p_area_id` filters.
 - **Ranking (`rank_score`)** — two factors combined:
   1. `is_connection_host` (bool): is the viewer connected — `accepted` status, either direction — to this event's organizer? If yes, contributes **1000** to the score.
   2. `connections_going_count` (int): how many of the viewer's accepted connections have a `visible` `event_interests` row on this event (excluding the organizer themselves, even if they somehow have their own interest row).
@@ -46,7 +50,6 @@ RETURNS TABLE(
 **Open questions to verify against the frontend card components before wiring this in:**
 - Confirm returned field names (`area`, `host_username`, `peek_connections_count`, etc.) match what the existing event card components expect, or whether a mapping layer is needed.
 - Confirm the 8-hour fallback window for events with no `ends_at` matches product expectations (e.g. is 8 hours the right default, should it be configurable per category?).
-- No `city_id`/location filter param currently — only `category_id`. If the read path needs city-scoping (likely, given `users.preferred_city_id` exists), that's not yet in this function's signature.
 - Performance: per the schema doc's note, `events` has no secondary indexes on `city_id`/`category_id`/`starts_at`/`organizer_id` — this function's filtering and joins may benefit from indexes once real data volume shows up, but don't add them pre-emptively.
 
 ---

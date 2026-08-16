@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ALL_AREAS_ID } from "@/modules/location/constants";
 import { updateLocationPreference } from "@/modules/users";
@@ -37,7 +38,7 @@ type UseLocationPickerArgs = {
  *
  * Persists selections per docs/FR/location-toggle.md:
  * - Logged in: writes to `users.preferred_city_id`/`preferred_area_id`.
- * - Logged out: writes to localStorage only.
+ * - Logged out: writes to localStorage + cookie (cookie scopes the SSR feed).
  *
  * On mount, reconciles what the server rendered against localStorage:
  * - Logged in with an account preference already: account wins; local
@@ -46,7 +47,7 @@ type UseLocationPickerArgs = {
  *   exists: that value is adopted and written up to the account (the
  *   "implicit first-write" the FR describes).
  * - Logged out with a local-storage value: adopt it for this session.
- * - Otherwise: keep whatever default the server resolved.
+ * - Otherwise: keep whatever default the server resolved (All areas).
  *
  * Both AppHeader and DesktopHeader mount at the same time (CSS toggles
  * which is visible, per SiteHeader), each running its own instance of this
@@ -63,6 +64,7 @@ export function useLocationPicker({
   initialAreaId,
   hasAccountPreference,
 }: UseLocationPickerArgs) {
+  const router = useRouter();
   const allAreas: LocationArea[] = [{ id: ALL_AREAS_ID, name: "All areas" }, ...areas];
 
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -92,6 +94,8 @@ export function useLocationPicker({
       // cascade.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedAreaId(resolvedAreaId);
+      // Keep cookie in sync so the next SSR pass matches localStorage.
+      writeStoredLocationPreference({ cityId, areaId: stored.areaId });
 
       if (userId && !hasAccountPreference) {
         // First login on a device that already had a local preference —
@@ -100,24 +104,22 @@ export function useLocationPicker({
           // Best-effort — the UI already reflects the selection either way.
         });
       }
-      // Logged-out case: nothing further to do, local state above is enough.
+
+      if (resolvedAreaId !== initialAreaId) {
+        // Cookie/localStorage disagreed with the SSR default — refresh so
+        // the feed picks up the device preference.
+        router.refresh();
+      }
       return;
     }
 
     // No localStorage entry (or wrong city) — persist the server-resolved
-    // default so the DB and localStorage stay in sync with what the header
-    // is already displaying. Without this, a logged-in user with no prior
-    // preference would see e.g. "Maseru Central" in the header but
-    // `preferred_area_id` would remain null in the DB, blocking event
-    // creation.
+    // default (All areas → areaId null) so cookie/localStorage match the
+    // header. Do not force an account write for All areas; only a real
+    // area selection (or an explicit All-areas tap via selectArea) should
+    // create an account preference.
     const realAreaId = selectedAreaId === ALL_AREAS_ID ? null : selectedAreaId;
     writeStoredLocationPreference({ cityId, areaId: realAreaId });
-
-    if (userId && !hasAccountPreference && realAreaId) {
-      updateLocationPreference({ cityId, areaId: realAreaId }).catch(() => {
-        // Best-effort — same as the localStorage-adoption path above.
-      });
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, hasAccountPreference, cityId]);
 
@@ -140,6 +142,9 @@ export function useLocationPicker({
         // to the next session/device — not worth blocking the UI over.
       });
     }
+
+    // Re-render the server feed with the new city/area scope.
+    router.refresh();
   };
 
   return { sheetOpen, selectedArea, areas: allAreas, openSheet, closeSheet, selectArea };

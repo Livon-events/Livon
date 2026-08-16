@@ -1,4 +1,8 @@
-import { LOCATION_STORAGE_KEY, type StoredLocationPreference } from "@/modules/location/constants";
+import {
+  LOCATION_COOKIE_KEY,
+  LOCATION_STORAGE_KEY,
+  type StoredLocationPreference,
+} from "@/modules/location/constants";
 
 /**
  * Logged-out / pre-hydration device-level location preference, per
@@ -24,6 +28,8 @@ export function readStoredLocationPreference(): StoredLocationPreference | null 
   }
 }
 
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365; // 1 year
+
 /** Writes the logged-out/device-level location preference. */
 export function writeStoredLocationPreference(pref: StoredLocationPreference): void {
   if (typeof window === "undefined") return;
@@ -33,5 +39,14 @@ export function writeStoredLocationPreference(pref: StoredLocationPreference): v
     // Storage can throw (private-browsing quota, disabled storage, etc.) —
     // the header still works via in-memory state either way, this is only
     // the "remember it for next time" layer.
+  }
+
+  // Mirror into a cookie so SSR (home feed, header) can read the same
+  // preference — localStorage alone is invisible to the server.
+  try {
+    const encoded = encodeURIComponent(JSON.stringify(pref));
+    document.cookie = `${LOCATION_COOKIE_KEY}=${encoded}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; samesite=lax`;
+  } catch {
+    // Same best-effort stance as localStorage — feed falls back to defaults.
   }
 }

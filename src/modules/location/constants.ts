@@ -19,6 +19,10 @@ export const DEFAULT_AREA_NAME = "Maseru Central";
 // only." Bump the key if the stored shape ever changes.
 export const LOCATION_STORAGE_KEY = "livon:location-preference:v1";
 
+// Cookie twin of LOCATION_STORAGE_KEY for SSR feed scoping. Cookie names
+// must be RFC 6265 tokens (no `:`), so this differs from the localStorage key.
+export const LOCATION_COOKIE_KEY = "livon_location_preference_v1";
+
 export type StoredLocationPreference = {
   cityId: string;
   areaId: string | null;
