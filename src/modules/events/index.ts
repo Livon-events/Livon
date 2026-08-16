@@ -8,6 +8,7 @@ export {
   getTimeOrLiveLabel,
   getEventDateTimeLabel,
   getProfileEventDateLabel,
+  isEventStillLive,
 } from "./format";
 
 export { default as EventCard } from "./components/card/EventCard";

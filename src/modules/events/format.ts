@@ -40,6 +40,27 @@ function to12Hour(hours: number, minutes: number): string {
 }
 
 /**
+ * True while the event has not yet ended: now < ends_at, or now <
+ * starts_at + 8h when ends_at is null. Same derivation as get_home_feed
+ * and the Featured Hosted-Events strip — "ended" is never stored.
+ *
+ * TEMP PATCH: startsAt/endsAt store local Maseru wall-clock digits
+ * mislabeled as UTC. Shifting `now` by +2h (Maseru's fixed UTC+2, no
+ * DST) makes it comparable. Remove this shift once starts_at/ends_at
+ * are migrated to true UTC — see get_home_feed's matching patch.
+ */
+export function isEventStillLive(
+  startsAt: Date,
+  endsAt: Date | null,
+  now: Date = new Date()
+): boolean {
+  const effectiveEnd =
+    endsAt ?? new Date(startsAt.getTime() + 8 * 60 * 60 * 1000);
+  const shiftedNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  return shiftedNow.getTime() < effectiveEnd.getTime();
+}
+
+/**
  * Top-right time chip. Shows "Live" while the event is ongoing (between
  * starts_at and ends_at, or the 8-hour fallback when ends_at is null).
  * Otherwise shows the organiser-authored start time, unconverted.
@@ -51,10 +72,7 @@ export function getTimeOrLiveLabel(
 ): string {
   const effectiveEnd = endsAt ?? new Date(startsAt.getTime() + 8 * 60 * 60 * 1000);
 
-  // TEMP PATCH: startsAt/endsAt store local Maseru wall-clock digits
-  // mislabeled as UTC. Shifting `now` by +2h (Maseru's fixed UTC+2, no
-  // DST) makes it comparable. Remove this shift once starts_at/ends_at
-  // are migrated to true UTC — see get_home_feed's matching patch.
+  // TEMP PATCH: see isEventStillLive — same Maseru wall-clock shift.
   const shiftedNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
   if (shiftedNow.getTime() >= startsAt.getTime() && shiftedNow.getTime() < effectiveEnd.getTime()) {

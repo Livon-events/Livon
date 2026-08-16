@@ -10,7 +10,12 @@ import {
   getConnectionsAttendingList,
 } from "@/modules/rsvp/queries";
 import { isConnectedTo } from "@/modules/connections/queries";
-import { getProfileEventDateLabel, getEventManagementDateLabel, getCountdownLabel } from "@/modules/events/format";
+import {
+  getProfileEventDateLabel,
+  getEventManagementDateLabel,
+  getCountdownLabel,
+  isEventStillLive,
+} from "@/modules/events/format";
 import { isClaimableEvent } from "@/modules/events/platform";
 import type {
   EventSummary,
@@ -248,6 +253,7 @@ type EventSummaryRow = {
   event_id: string;
   title: string;
   starts_at: string;
+  ends_at: string | null;
   venue_name: string;
   cover_image_url: string;
   // PostgREST aggregate embed (`event_interests(count)`) — always comes
@@ -256,7 +262,7 @@ type EventSummaryRow = {
 };
 
 const EVENT_SUMMARY_SELECT =
-  "event_id, title, starts_at, venue_name, cover_image_url, event_interests(count)";
+  "event_id, title, starts_at, ends_at, venue_name, cover_image_url, event_interests(count)";
 
 function mapEventSummaryRow(row: EventSummaryRow): EventSummary {
   return {
@@ -299,8 +305,16 @@ export async function getEventsOrganizedBy(userId: string): Promise<EventSummary
  * can compose it with `rsvp.getEventIdsUserIsGoingTo` — `events` owns the
  * `events` table read, `rsvp` owns the `event_interests` id lookup, and
  * neither reaches into the other's table directly.
+ *
+ * When `options.excludeEnded` is true (the Going tab), drops events whose
+ * derived end has passed — same ends_at ?? starts_at+8h rule as the home
+ * feed. Interest rows are kept in the DB (archival); they just stop
+ * surfacing in "going" lists once the event is over.
  */
-export async function getEventsByIds(eventIds: string[]): Promise<EventSummary[]> {
+export async function getEventsByIds(
+  eventIds: string[],
+  options: { excludeEnded?: boolean } = {}
+): Promise<EventSummary[]> {
   if (eventIds.length === 0) return [];
 
   const supabase = await createClient();
@@ -316,7 +330,19 @@ export async function getEventsByIds(eventIds: string[]): Promise<EventSummary[]
     throw new Error(`getEventsByIds failed: ${error.message}`);
   }
 
-  return (data ?? []).map(mapEventSummaryRow);
+  const rows = data ?? [];
+  const now = new Date();
+  const visible = options.excludeEnded
+    ? rows.filter((row) =>
+        isEventStillLive(
+          new Date(row.starts_at),
+          row.ends_at ? new Date(row.ends_at) : null,
+          now
+        )
+      )
+    : rows;
+
+  return visible.map(mapEventSummaryRow);
 }
 
 /**
@@ -330,10 +356,11 @@ export async function getEventsByIds(eventIds: string[]): Promise<EventSummary[]
  * Cancelled events never show up here — cancelling deletes the event row,
  * which cascades and removes the corresponding event_interests row too,
  * so there's nothing left for `getEventIdsUserIsGoingTo` to return.
+ * Ended events are filtered out at read time (see getEventsByIds).
  */
 export async function getEventsUserIsGoingTo(userId: string): Promise<EventSummary[]> {
   const eventIds = await getEventIdsUserIsGoingTo(userId);
-  return getEventsByIds(eventIds);
+  return getEventsByIds(eventIds, { excludeEnded: true });
 }
 
 type FeaturedEventRow = {
@@ -370,20 +397,15 @@ export async function getUpcomingActiveEventsOrganizedBy(userId: string): Promis
   }
 
   const now = new Date();
-  // TEMP PATCH: starts_at/ends_at store local Maseru wall-clock digits
-  // mislabeled as UTC. Shifting `now` by +2h (Maseru's fixed UTC+2, no
-  // DST) makes it comparable. Remove this shift once starts_at/ends_at
-  // are migrated to true UTC — see get_home_feed's matching patch.
-  const shiftedNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
   return (data ?? [])
-    .filter((row) => {
-      const startsAt = new Date(row.starts_at);
-      const effectiveEnd = row.ends_at
-        ? new Date(row.ends_at)
-        : new Date(startsAt.getTime() + 8 * 60 * 60 * 1000);
-      return shiftedNow.getTime() < effectiveEnd.getTime();
-    })
+    .filter((row) =>
+      isEventStillLive(
+        new Date(row.starts_at),
+        row.ends_at ? new Date(row.ends_at) : null,
+        now
+      )
+    )
     .map((row) => {
       const startsAt = new Date(row.starts_at);
       return {
