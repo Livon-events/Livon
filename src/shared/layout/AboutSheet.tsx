@@ -15,7 +15,7 @@ export function AboutButton({ onClick }: AboutButtonProps) {
       type="button"
       onClick={onClick}
       aria-label="About Livon"
-      className="flex h-10 w-8 shrink-0 items-center justify-end rounded-full text-white transition-opacity hover:opacity-80 active:scale-95 md:w-10 md:justify-center"
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-opacity hover:opacity-80 active:scale-95"
     >
       <Info className="h-[26px] w-[26px]" strokeWidth={2.25} />
     </button>

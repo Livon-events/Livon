@@ -69,17 +69,15 @@ export default function AppHeader({
                   {selectedArea.name}
                 </span>
               </button>
+
+              <AboutButton onClick={() => setAboutOpen(true)} />
             </>
           )}
 
-          {/* About sits immediately left of search (tighter than the header
-              gap-3) so the icon doesn't float away on small screens. */}
-          <div
-            className={`flex items-center ${
-              searchActive ? "w-full" : "shrink-0 gap-0.5"
-            }`}
-          >
-            {!searchActive && <AboutButton onClick={() => setAboutOpen(true)} />}
+          {/* Search — a single capsule that's either the "Search" trigger
+              button (collapsed) or the actual text input (expanded).
+              There is no second search bar anywhere else; /search itself
+              is a pure results view now. */}
           <div
             className={`flex h-10 shrink-0 select-none items-center gap-2.5 rounded-full border-2 border-white transition-all ${
               searchActive ? "w-full pl-1 pr-1" : "pl-4 pr-[3px]"
@@ -119,7 +117,6 @@ export default function AppHeader({
                 </span>
               </button>
             )}
-          </div>
           </div>
         </div>
       </header>
