@@ -24,16 +24,18 @@ html,
 body {
   max-width: 100%;
   overflow-x: hidden;
-  /* Reserve the vertical scrollbar's width permanently, whether or not a
-     scrollbar is currently needed. Without this, crossing the scroll
-     threshold toggles the scrollbar, which changes the available width by
-     ~15-17px — right at that point, EventCardGrid's lg: 3-column breakpoint
-     (1024px) sits close enough to real laptop window widths that the
-     resulting 2-col <-> 3-col flip changes page height, which toggles the
-     scrollbar again, causing a fast left-right oscillation loop and
-     occasional 1px-off measurements in EventCardBackground's SVG redraw
-     (visible as a clipped right border on the peek notch). */
-  scrollbar-gutter: stable;
+}
+
+/* Keep native scroll, hide the bar. Hidden scrollbars don't consume
+   layout width, so the EventCardGrid 2-col/3-col oscillation that
+   `scrollbar-gutter: stable` was preventing no longer applies. */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
 }
 
 body {

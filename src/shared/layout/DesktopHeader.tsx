@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Search, X, Home, User, Plus } from "lucide-react";
 import { useLocationPicker, type LocationArea } from "@/modules/location";
 import { useHeaderSearch } from "@/modules/search";
+import AboutSheet, { AboutButton } from "./AboutSheet";
 
 type DesktopHeaderProps = {
   userId: string | null;
@@ -37,6 +38,7 @@ export default function DesktopHeader({
     handleChange: handleSearchChange,
   } = useHeaderSearch();
 
+  const [aboutOpen, setAboutOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -70,47 +72,49 @@ export default function DesktopHeader({
             </button>
           </div>
 
-          {/* Center: search — single capsule, collapsed trigger or
-              expanded input. No second search bar on /search itself. */}
-          <div
-            className={`flex h-[42px] w-full max-w-[798px] shrink items-center gap-2.5 rounded-full border-2 border-white transition-all ${
-              searchActive ? "pl-1 pr-1" : "pl-5 pr-[3px]"
-            }`}
-          >
-            {searchActive ? (
-              <>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
-                  <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
-                </span>
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={query}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  placeholder="Search events and people"
-                  className="min-w-0 flex-1 bg-transparent text-[15px] font-medium text-white placeholder:text-[#a1a1a6] focus:outline-none"
-                />
+          {/* Center: about icon sits beside search, not inside it. */}
+          <div className="flex min-w-0 w-full max-w-[846px] shrink items-center gap-2">
+            <AboutButton onClick={() => setAboutOpen(true)} />
+            <div
+              className={`flex h-[42px] w-full min-w-0 flex-1 items-center gap-2.5 rounded-full border-2 border-white transition-all ${
+                searchActive ? "pl-1 pr-1" : "pl-5 pr-[3px]"
+              }`}
+            >
+              {searchActive ? (
+                <>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
+                    <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
+                  </span>
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={query}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    placeholder="Search events and people"
+                    className="min-w-0 flex-1 bg-transparent text-[15px] font-medium text-white placeholder:text-[#a1a1a6] focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={closeSearch}
+                    aria-label="Close search"
+                    className="shrink-0 px-2 text-white"
+                  >
+                    <X className="h-[18px] w-[18px]" />
+                  </button>
+                </>
+              ) : (
                 <button
                   type="button"
-                  onClick={closeSearch}
-                  aria-label="Close search"
-                  className="shrink-0 px-2 text-white"
+                  onClick={openSearch}
+                  className="flex w-full items-center justify-between gap-2.5 py-0 pr-0 transition-all hover:bg-white/[0.04] active:scale-[0.995]"
                 >
-                  <X className="h-[18px] w-[18px]" />
+                  <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
+                    <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
+                  </span>
                 </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={openSearch}
-                className="flex w-full items-center justify-between gap-2.5 py-0 pr-0 transition-all hover:bg-white/[0.04] active:scale-[0.995]"
-              >
-                <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
-                  <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
-                </span>
-              </button>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Right: nav links */}
@@ -197,6 +201,8 @@ export default function DesktopHeader({
           </div>
         </div>
       </div>
+
+      <AboutSheet open={aboutOpen} onClose={() => setAboutOpen(false)} variant="modal" />
     </>
   );
 }
