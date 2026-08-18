@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Info, X } from "lucide-react";
 
 const WHATSAPP_HREF = "https://wa.me/26659034707";
+const WHATSAPP_GROUP_HREF = "https://chat.whatsapp.com/DNm1CIW7I9u2mZWi4fHLbj";
 
 type AboutButtonProps = {
   onClick: () => void;
@@ -98,8 +99,8 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
           }`}
         >
           <p>
-            Livon is how Maseru finds out what&apos;s on — and how hosts find
-            people who will actually show up.
+            Livon is how Maseru finds out what&apos;s on — and how hosts reach
+            people looking for something to do.
           </p>
 
           <section>
@@ -107,11 +108,11 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
               Going out
             </h3>
             <p>
-              See what&apos;s happening around Maseru on time.
+              See what&apos;s happening around Maseru in one place.
               Your feed is shaped by your connections, so you can peek at what
               your friends are interested in and decide what&apos;s worth going
-              to. Connect with hosts you like and you won&apos;t miss their next
-              event.
+              to. Connect with hosts you like and see their upcoming events in
+              your feed.
             </p>
           </section>
 
@@ -121,8 +122,8 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
             </h3>
             <p>
               Post an event in minutes and reach people beyond your own circle.
-              See who&apos;s interested, and find an audience that will enjoy
-              what you&apos;re putting on.
+              See who&apos;s interested and make it easier for people to
+              discover what you&apos;re putting on.
             </p>
           </section>
 
@@ -140,6 +141,18 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
               >
                 +266 5903 4707
               </a>
+            </p>
+            <p className="mt-2">
+              Join the{" "}
+              <a
+                href={WHATSAPP_GROUP_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-white underline decoration-[#FFEA00] underline-offset-2"
+              >
+                WhatsApp group
+              </a>{" "}
+              for updates and to share suggestions.
             </p>
           </section>
         </div>
