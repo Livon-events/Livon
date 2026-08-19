@@ -67,6 +67,7 @@ export type PeekPageData = {
 
 export type EventDetails = {
   id: string;
+  organizerId: string;
   title: string;
   description: string | null;
   price: number;
@@ -102,6 +103,7 @@ export type EventManagementData = {
   dateLabel: string;
   attendingCount: number;
   sharesCount: number;
+  viewsCount: number;
   attendees: Array<{
     id: string;
     handle: string;

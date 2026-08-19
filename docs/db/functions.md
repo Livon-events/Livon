@@ -166,7 +166,7 @@ get_event_management_data(p_event_id uuid)
 RETURNS TABLE(
   event_id uuid, organizer_id uuid, venue_name text, starts_at timestamptz,
   area_name text, attending_count integer, shares_count integer,
-  attendees jsonb
+  views_count integer, attendees jsonb
 )
 ```
 `SQL`, `STABLE`, `SECURITY DEFINER`, `search_path = public`
@@ -177,8 +177,9 @@ Backs the Event Management page (`/events/[id]/manage`) in a single round trip. 
 - **`attending_count`:** `count(*)` over `event_interests` for the event, unfiltered by visibility — same semantics as `event_going_count`, just computed here as a correlated subquery instead of calling that function separately, to keep the whole page load to one request.
 - **`shares_count`:** `count(*)` over `invite_links` for the event, across *every* creator, not just the organizer's own. This is a genuine, intentional RLS bypass: `invite_links_select_own` (see `rls-policies.md`) only lets a creator see their own invite links, so no direct client query could ever produce a total across other users' links. This function is the only path that exposes a cross-creator share count, and only to the event's own organizer.
   - Note this counts *links*, not *clicks* — `invite_links.click_count` is intentionally left untouched and unexposed here, consistent with `docs/FR/invite-links.md`'s rule that per-link click stats stay hidden from everyone, including the creator. Counting how many links exist is a different metric from surfacing click counts, so it doesn't run into that rule.
+- **`views_count`:** unique viewers for the event — `count(distinct user_id)` on `event_views` plus `count(distinct anon_session_id)` on `anonymous_event_views`. This is the number shown as "Views" on the management page, not raw page loads, so a refresh from the same signed-in user or the same anonymous browser does not raise it. Correlated to this `event_id` only (not a scan of `event_view_stats`, which aggregates every event). The organizer's own details-page visits are excluded in the client logger, not here.
 - **`attendees`:** a `jsonb` array (via `jsonb_agg`, most-recent-first) of every user with an `event_interests` row on the event — `user_id`, `username`, `avatar_url`, `instagram_url`, `facebook_url`, `tiktok_url` — built by joining to `users`. This deliberately bypasses `event_interests_select_own_or_connection` (see `rls-policies.md`): the organizer needs the complete guestlist regardless of any individual guest's connections-visibility choice, since that privacy setting is meant to hide someone from other guests/connections, not from the event's own host. (No FR doc currently states this exception explicitly — flagged as a product assumption worth confirming.)
-- **No row-multiplication:** `attending_count`, `shares_count`, and `attendees` are each independent correlated subqueries, not one combined join. A single join across `events` × `event_interests` × `invite_links` would produce a cross product (one row per guest × per invite link), corrupting both counts unless de-duplicated after the fact. Keeping them separate means each aggregate computes once per call, regardless of guestlist or invite-link volume.
+- **No row-multiplication:** `attending_count`, `shares_count`, `views_count`, and `attendees` are each independent correlated subqueries, not one combined join. A single join across `events` × `event_interests` × `invite_links` would produce a cross product (one row per guest × per invite link), corrupting both counts unless de-duplicated after the fact. Keeping them separate means each aggregate computes once per call, regardless of guestlist or invite-link volume.
 - **Supersedes** two short-lived standalone functions, `get_event_guestlist` and `get_event_share_count`, which existed only mid-development and were folded into this one function before ever being recorded in this doc — no separate deprecation entry needed.
 
 ---

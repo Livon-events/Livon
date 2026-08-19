@@ -3,6 +3,7 @@
 import EventDateMetric from "./EventDateMetric";
 import AttendingCountMetric from "./AttendingCountMetric";
 import SharesCountMetric from "./SharesCountMetric";
+import ViewsCountMetric from "./ViewsCountMetric";
 import GuestlistSection from "./GuestlistSection";
 import type { GuestlistAttendee } from "./GuestlistRow";
 
@@ -10,6 +11,7 @@ export interface EventManagementPageProps {
   dateLabel?: string;
   attendingCount?: number;
   sharesCount?: number;
+  viewsCount?: number;
   attendees?: GuestlistAttendee[];
 }
 
@@ -17,6 +19,7 @@ export default function EventManagementPage({
   dateLabel = "Dec 25, 2026",
   attendingCount = 15,
   sharesCount = 2,
+  viewsCount = 0,
   attendees,
 }: EventManagementPageProps) {
   return (
@@ -30,7 +33,7 @@ export default function EventManagementPage({
           <div className="w-full h-px bg-white/30 mt-3 mb-4 sm:mb-6" />
         </div>
 
-        {/* Four Key Metrics Components */}
+        {/* Metrics */}
         <div className="flex flex-col">
           {/* Metric 1: Event Date display */}
           <EventDateMetric dateLabel={dateLabel} />
@@ -38,13 +41,16 @@ export default function EventManagementPage({
           {/* Metric 2: Interested Count */}
           <AttendingCountMetric count={attendingCount} />
 
-          {/* Metric 3: Shares Count */}
+          {/* Metric 3: Unique view count */}
+          <ViewsCountMetric count={viewsCount} />
+
+          {/* Metric 4: Shares Count */}
           <SharesCountMetric count={sharesCount} />
 
           {/* Metrics Divider */}
           <div className="w-full h-px bg-white/20 my-3 sm:my-4" />
 
-          {/* Metric 4: Guestlist */}
+          {/* Guestlist */}
           <GuestlistSection attendees={attendees} />
         </div>
       </div>

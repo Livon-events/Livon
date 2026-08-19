@@ -192,6 +192,7 @@ export const getEventDetails = cache(async function getEventDetails(
 
   return {
     id: event.event_id,
+    organizerId: event.organizer_id,
     title: event.title,
     description: event.description,
     price: parseFloat(event.price),
@@ -426,6 +427,7 @@ type EventManagementDataRow = {
   area_name: string | null;
   attending_count: number;
   shares_count: number;
+  views_count: number;
   attendees: Array<{
     user_id: string;
     username: string | null;
@@ -451,9 +453,12 @@ type EventManagementDataRow = {
  * three could even be issued (their inputs didn't depend on it, but the
  * null/not-organizer check gating the whole page did), so it was two
  * sequential round trips no matter how parallel the second batch was.
- * This function does the same underlying work (guestlist join, two
+ * This function does the same underlying work (guestlist join, three
  * counts) in one query — each count/subquery still runs once, not once
  * per guestlist row, so cost doesn't increase with attendee count.
+ * `views_count` is unique viewers (authenticated user_id + anonymous
+ * session id), not raw page loads, so a refresh does not raise the
+ * number organizers see.
  */
 export async function getEventManagementData(
   eventId: string,
@@ -500,6 +505,7 @@ export async function getEventManagementData(
     dateLabel,
     attendingCount: data.attending_count,
     sharesCount: data.shares_count,
+    viewsCount: data.views_count,
     attendees,
   };
 }

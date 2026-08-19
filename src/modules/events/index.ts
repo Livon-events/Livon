@@ -1,6 +1,7 @@
 export type { EventEditData, EventDetails, EventSummary, FeaturedEvent, PeekPageData, PeekAttendee } from "./types";
 export { IMAGE_MAX_BYTES } from "./validation";
 export { createEvent, updateEvent, cancelEvent, claimEvent } from "./mutations";
+export { recordEventView } from "./recordEventView";
 export type { CreateEventInput, UpdateEventInput } from "./mutations";
 export {
   getPriceLabel,
@@ -31,6 +32,7 @@ export { default as EventManagementPage } from "./components/manage/EventManagem
 export { default as EventDateMetric } from "./components/manage/EventDateMetric";
 export { default as AttendingCountMetric } from "./components/manage/AttendingCountMetric";
 export { default as SharesCountMetric } from "./components/manage/SharesCountMetric";
+export { default as ViewsCountMetric } from "./components/manage/ViewsCountMetric";
 export { default as GuestlistSection } from "./components/manage/GuestlistSection";
 export { default as GuestlistRow } from "./components/manage/GuestlistRow";
 
