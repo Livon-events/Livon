@@ -14,6 +14,13 @@ export const ALL_AREAS_ID = "all";
 export const DEFAULT_CITY_NAME = "Maseru";
 export const DEFAULT_AREA_NAME = "Maseru Central";
 
+/** Keep the default city first in pickers, then the rest A–Z. */
+export function compareCityNames(a: string, b: string): number {
+  if (a === DEFAULT_CITY_NAME) return -1;
+  if (b === DEFAULT_CITY_NAME) return 1;
+  return a.localeCompare(b);
+}
+
 // Logged-out (and pre-hydration) persistence, per location-toggle.md:
 // "Logged-out users: selection is stored in browser storage (localStorage)
 // only." Bump the key if the stored shape ever changes.

@@ -5,10 +5,12 @@ export {
   DEFAULT_CITY_NAME,
   LOCATION_COOKIE_KEY,
   LOCATION_STORAGE_KEY,
+  compareCityNames,
   type StoredLocationPreference,
 } from "./constants";
 export { readStoredLocationPreference, writeStoredLocationPreference } from "./storage";
-export { useLocationPicker, type LocationArea } from "./hooks/useLocationPicker";
+export { useLocationPicker, type LocationArea, type LocationCity } from "./hooks/useLocationPicker";
+export { default as CitySelect } from "./components/CitySelect";
 
 // getLocationPickerData is never barrel-exported — queries.ts is
 // server-only (uses next/headers). Import it directly:

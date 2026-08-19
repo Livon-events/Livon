@@ -3,30 +3,36 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Search, X } from "lucide-react";
-import { useLocationPicker, type LocationArea } from "@/modules/location";
+import { CitySelect, useLocationPicker, type LocationCity } from "@/modules/location";
 import { useHeaderSearch } from "@/modules/search";
 import AboutSheet, { AboutButton } from "./AboutSheet";
 
 
 type AppHeaderProps = {
   userId: string | null;
-  cityId: string;
-  cityName: string;
-  areas: LocationArea[];
+  cities: LocationCity[];
+  initialCityId: string;
   initialAreaId: string;
   hasAccountPreference: boolean;
 };
 
 export default function AppHeader({
   userId,
-  cityId,
-  cityName,
-  areas,
+  cities,
+  initialCityId,
   initialAreaId,
   hasAccountPreference,
 }: AppHeaderProps) {
-  const { sheetOpen, selectedArea, areas: pickerAreas, openSheet, closeSheet, selectArea } =
-    useLocationPicker({ userId, cityId, areas, initialAreaId, hasAccountPreference });
+  const {
+    sheetOpen,
+    selectedCity,
+    selectedArea,
+    areas: pickerAreas,
+    openSheet,
+    closeSheet,
+    selectCity,
+    selectArea,
+  } = useLocationPicker({ userId, cities, initialCityId, initialAreaId, hasAccountPreference });
 
   const {
     active: searchActive,
@@ -63,7 +69,7 @@ export default function AppHeader({
                 className="flex flex-grow select-none flex-col items-start justify-center text-left"
               >
                 <span className="text-[21px] font-bold leading-[1.15] tracking-[-0.3px] text-white underline decoration-2 underline-offset-[3px]">
-                  {cityName}
+                  {selectedCity.name}
                 </span>
                 <span className="mt-0.5 text-[13.5px] font-medium tracking-[-0.1px] text-[#a1a1a6]">
                   {selectedArea.name}
@@ -137,7 +143,9 @@ export default function AppHeader({
         >
           <div className="relative mb-4 flex shrink-0 items-center justify-between border-b border-[#1f1f1f] pb-4">
             <div className="absolute -top-1.5 left-1/2 h-1 w-[38px] -translate-x-1/2 rounded-full bg-[#333333]" />
-            <h3 className="text-lg font-semibold tracking-[-0.2px] text-white">Select Area in {cityName}</h3>
+            <h3 className="text-lg font-semibold tracking-[-0.2px] text-white">
+              Select location
+            </h3>
             <button
               type="button"
               onClick={closeSheet}
@@ -149,6 +157,23 @@ export default function AppHeader({
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            {cities.length > 1 && (
+              <div className="mb-4">
+                <label htmlFor="header-city-select" className="mb-1.5 block text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
+                  CITY
+                </label>
+                <CitySelect
+                  id="header-city-select"
+                  cities={cities}
+                  value={selectedCity.id}
+                  onChange={selectCity}
+                  className="w-full rounded-[10px] border-2 border-[#262626] bg-[#1a1a1a] px-4 py-3 text-[15px] font-medium text-white outline-none transition focus:border-[#FFEA00]"
+                />
+              </div>
+            )}
+            <p className="mb-2 text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
+              AREA IN {selectedCity.name.toUpperCase()}
+            </p>
             <ul className="flex flex-col gap-2 pb-6">
               {pickerAreas.map((area) => {
                 const isActive = area.id === selectedArea.id;

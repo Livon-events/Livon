@@ -19,19 +19,14 @@ type CityRow = {
 };
 
 /**
- * All cities with their areas, for the header's City → Area picker.
- * `cities`/`areas` are both public read-only reference tables (RLS: SELECT
- * `true` for anon + authenticated — see docs/db/rls-policies.md), so this
- * works for logged-out visitors too.
+ * Cities with their areas, for the header's City → Area picker and the
+ * create-event form. `cities`/`areas` are both public read-only reference
+ * tables (RLS: SELECT `true` for anon + authenticated — see
+ * docs/db/rls-policies.md), so this works for logged-out visitors too.
  *
- * Only one city exists at launch (Maseru), but per
- * docs/FR/location-toggle.md ("toggle UI should support a City list even
- * though only Maseru exists at launch — don't hardcode to a single city")
- * this always fetches the real list rather than assuming one row.
- *
- * Ordered by name for deterministic display. The default is resolved
- * explicitly by name in SiteHeader because alphabetical order no longer
- * puts Maseru Central first now that all community councils are seeded.
+ * Per docs/FR/location-toggle.md this always fetches the real city list
+ * rather than assuming a single city. Ordered by name for deterministic
+ * display; the default city is resolved by name (Maseru) in SiteHeader.
  */
 export async function getLocationPickerData(): Promise<LocationPickerCity[]> {
   const supabase = await createClient();

@@ -4,7 +4,7 @@ import { createClient } from "@/shared/supabase/server";
 import { getLocationPickerData } from "@/modules/location/queries";
 import { readLocationPreferenceCookie } from "@/modules/location/cookie";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
-import { ALL_AREAS_ID, DEFAULT_CITY_NAME } from "@/modules/location";
+import { ALL_AREAS_ID, DEFAULT_CITY_NAME, compareCityNames } from "@/modules/location";
 
 export default async function SiteHeader() {
   const supabase = await createClient();
@@ -12,7 +12,9 @@ export default async function SiteHeader() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const cities = await getLocationPickerData();
+  const cities = [...(await getLocationPickerData())].sort((a, b) =>
+    compareCityNames(a.name, b.name)
+  );
   const defaultCity = cities.find((city) => city.name === DEFAULT_CITY_NAME) ?? cities[0];
 
   const location = user ? await getOrganizerLocationContext(user.id) : null;
@@ -44,9 +46,8 @@ export default async function SiteHeader() {
       <div className="md:hidden">
         <AppHeader
           userId={user?.id ?? null}
-          cityId={activeCity.id}
-          cityName={activeCity.name}
-          areas={activeCity.areas}
+          cities={cities}
+          initialCityId={activeCity.id}
           initialAreaId={initialAreaId}
           hasAccountPreference={hasAccountPreference}
         />
@@ -57,9 +58,8 @@ export default async function SiteHeader() {
       <div className="hidden md:block">
         <DesktopHeader
           userId={user?.id ?? null}
-          cityId={activeCity.id}
-          cityName={activeCity.name}
-          areas={activeCity.areas}
+          cities={cities}
+          initialCityId={activeCity.id}
           initialAreaId={initialAreaId}
           hasAccountPreference={hasAccountPreference}
         />

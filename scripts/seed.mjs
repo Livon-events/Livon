@@ -154,15 +154,24 @@ function must(label, { error }) {
 // Seed steps
 // ---------------------------------------------------------------------------
 
+const BEREA_COMMUNITY_COUNCIL_AREAS = [
+  'Teyateyaneng (TY)',
+  'Kanana',
+  'Kueneng',
+  'Mabote',
+  'Makeoana',
+  'Maluba-Lube',
+  'Mapoteng',
+  'Motanasela',
+  'Phuthiatsana',
+  'Senekane',
+  'Tebe-Tebe',
+];
+
 /**
- * Resolves the canonical Maseru city id and Maseru Central area id, then
- * deletes every OTHER row in `cities`/`areas` so exactly one of each
- * survives. Robust to however many stray city/area rows already exist from
- * earlier partial fixes — this doesn't assume any particular prior state.
- *
- * Order matters: areas are pruned before cities (areas.city_id -> cities.city_id
- * FK would otherwise block deleting a city that still has area rows pointing
- * at it).
+ * Resolves the canonical Maseru city id and Maseru Central area id used by
+ * seed events, and ensures Berea + its councils exist. Does not prune other
+ * cities/areas — those are product location data and must survive a seed run.
  */
 async function seedLocation() {
   // --- City ---
@@ -206,62 +215,32 @@ async function seedLocation() {
     must('Maseru Central area created', res);
   }
 
-  // --- Repoint any stray references first ---
-  // If ANY user (not just the 4 seed accounts — e.g. a real account used
-  // while testing the header picker) still has preferred_city_id pointing
-  // at a retired city, or ANY event still has city_id pointing at one, the
-  // prune below would hit a foreign-key violation and silently no-op
-  // (logged as a warning, not a crash) — leaving the stale row behind.
-  // Repoint everything onto the canonical city/area first so the prune can
-  // never be blocked like that again.
-  const { data: strayUsers, error: strayUsersError } = await supabase
-    .from('users')
-    .select('user_id, preferred_area_id')
-    .not('preferred_city_id', 'is', null)
-    .neq('preferred_city_id', cityId);
-  if (strayUsersError) throw strayUsersError;
+  const { data: existingBerea, error: bereaLookupError } = await supabase
+    .from('cities')
+    .select('city_id')
+    .eq('name', 'Berea')
+    .maybeSingle();
+  if (bereaLookupError) throw bereaLookupError;
 
-  for (const u of strayUsers ?? []) {
-    const res = await supabase
-      .from('users')
-      .update({
-        preferred_city_id: cityId,
-        // Preserve an existing "All areas" (null) selection; otherwise the
-        // old specific area is gone, so repoint to the one that survives.
-        preferred_area_id: u.preferred_area_id === null ? null : areaId,
-      })
-      .eq('user_id', u.user_id);
-    if (res.error) throw res.error;
-  }
-  if ((strayUsers ?? []).length) {
-    console.log(`✓ repointed ${strayUsers.length} user(s) off a retired city/area onto Maseru`);
-  }
-
-  const strayEventsRes = await supabase
-    .from('events')
-    .update({ city_id: cityId, area_id: areaId })
-    .neq('city_id', cityId);
-  if (strayEventsRes.error) throw strayEventsRes.error;
-  console.log('✓ repointed any stray events onto Maseru / Maseru Central');
-
-  // --- Prune every other area, then every other city ---
-  const areaPruneRes = await supabase.from('areas').delete().neq('area_id', areaId);
-  if (areaPruneRes.error) {
-    console.warn(
-      `⚠ could not prune extra areas (${areaPruneRes.error.message}) — check nothing still references them`
-    );
+  let bereaCityId = existingBerea?.city_id;
+  if (!bereaCityId) {
+    const created = await supabase
+      .from('cities')
+      .insert({ name: 'Berea' })
+      .select('city_id')
+      .single();
+    must('Berea city created', created);
+    bereaCityId = created.data?.city_id;
+    if (!bereaCityId) throw new Error('Berea city insert returned no city_id');
   } else {
-    console.log('✓ pruned any other area rows (Maseru Central is now the only one)');
+    console.log(`✓ found existing Berea city row (${bereaCityId}) — reusing it`);
   }
 
-  const cityPruneRes = await supabase.from('cities').delete().neq('city_id', cityId);
-  if (cityPruneRes.error) {
-    console.warn(
-      `⚠ could not prune extra cities (${cityPruneRes.error.message}) — check nothing still references them`
-    );
-  } else {
-    console.log('✓ pruned any other city rows (Maseru is now the only one)');
-  }
+  const bereaAreasRes = await supabase.from('areas').upsert(
+    BEREA_COMMUNITY_COUNCIL_AREAS.map((name) => ({ city_id: bereaCityId, name })),
+    { onConflict: 'city_id,name', ignoreDuplicates: true }
+  );
+  must('Berea areas upserted', bereaAreasRes);
 
   return { cityId, areaId };
 }

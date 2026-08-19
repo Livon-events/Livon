@@ -16,7 +16,7 @@ import {
   IMAGE_MAX_BYTES,
 } from "@/modules/events/validation";
 import type { CreateEventCategory } from "@/modules/events/components/create/CreateEventPage";
-import type { LocationPickerCity } from "@/modules/location/queries";
+import { CitySelect, compareCityNames, DEFAULT_CITY_NAME, type LocationCity } from "@/modules/location";
 
 type Admission = "free" | "paid";
 
@@ -41,7 +41,7 @@ type CreateEventFormProps = {
       mode?: "create";
       eventId?: undefined;
       initialValues?: undefined;
-      cities: LocationPickerCity[];
+      cities: LocationCity[];
       /** Pre-fill only — from the host's current header selection, per docs/FR/location-toggle.md. Changeable, and null if the header has no resolved area (e.g. "All areas" or no preference yet). */
       initialCityId: string | null;
       initialAreaId: string | null;
@@ -111,7 +111,12 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   const [title, setTitle] = useState(initialValues?.title ?? "");
   const [categoryId, setCategoryId] = useState<string | null>(initialValues?.categoryId ?? null);
   const [cityId, setCityId] = useState<string | null>(
-    isEditing ? null : props.initialCityId ?? cities[0]?.id ?? null
+    isEditing
+      ? null
+      : props.initialCityId ??
+        cities.find((city) => city.name === DEFAULT_CITY_NAME)?.id ??
+        cities[0]?.id ??
+        null
   );
   const [areaId, setAreaId] = useState<string | null>(isEditing ? null : props.initialAreaId ?? null);
   const [startDate, setStartDate] = useState(initialValues?.startDate ?? todayIso());
@@ -154,7 +159,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   );
 
   const sortedCities = useMemo(
-    () => [...cities].sort((a, b) => a.name.localeCompare(b.name)),
+    () => [...cities].sort((a, b) => compareCityNames(a.name, b.name)),
     [cities]
   );
   const selectedCity = sortedCities.find((c) => c.id === cityId) ?? sortedCities[0] ?? null;
@@ -461,22 +466,21 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           afterward (see PATCH /api/events/[id]). */}
       {!isEditing && (
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">AREA</label>
-
           {sortedCities.length > 1 && (
-            <div className="mb-1 flex flex-wrap gap-2">
-              {sortedCities.map((city) => (
-                <button
-                  key={city.id}
-                  type="button"
-                  onClick={() => handleCityChange(city.id)}
-                  className={`${chipBase} ${cityId === city.id ? chipActive : chipInactive}`}
-                >
-                  {city.name}
-                </button>
-              ))}
-            </div>
+            <>
+              <label htmlFor="eventCity" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
+                CITY
+              </label>
+              <CitySelect
+                id="eventCity"
+                cities={sortedCities}
+                value={cityId ?? selectedCity?.id ?? ""}
+                onChange={handleCityChange}
+              />
+            </>
           )}
+
+          <label className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">AREA</label>
 
           <div className="flex flex-wrap gap-2">
             {availableAreas.map((area) => (

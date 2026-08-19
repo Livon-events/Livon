@@ -34,10 +34,10 @@ These are the account-level persisted values. Logged-out/device-level persistenc
 - **On login:** if the account has a stored preference, it overrides whatever was in local device storage. If the account has no stored preference yet (first login), the current device-storage value (if any) is written up to the account; otherwise default applies.
 
 ### Default (no preference set anywhere)
-- Defaults to **Maseru → All areas**. Maseru District community councils
-  are seeded as selectable areas; Manonyane is displayed as
-  **Roma (Manonyane)** so users can find the council by its best-known
-  settlement.
+- Defaults to **Maseru → All areas**. Maseru and Berea are both
+  selectable cities. Maseru District community councils are seeded as
+  areas; Manonyane is displayed as **Roma (Manonyane)**. Berea uses its
+  community councils plus **Teyateyaneng (TY)** as the district capital.
 - This default is applied client-side when there is no account preference and no device storage value — not written to the DB until the user actively changes it or an implicit first-write occurs per above.
 
 ### Feed / listing scoping
@@ -55,7 +55,8 @@ These are the account-level persisted values. Logged-out/device-level persistenc
 - **Header changed in another tab while a create-event form is open:** no effect — the form's Area field holds its own state once loaded, independent of the header from that point on.
 - **First-time login on a new device where account already has a preference:** account preference wins immediately, overwriting whatever default/local value was showing pre-login.
 - **User has account preference for a City/Area that gets removed or renamed later (admin-managed):** out of scope for MVP since Cities/Areas are admin-only and not expected to be deleted post-seed; if this becomes possible later, preference should fall back to default.
-- **Multiple cities in future:** toggle UI should support a City list even though only Maseru exists at launch — don't hardcode to a single city in implementation.
+- **Multiple cities:** the picker shows a City dropdown (Maseru, Berea)
+  then the Areas for the selected city, including "All Areas".
 
 ---
 

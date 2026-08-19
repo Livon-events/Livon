@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/shared/supabase/server";
 import { getCategories } from "@/modules/categories/queries";
 import { getLocationPickerData } from "@/modules/location/queries";
+import { DEFAULT_CITY_NAME } from "@/modules/location";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
 import { CreateEventPage } from "@/modules/events";
 
@@ -28,7 +29,8 @@ export default async function CreateEventRoute() {
   // time (see modules/events/serverMutations.ts). A header with no
   // resolved area (e.g. scoped to "All areas", or no preference set yet)
   // simply leaves the picker unselected.
-  const initialCityId = location?.cityId ?? cities[0]?.id ?? null;
+  const defaultCity = cities.find((city) => city.name === DEFAULT_CITY_NAME) ?? cities[0];
+  const initialCityId = location?.cityId ?? defaultCity?.id ?? null;
   const initialAreaId = location?.areaId ?? null;
 
   return (

@@ -14,12 +14,18 @@ export type LocationArea = {
   name: string;
 };
 
+export type LocationCity = {
+  id: string;
+  name: string;
+  areas: LocationArea[];
+};
+
 type UseLocationPickerArgs = {
   /** Signed-in user id, or null when logged out. */
   userId: string | null;
-  cityId: string;
-  /** Real areas for `cityId`, NOT including the "All areas" entry — this hook adds it. */
-  areas: LocationArea[];
+  cities: LocationCity[];
+  /** Server-resolved initial city. */
+  initialCityId: string;
   /** Server-resolved initial selection: a real area id, or ALL_AREAS_ID. */
   initialAreaId: string;
   /**
@@ -59,15 +65,15 @@ type UseLocationPickerArgs = {
  */
 export function useLocationPicker({
   userId,
-  cityId,
-  areas,
+  cities,
+  initialCityId,
   initialAreaId,
   hasAccountPreference,
 }: UseLocationPickerArgs) {
   const router = useRouter();
-  const allAreas: LocationArea[] = [{ id: ALL_AREAS_ID, name: "All areas" }, ...areas];
 
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedCityId, setSelectedCityId] = useState(initialCityId);
   const [selectedAreaId, setSelectedAreaId] = useState(initialAreaId);
   const reconciled = useRef(false);
 
@@ -76,16 +82,17 @@ export function useLocationPicker({
     reconciled.current = true;
 
     const stored = readStoredLocationPreference();
+    const knownCityIds = new Set(cities.map((city) => city.id));
 
     if (userId && hasAccountPreference) {
       // Account preference is the source of truth across devices — just
       // make sure this device's local copy agrees with it.
       const realAreaId = selectedAreaId === ALL_AREAS_ID ? null : selectedAreaId;
-      writeStoredLocationPreference({ cityId, areaId: realAreaId });
+      writeStoredLocationPreference({ cityId: selectedCityId, areaId: realAreaId });
       return;
     }
 
-    if (stored && stored.cityId === cityId) {
+    if (stored && knownCityIds.has(stored.cityId)) {
       const resolvedAreaId = stored.areaId ?? ALL_AREAS_ID;
       // Deliberate one-time post-hydration sync from localStorage
       // (unavailable during SSR, so it can't be a lazy useState initializer
@@ -93,19 +100,21 @@ export function useLocationPicker({
       // default). Guarded by `reconciled.current` above, so this can't
       // cascade.
       // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedCityId(stored.cityId);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedAreaId(resolvedAreaId);
       // Keep cookie in sync so the next SSR pass matches localStorage.
-      writeStoredLocationPreference({ cityId, areaId: stored.areaId });
+      writeStoredLocationPreference({ cityId: stored.cityId, areaId: stored.areaId });
 
       if (userId && !hasAccountPreference) {
         // First login on a device that already had a local preference —
         // push it up to the account per location-toggle.md.
-        updateLocationPreference({ cityId, areaId: stored.areaId }).catch(() => {
+        updateLocationPreference({ cityId: stored.cityId, areaId: stored.areaId }).catch(() => {
           // Best-effort — the UI already reflects the selection either way.
         });
       }
 
-      if (resolvedAreaId !== initialAreaId) {
+      if (stored.cityId !== initialCityId || resolvedAreaId !== initialAreaId) {
         // Cookie/localStorage disagreed with the SSR default — refresh so
         // the feed picks up the device preference.
         router.refresh();
@@ -113,39 +122,65 @@ export function useLocationPicker({
       return;
     }
 
-    // No localStorage entry (or wrong city) — persist the server-resolved
+    // No localStorage entry (or unknown city) — persist the server-resolved
     // default (All areas → areaId null) so cookie/localStorage match the
     // header. Do not force an account write for All areas; only a real
     // area selection (or an explicit All-areas tap via selectArea) should
     // create an account preference.
     const realAreaId = selectedAreaId === ALL_AREAS_ID ? null : selectedAreaId;
-    writeStoredLocationPreference({ cityId, areaId: realAreaId });
+    writeStoredLocationPreference({ cityId: selectedCityId, areaId: realAreaId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, hasAccountPreference, cityId]);
+  }, [userId, hasAccountPreference, initialCityId]);
 
+  const selectedCity =
+    cities.find((city) => city.id === selectedCityId) ??
+    cities[0] ??
+    { id: initialCityId, name: "", areas: [] };
+  const allAreas: LocationArea[] = [
+    { id: ALL_AREAS_ID, name: "All areas" },
+    ...selectedCity.areas,
+  ];
   const selectedArea = allAreas.find((a) => a.id === selectedAreaId) ?? allAreas[0];
 
   const openSheet = () => setSheetOpen(true);
   const closeSheet = () => setSheetOpen(false);
 
-  const selectArea = (area: LocationArea) => {
-    setSelectedAreaId(area.id);
-    closeSheet();
-
-    const realAreaId = area.id === ALL_AREAS_ID ? null : area.id;
-    writeStoredLocationPreference({ cityId, areaId: realAreaId });
+  function persist(cityId: string, areaId: string | null) {
+    writeStoredLocationPreference({ cityId, areaId });
 
     if (userId) {
-      updateLocationPreference({ cityId, areaId: realAreaId }).catch(() => {
+      updateLocationPreference({ cityId, areaId }).catch(() => {
         // Fire-and-forget: the picker already reflects the change
         // optimistically. A failed write just means it doesn't survive
         // to the next session/device — not worth blocking the UI over.
       });
     }
 
-    // Re-render the server feed with the new city/area scope.
     router.refresh();
+  }
+
+  const selectCity = (cityId: string) => {
+    if (cityId === selectedCityId) return;
+    setSelectedCityId(cityId);
+    setSelectedAreaId(ALL_AREAS_ID);
+    persist(cityId, null);
   };
 
-  return { sheetOpen, selectedArea, areas: allAreas, openSheet, closeSheet, selectArea };
+  const selectArea = (area: LocationArea) => {
+    setSelectedAreaId(area.id);
+    closeSheet();
+    persist(selectedCityId, area.id === ALL_AREAS_ID ? null : area.id);
+  };
+
+  return {
+    sheetOpen,
+    selectedCity,
+    selectedArea,
+    cities,
+    areas: allAreas,
+    openSheet,
+    closeSheet,
+    selectCity,
+    selectArea,
+  };
 }
