@@ -297,7 +297,17 @@ export async function getEventsOrganizedBy(userId: string): Promise<EventSummary
     throw new Error(`getEventsOrganizedBy failed: ${error.message}`);
   }
 
-  return (data ?? []).map(mapEventSummaryRow);
+  const summaries = (data ?? []).map(mapEventSummaryRow);
+  // The embedded aggregate is filtered by attendee-visibility RLS. Use the
+  // count-only RPC so organizers see the same total as Peek and Manage.
+  const attendeeCounts = await Promise.all(
+    summaries.map((event) => getEventGoingCount(event.id))
+  );
+
+  return summaries.map((event, index) => ({
+    ...event,
+    attendeeCount: attendeeCounts[index],
+  }));
 }
 
 /**
