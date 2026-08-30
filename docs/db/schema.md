@@ -157,6 +157,23 @@ Junction table for events ↔ tags. Locked for beta, same as `tags`.
 
 Notes: "Going" counts are derived via `COUNT()` at read time, not stored. `visibility` controls whether a user's interest is shown to others.
 
+## event_reminder_sends
+
+| Column | Type | Nullable | Default |
+|---|---|---|---|
+| `event_id` | uuid | NO | — |
+| `user_id` | uuid | NO | — |
+| `reminder_type` | text | NO | — |
+| `sent_at` | timestamptz | NO | `now()` |
+
+**Constraints:**
+- PK (composite): `(event_id, user_id, reminder_type)`
+- FK: `event_id` → `events.event_id` ON DELETE CASCADE
+- FK: `user_id` → `users.user_id` ON DELETE CASCADE
+- CHECK: `reminder_type in ('7d', '1d')`
+
+Notes: Dedup log for daily event-reminder emails (7 calendar days and 1 calendar day before `starts_at`). Written only by the cron job via service role. RLS deny-all for `anon`/`authenticated`. Migration: `scripts/migrations/2026-08-event-reminder-sends.sql`.
+
 ## event_views
 
 | Column | Type | Nullable | Default |

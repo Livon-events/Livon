@@ -21,8 +21,13 @@ function localDayNumber(d: Date): number {
  * >30 days: "N Month(s)" (floored). 1–30 days: "N Days". Tomorrow: "1 Day".
  * Today (or already started/live): "Today".
  */
+/** Calendar days until event start (matches countdown chip logic). */
+export function getDaysUntilEventStart(startsAt: Date, now: Date): number {
+  return utcDayNumber(startsAt) - localDayNumber(now);
+}
+
 export function getCountdownLabel(startsAt: Date, now: Date): string {
-  const diffDays = utcDayNumber(startsAt) - localDayNumber(now);
+  const diffDays = getDaysUntilEventStart(startsAt, now);
 
   if (diffDays <= 0) return "Today";
   if (diffDays === 1) return "1 Day";
@@ -141,4 +146,4 @@ export function getEventManagementDateLabel(startsAt: Date): string {
   const day = startsAt.getUTCDate();
   const year = startsAt.getUTCFullYear();
   return `${month} ${day}, ${year}`;
-}
+}

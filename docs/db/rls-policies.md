@@ -14,6 +14,7 @@ These all carry a single policy named `no_client_access`, `cmd = ALL`, `qual = f
 
 - `activity_log`
 - `event_tags`
+- `event_reminder_sends` (policy `event_reminder_sends_deny_all` — cron writes via service role only)
 - `invite_link_clicks`
 - `tags`
 - `user_interests`

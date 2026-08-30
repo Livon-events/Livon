@@ -6,6 +6,7 @@ export type { CreateEventInput, UpdateEventInput } from "./mutations";
 export {
   getPriceLabel,
   getCountdownLabel,
+  getDaysUntilEventStart,
   getTimeOrLiveLabel,
   getEventDateTimeLabel,
   getProfileEventDateLabel,

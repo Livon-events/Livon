@@ -95,6 +95,7 @@ const eslintConfig = defineConfig([
         // server-only files import these by direct path instead.
         { pattern: "**/modules/*/queries.ts", category: "moduleServerOnly" },
         { pattern: "**/modules/*/serverMutations.ts", category: "moduleServerOnly" },
+        { pattern: "**/modules/*/reminders.ts", category: "moduleServerOnly" },
       ],
     },
     rules: {
