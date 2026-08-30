@@ -99,7 +99,7 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
           }`}
         >
           <p>
-            Livon is how Maseru finds out what&apos;s on — and how hosts reach
+            Livon is how Maseru finds out what&apos;s on and how hosts reach
             people looking for something to do.
           </p>
 
