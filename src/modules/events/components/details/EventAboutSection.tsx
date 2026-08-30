@@ -51,7 +51,7 @@ export default function EventAboutSection({
           above, which truncates it (see the FR's "About section content"). */}
       <h3 className="mt-3 text-xl font-extrabold leading-snug">{title}</h3>
 
-      <p className="mt-3.5 max-w-[680px] text-base font-bold leading-snug text-[#a9a9a9]">
+      <p className="mt-3.5 max-w-[680px] whitespace-pre-wrap break-words text-base font-bold leading-snug text-[#a9a9a9]">
         {description}
       </p>
     </div>
