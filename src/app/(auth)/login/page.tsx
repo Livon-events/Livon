@@ -41,7 +41,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <header className="pass-head">
             <h1 id="form-title">Don’t miss what your people are going to</h1>
             <p>
-              Sign in to see which events your connections are interested in,
+              Sign in to see which events your connections are interested in
               and get reminders before they happen.
             </p>
           </header>
