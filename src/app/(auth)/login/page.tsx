@@ -1,12 +1,10 @@
-import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/shared/supabase/server";
 import { GoogleSignInButton } from "@/modules/auth";
-import { LoginForm } from "@/modules/auth";
 
 type LoginPageProps = {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; error?: string }>;
 };
 
 function safeNext(next: string | undefined): string {
@@ -17,7 +15,7 @@ function safeNext(next: string | undefined): string {
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { next } = await searchParams;
+  const { next, error } = await searchParams;
 
   const supabase = await createClient();
   const {
@@ -41,23 +39,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
 
           <header className="pass-head">
-            <h1 id="form-title">Sign in</h1>
+            <h1 id="form-title">Don’t miss what your people are going to</h1>
+            <p>
+              Sign in to see which events your connections are interested in,
+              and get reminders before they happen.
+            </p>
           </header>
 
+          {error === "auth_callback_failed" && (
+            <p className="form-error">Google sign-in didn’t complete. Try again.</p>
+          )}
+
           <GoogleSignInButton next={next} />
-
-          <div className="divider">
-            <span>or use your email</span>
-          </div>
-
-          <LoginForm next={next} />
-
-          <p className="switch-line">
-            New to Livon?{" "}
-            <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}>
-              Create an account
-            </Link>
-          </p>
         </section>
       </main>
     </div>

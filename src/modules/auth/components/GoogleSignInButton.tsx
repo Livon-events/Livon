@@ -5,9 +5,13 @@ import { signInWithGoogle } from "@/modules/auth/mutations";
 
 interface GoogleSignInButtonProps {
   next?: string;
+  label?: string;
 }
 
-export function GoogleSignInButton({ next }: GoogleSignInButtonProps) {
+export function GoogleSignInButton({
+  next,
+  label = "Continue with Google",
+}: GoogleSignInButtonProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +58,7 @@ export function GoogleSignInButton({ next }: GoogleSignInButtonProps) {
             d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .94 4.97l3.01 2.33C4.66 5.17 6.65 3.58 9 3.58z"
           />
         </svg>
-        {pending ? "Redirecting to Google…" : "Continue with Google"}
+        {pending ? "Redirecting to Google…" : label}
       </button>
       {error && <p className="form-error">{error}</p>}
     </>

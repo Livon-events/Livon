@@ -13,9 +13,9 @@ export const BIO_MAX = 150;
 export const USERNAME_MIN = 3;
 export const USERNAME_MAX = 20;
 
-// Matches the pattern already enforced at signup (SignupForm.tsx) — kept in
-// sync deliberately so a rename can never produce a username the signup
-// flow itself wouldn't have allowed.
+// Matches the username pattern used when creating accounts (handle_new_user
+// trigger + profile edits). Kept in sync so a rename can never produce a
+// username the rest of the product wouldn't allow.
 export const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
 
 // Avatar upload constraints. Enforced server-side in the route handler
