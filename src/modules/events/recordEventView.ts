@@ -1,6 +1,8 @@
 import { createClient } from "@/shared/supabase/client";
 import { getOrCreateAnonSessionId } from "@/shared/anonSession";
 
+const pendingEventViews = new Set<string>();
+
 function viewLoggedKey(eventId: string): string {
   return `livon_event_view:${eventId}`;
 }
@@ -31,36 +33,52 @@ function markViewLoggedThisSession(eventId: string): void {
  */
 export async function recordEventView(eventId: string, organizerId: string): Promise<void> {
   if (typeof window === "undefined") return;
-  if (hasLoggedViewThisSession(eventId)) return;
+  if (hasLoggedViewThisSession(eventId) || pendingEventViews.has(eventId)) return;
 
-  markViewLoggedThisSession(eventId);
+  pendingEventViews.add(eventId);
 
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-  if (user?.id === organizerId) return;
-
-  if (user) {
-    const { error } = await supabase.from("event_views").insert({
-      event_id: eventId,
-      user_id: user.id,
-    });
-    if (error) {
-      console.error("recordEventView failed", error);
+    if (authError) {
+      console.error("recordEventView failed", authError);
+      return;
     }
-    return;
-  }
 
-  const anonSessionId = getOrCreateAnonSessionId();
-  if (!anonSessionId) return;
+    if (user?.id === organizerId) {
+      markViewLoggedThisSession(eventId);
+      return;
+    }
 
-  const { error } = await supabase.from("anonymous_event_views").insert({
-    event_id: eventId,
-    anon_session_id: anonSessionId,
-  });
-  if (error) {
-    console.error("recordEventView failed", error);
+    if (user) {
+      const { error } = await supabase.from("event_views").insert({
+        event_id: eventId,
+        user_id: user.id,
+      });
+      if (error) {
+        console.error("recordEventView failed", error);
+        return;
+      }
+    } else {
+      const anonSessionId = getOrCreateAnonSessionId();
+      if (!anonSessionId) return;
+
+      const { error } = await supabase.from("anonymous_event_views").insert({
+        event_id: eventId,
+        anon_session_id: anonSessionId,
+      });
+      if (error) {
+        console.error("recordEventView failed", error);
+        return;
+      }
+    }
+
+    markViewLoggedThisSession(eventId);
+  } finally {
+    pendingEventViews.delete(eventId);
   }
 }
