@@ -12,7 +12,7 @@ import { z } from "zod";
 export const TITLE_MAX = 60;
 export const VENUE_MIN = 3;
 export const VENUE_MAX = 60;
-export const DESCRIPTION_MAX = 500;
+export const DESCRIPTION_MAX = 750;
 
 // price is `numeric` on Events, defaults to 0. Upper bound isn't specified by
 // the FR — this is a defensive sanity cap, not a business rule, so a typo or
