@@ -108,11 +108,10 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
               Going out
             </h3>
             <p>
-              See what&apos;s happening around Maseru in one place.
-              Your feed is shaped by your connections, so you can peek at what
-              your friends are interested in and decide what&apos;s worth going
-              to. Connect with hosts you like and see their upcoming events in
-              your feed.
+              See what&apos;s happening around Maseru in one place. Discover
+              events your connections are interested in and decide what&apos;s
+              worth checking out. Mark an event as Interested to get reminders
+              and help your connections discover it too.
             </p>
           </section>
 
