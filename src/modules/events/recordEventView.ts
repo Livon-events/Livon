@@ -44,7 +44,11 @@ export async function recordEventView(eventId: string, organizerId: string): Pro
       error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError) {
+    // A signed-out visitor is the expected case here, and getUser() reports
+    // it as an AuthSessionMissingError rather than a plain null user — so
+    // treating every authError as fatal would skip the anonymous branch
+    // below entirely. Any other auth error is still a real failure.
+    if (authError && authError.name !== "AuthSessionMissingError") {
       console.error("recordEventView failed", authError);
       return;
     }
