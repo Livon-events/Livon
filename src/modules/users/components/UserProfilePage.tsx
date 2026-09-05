@@ -150,7 +150,7 @@ export default function UserProfilePage({
   }
 
   return (
-    <div className="flex justify-center min-h-screen bg-black px-5 pt-4 pb-16 font-body">
+    <div className="flex justify-center min-h-screen bg-[#121212] px-5 pt-4 pb-16 font-body">
       {/* Matches the desktop search capsule's max width (798px) + 8px on md+ screens */}
       <div className="w-full max-w-[440px] md:max-w-[806px] flex flex-col relative">
         <ProfileHeader
@@ -162,7 +162,7 @@ export default function UserProfilePage({
         <BioSection bio={bio} />
 
         {/* Yellow divider line */}
-        <hr className="border-none h-0.5 bg-[#FFE600] w-full mb-3" />
+        <hr className="border-none h-0.5 bg-[#FFF335] w-full mb-3" />
 
         <LinksSection links={socialLinks} onEdit={() => setIsEditOpen(true)} onLinkSubmit={handleLinkSubmit} />
 

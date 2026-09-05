@@ -56,7 +56,7 @@ export default function DesktopHeader({
 
   return (
     <>
-      <header className="fixed left-0 right-0 top-0 z-[100] border-b-[3.5px] border-[#FFEA00] bg-black px-6 py-4">
+      <header className="fixed left-0 right-0 top-0 z-[100] border-b-[3.5px] border-[#FFF335] bg-[#121212] px-6 py-4">
         <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-8">
           {/* Left: logo + location */}
           <div className="flex shrink-0 items-center gap-4">
@@ -88,8 +88,8 @@ export default function DesktopHeader({
             >
               {searchActive ? (
                 <>
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
-                    <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFF335]">
+                    <Search className="h-[15px] w-[15px] text-[#121212]" strokeWidth={3} />
                   </span>
                   <input
                     ref={searchInputRef}
@@ -115,8 +115,8 @@ export default function DesktopHeader({
                   className="flex w-full items-center justify-between gap-2.5 py-0 pr-0 transition-all hover:bg-white/[0.04] active:scale-[0.995]"
                 >
                   <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
-                    <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFF335]">
+                    <Search className="h-[15px] w-[15px] text-[#121212]" strokeWidth={3} />
                   </span>
                 </button>
               )}
@@ -150,8 +150,8 @@ export default function DesktopHeader({
               </li>
               <li>
                 <Link href="/create-event" className="flex items-center">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFEA00] shadow-[0_4px_12px_rgba(255,234,0,0.15)] transition-transform hover:scale-105 active:scale-95">
-                    <Plus className="h-[22px] w-[22px] text-black" strokeWidth={3.5} />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFF335] shadow-[0_4px_12px_rgba(255, 243, 53,0.15)] transition-transform hover:scale-105 active:scale-95">
+                    <Plus className="h-[22px] w-[22px] text-[#121212]" strokeWidth={3.5} />
                   </div>
                 </Link>
               </li>
@@ -163,7 +163,7 @@ export default function DesktopHeader({
       {/* Centered modal overlay (desktop equivalent of the mobile bottom sheet) */}
       <div
         onClick={closeSheet}
-        className={`fixed inset-0 z-[200] flex items-center justify-center bg-black/70 transition-opacity duration-[250ms] ease-out ${
+        className={`fixed inset-0 z-[200] flex items-center justify-center bg-[#121212]/70 transition-opacity duration-[250ms] ease-out ${
           sheetOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
@@ -196,7 +196,7 @@ export default function DesktopHeader({
                   cities={cities}
                   value={selectedCity.id}
                   onChange={selectCity}
-                  className="w-full rounded-[10px] border-2 border-[#262626] bg-[#1a1a1a] px-4 py-3 text-[15px] font-medium text-white outline-none transition focus:border-[#FFEA00]"
+                  className="w-full rounded-[10px] border-2 border-[#262626] bg-[#1a1a1a] px-4 py-3 text-[15px] font-medium text-white outline-none transition focus:border-[#FFF335]"
                 />
               </div>
             )}
@@ -212,7 +212,7 @@ export default function DesktopHeader({
                       type="button"
                       onClick={() => selectArea(area)}
                       className={`flex w-full items-center justify-between rounded-[10px] border-[1.5px] px-4 py-3 text-[15px] font-semibold transition-colors hover:bg-[#222222] active:bg-[#2a2a2a] ${
-                        active ? "border-[#FFEA00] bg-[#FFEA00] text-black" : "border-transparent bg-[#1a1a1a] text-white"
+                        active ? "border-[#FFF335] bg-[#FFF335] text-[#121212]" : "border-transparent bg-[#1a1a1a] text-white"
                       }`}
                     >
                       <span>{area.name}</span>

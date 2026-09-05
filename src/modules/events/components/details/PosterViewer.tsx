@@ -63,7 +63,7 @@ export default function PosterViewer({ src, alt }: PosterViewerProps) {
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/90"
+            className="absolute inset-0 bg-[#121212]/90"
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />

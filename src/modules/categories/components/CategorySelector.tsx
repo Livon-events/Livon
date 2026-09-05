@@ -48,7 +48,7 @@ export default function CategorySelector({
   };
 
   return (
-    <nav className="w-full bg-black" aria-label="Event categories">
+    <nav className="w-full bg-[#121212]" aria-label="Event categories">
       {/* Constrained wrapper matching EventCardGrid max-width + horizontal padding */}
       <div
         className="
@@ -75,7 +75,7 @@ export default function CategorySelector({
                     active:scale-[0.97]
                     ${
                       isActive
-                        ? 'border-2 border-[#FFEA00] bg-[#1f1f1f] text-white'
+                        ? 'border-2 border-[#FFF335] bg-[#1f1f1f] text-white'
                         : 'border-2 border-transparent bg-[#1f1f1f] text-white hover:bg-[#2a2a2a]'
                     }
                   `}

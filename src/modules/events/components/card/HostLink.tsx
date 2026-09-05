@@ -29,7 +29,7 @@ export default function HostLink({ username }: HostLinkProps) {
       role="link"
       tabIndex={0}
       onClick={handleClick}
-      className="font-bold text-[#FFEA00] underline-offset-2 hover:underline"
+      className="font-bold text-[#FFF335] underline-offset-2 hover:underline"
     >
       {username}
     </span>

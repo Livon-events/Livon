@@ -54,7 +54,7 @@ export default function ProfileHeader({ username, connectionsCount, avatarUrl }:
           aria-label={`${username}'s profile picture`}
         >
           <div
-            className="absolute inset-0 bg-black/85"
+            className="absolute inset-0 bg-[#121212]/85"
             onClick={() => setIsViewerOpen(false)}
             aria-hidden="true"
           />

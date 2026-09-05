@@ -65,7 +65,7 @@ export default function PublicLinksButton({
         type="button"
         onClick={toggle}
         aria-expanded={isOpen}
-        className="w-full font-display text-lg max-[380px]:text-base font-extrabold text-center rounded-xl py-3 max-[380px]:py-3 cursor-pointer bg-[#FFE600] text-black border-[3px] border-transparent transition-transform active:scale-[0.97]"
+        className="w-full font-display text-lg max-[380px]:text-base font-extrabold text-center rounded-xl py-3 max-[380px]:py-3 cursor-pointer bg-[#FFF335] text-[#121212] border-[3px] border-transparent transition-transform active:scale-[0.97]"
       >
         Links
       </button>

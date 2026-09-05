@@ -22,7 +22,7 @@ export default function SegmentedTabs<T extends string>({ options, active, onCha
             onClick={() => onChange(option.value)}
             className={`flex items-center gap-1.5 rounded-[8px] px-4 py-2 font-display text-[13px] font-bold border transition-colors ${
               isActive
-                ? "bg-white text-black border-white"
+                ? "bg-white text-[#121212] border-white"
                 : "bg-transparent text-[#AEAEB2] border-[#1F2023]"
             }`}
           >
@@ -30,7 +30,7 @@ export default function SegmentedTabs<T extends string>({ options, active, onCha
             {typeof option.count === "number" && (
               <span
                 className={`text-[11px] font-extrabold px-1.5 py-0.5 rounded-full ${
-                  isActive ? "bg-black text-white" : "bg-[#1F2023] text-[#AEAEB2]"
+                  isActive ? "bg-[#121212] text-white" : "bg-[#1F2023] text-[#AEAEB2]"
                 }`}
               >
                 {option.count}

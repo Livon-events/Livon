@@ -162,14 +162,14 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
                       handleSubmit(link);
                     }
                   }}
-                  className={`flex-1 h-12 bg-[#1F2023] border-2 rounded-xl px-3.5 text-white text-[15px] outline-none placeholder:text-[#AEAEB2] focus:border-[#FFE600] ${
+                  className={`flex-1 h-12 bg-[#1F2023] border-2 rounded-xl px-3.5 text-white text-[15px] outline-none placeholder:text-[#AEAEB2] focus:border-[#FFF335] ${
                     error ? "border-[#ff453a]" : "border-[#1F2023]"
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => handleSubmit(link)}
-                  className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFE600] text-black flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
+                  className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFF335] text-[#121212] flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
                 >
                   <ArrowIcon />
                 </button>

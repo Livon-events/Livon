@@ -33,7 +33,7 @@ export default function ConnectButton({
       <div className="flex-[1.8] flex flex-col">
         <Link
           href={`/login?next=/profile/${profileUserId}`}
-          className={`${buttonClasses} bg-[#FFE600] text-black border-[3px] border-transparent`}
+          className={`${buttonClasses} bg-[#FFF335] text-[#121212] border-[3px] border-transparent`}
         >
           Sign in to Connect
         </Link>
@@ -69,8 +69,8 @@ function ConnectButtonInteractive({
           isPending ? "cursor-wait" : "cursor-pointer"
         } ${
           isOutline
-            ? "bg-black text-[#FFE600] border-[3px] border-[#FFE600]"
-            : "bg-[#FFE600] text-black border-[3px] border-transparent"
+            ? "bg-[#121212] text-[#FFF335] border-[3px] border-[#FFF335]"
+            : "bg-[#FFF335] text-[#121212] border-[3px] border-transparent"
         }`}
       >
         {isPending ? "…" : LABEL[state.status]}

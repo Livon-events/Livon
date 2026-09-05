@@ -27,7 +27,7 @@ export default function EventHostLine({
             : "text-xs text-[#d1d5db] sm:text-sm"
         }
       >
-        Published by <span className="font-bold text-[#FFEA00]">Livon</span>
+        Published by <span className="font-bold text-[#FFF335]">Livon</span>
       </p>
     );
   }
@@ -45,7 +45,7 @@ export default function EventHostLine({
       Hosted by{" "}
       <a
         href={`/users/${encodeURIComponent(hostUsername)}`}
-        className="font-semibold text-[#FFEA00] hover:underline"
+        className="font-semibold text-[#FFF335] hover:underline"
       >
         {hostUsername}
       </a>

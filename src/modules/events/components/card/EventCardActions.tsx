@@ -58,8 +58,8 @@ export default function EventCardActions({
         data-event-id={eventId}
         className={`h-[50px] flex-1 rounded-[6px] border-[3px] text-[1.2rem] font-black transition-all active:scale-[0.96] ${
           going
-            ? "border-[#FFEA00] bg-black text-[#FFEA00]"
-            : "border-transparent bg-[#FFEA00] text-black"
+            ? "border-[#FFF335] bg-[#121212] text-[#FFF335]"
+            : "border-transparent bg-[#FFF335] text-[#121212]"
         }`}
       >
         Interested
@@ -69,7 +69,7 @@ export default function EventCardActions({
         onClick={handleShareClick}
         data-event-id={eventId}
         aria-label="Share event"
-        className="flex h-[50px] shrink-0 basis-1/4 items-center justify-center rounded-[6px] bg-[#FFEA00] text-black transition-transform active:scale-[0.96]"
+        className="flex h-[50px] shrink-0 basis-1/4 items-center justify-center rounded-[6px] bg-[#FFF335] text-[#121212] transition-transform active:scale-[0.96]"
       >
         {copied ? (
           <Check className="h-5 w-5" strokeWidth={2.5} />
@@ -79,7 +79,7 @@ export default function EventCardActions({
       </button>
 
       {error && (
-        <p className="absolute -top-8 right-0 rounded-[6px] bg-black px-2 py-1 text-[12px] font-semibold text-red-400">
+        <p className="absolute -top-8 right-0 rounded-[6px] bg-[#121212] px-2 py-1 text-[12px] font-semibold text-red-400">
           {error}
         </p>
       )}

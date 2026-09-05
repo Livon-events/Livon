@@ -64,7 +64,7 @@ export default function ClaimEventSection({
           </p>
           <Link
             href={loginHref}
-            className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#FFEA00] px-4 text-sm font-extrabold text-black transition-transform active:scale-[0.98]"
+            className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#FFF335] px-4 text-sm font-extrabold text-[#121212] transition-transform active:scale-[0.98]"
           >
             Sign in to claim this event
           </Link>
@@ -97,7 +97,7 @@ export default function ClaimEventSection({
               setError(null);
               setConfirming(true);
             }}
-            className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#FFEA00] px-4 text-sm font-extrabold text-black transition-transform active:scale-[0.98]"
+            className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#FFF335] px-4 text-sm font-extrabold text-[#121212] transition-transform active:scale-[0.98]"
           >
             Claim this event
           </button>
@@ -105,7 +105,7 @@ export default function ClaimEventSection({
       )}
 
       {isSignedIn && canViewerClaim && confirming && (
-        <div className="mt-3 rounded-md border border-[#3A3A3C] bg-black/40 p-3">
+        <div className="mt-3 rounded-md border border-[#3A3A3C] bg-[#121212]/40 p-3">
           <p className="text-sm text-[#d1d5db]">
             By claiming, you confirm you are authorized to manage this event. You will
             be able to edit details, view the guestlist, and cancel the listing.
@@ -115,7 +115,7 @@ export default function ClaimEventSection({
               type="button"
               disabled={pending}
               onClick={() => void handleConfirmClaim()}
-              className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#FFEA00] px-4 text-sm font-extrabold text-black disabled:opacity-60"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#FFF335] px-4 text-sm font-extrabold text-[#121212] disabled:opacity-60"
             >
               {pending ? "Claiming…" : "Confirm claim"}
             </button>

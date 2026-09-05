@@ -44,7 +44,7 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
   return (
     <div
       onClick={onClose}
-      className={`fixed inset-0 flex bg-black/65 transition-opacity duration-[250ms] ease-out ${
+      className={`fixed inset-0 flex bg-[#121212]/65 transition-opacity duration-[250ms] ease-out ${
         isSheet
           ? "z-[1100] items-end"
           : "z-[200] items-center justify-center"
@@ -104,7 +104,7 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
           </p>
 
           <section>
-            <h3 className="mb-1.5 text-[13px] font-bold uppercase tracking-[0.8px] text-[#FFEA00]">
+            <h3 className="mb-1.5 text-[13px] font-bold uppercase tracking-[0.8px] text-[#FFF335]">
               Going out
             </h3>
             <p>
@@ -116,7 +116,7 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
           </section>
 
           <section>
-            <h3 className="mb-1.5 text-[13px] font-bold uppercase tracking-[0.8px] text-[#FFEA00]">
+            <h3 className="mb-1.5 text-[13px] font-bold uppercase tracking-[0.8px] text-[#FFF335]">
               Hosting
             </h3>
             <p>
@@ -127,7 +127,7 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
           </section>
 
           <section>
-            <h3 className="mb-1.5 text-[13px] font-bold uppercase tracking-[0.8px] text-[#FFEA00]">
+            <h3 className="mb-1.5 text-[13px] font-bold uppercase tracking-[0.8px] text-[#FFF335]">
               Contact
             </h3>
             <p>
@@ -136,7 +136,7 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
                 href={WHATSAPP_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-white underline decoration-[#FFEA00] underline-offset-2"
+                className="font-semibold text-white underline decoration-[#FFF335] underline-offset-2"
               >
                 +266 5903 4707
               </a>
@@ -147,7 +147,7 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
                 href={WHATSAPP_GROUP_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-white underline decoration-[#FFEA00] underline-offset-2"
+                className="font-semibold text-white underline decoration-[#FFF335] underline-offset-2"
               >
                 WhatsApp group
               </a>{" "}

@@ -94,10 +94,10 @@ const TIME_PRESETS = [
 const chipBase =
   "rounded-full border-[1.5px] px-3 py-1.5 text-xs font-semibold transition active:scale-95";
 const chipInactive = "border-[#262626] text-white hover:border-white/40";
-const chipActive = "border-[#FFEA00] bg-[#FFEA00] text-black shadow-[0_3px_8px_rgba(255,234,0,0.15)]";
+const chipActive = "border-[#FFF335] bg-[#FFF335] text-[#121212] shadow-[0_3px_8px_rgba(255, 243, 53,0.15)]";
 
 const inputBase =
-  "w-full rounded-[10px] border-2 border-[#262626] bg-black px-4 py-3.5 text-[15px] font-medium text-white outline-none transition focus:border-[#FFEA00] focus:shadow-[0_0_10px_rgba(255,234,0,0.08)]";
+  "w-full rounded-[10px] border-2 border-[#262626] bg-[#121212] px-4 py-3.5 text-[15px] font-medium text-white outline-none transition focus:border-[#FFF335] focus:shadow-[0_0_10px_rgba(255, 243, 53,0.08)]";
 
 export default function CreateEventForm(props: CreateEventFormProps) {
   const { categories } = props;
@@ -339,11 +339,11 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   if (savedEventId) {
     return (
       <div className="flex min-h-[70vh] flex-col items-center justify-center gap-5 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#FFEA00]">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#FFF335]">
           <svg viewBox="0 0 52 52" className="h-9 w-9">
             <path
               fill="none"
-              stroke="#FFEA00"
+              stroke="#FFF335"
               strokeWidth={4}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -360,7 +360,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         <button
           type="button"
           onClick={() => router.push(`/events/${savedEventId}`)}
-          className="h-[52px] w-full max-w-xs rounded-[10px] bg-[#FFEA00] text-base font-extrabold text-black shadow-[0_4px_12px_rgba(255,234,0,0.15)] transition active:scale-[0.97]"
+          className="h-[52px] w-full max-w-xs rounded-[10px] bg-[#FFF335] text-base font-extrabold text-[#121212] shadow-[0_4px_12px_rgba(255, 243, 53,0.15)] transition active:scale-[0.97]"
         >
           {isEditing ? "View Event" : "Done"}
         </button>
@@ -390,7 +390,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           type="button"
           onClick={handlePickImage}
           aria-label={coverPreview ? "Change event photo" : "Add event photo"}
-          className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-[#FFEA00] transition active:scale-[0.99]"
+          className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-[#FFF335] transition active:scale-[0.99]"
           style={
             coverPreview
               ? { backgroundImage: `url(${coverPreview})`, backgroundSize: "cover", backgroundPosition: "center" }
@@ -398,11 +398,11 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           }
         >
           {coverPreview ? (
-            <span className="rounded-full bg-black/45 px-4 py-2 text-sm font-semibold text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.8)]">
+            <span className="rounded-full bg-[#121212]/45 px-4 py-2 text-sm font-semibold text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.8)]">
               Change photo
             </span>
           ) : (
-            <span className="flex flex-col items-center gap-2 text-center text-lg font-extrabold text-black">
+            <span className="flex flex-col items-center gap-2 text-center text-lg font-extrabold text-[#121212]">
               <Camera className="h-6 w-6" strokeWidth={2.5} />
               Add a photo
             </span>
@@ -580,7 +580,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           }}
           className={`flex items-center gap-2 self-start rounded-full border-[1.5px] px-3.5 py-2 text-xs font-semibold transition active:scale-95 ${
             showEndTime
-              ? "border-[#FFEA00] bg-[#FFEA00]/10 text-[#FFEA00]"
+              ? "border-[#FFF335] bg-[#FFF335]/10 text-[#FFF335]"
               : "border-[#262626] text-[#8e8e8e] hover:border-white/40 hover:text-white"
           }`}
         >
@@ -661,7 +661,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
               type="button"
               onClick={() => setAdmission(option)}
               className={`flex-1 rounded-[7px] py-2.5 text-sm font-bold capitalize transition ${
-                admission === option ? "bg-[#FFEA00] text-black" : "text-[#8e8e8e] hover:text-white"
+                admission === option ? "bg-[#FFF335] text-[#121212]" : "text-[#8e8e8e] hover:text-white"
               }`}
             >
               {option}
@@ -670,8 +670,8 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         </div>
 
         {admission === "paid" && (
-          <div className="mt-1.5 flex items-center rounded-[10px] border-2 border-[#262626] bg-black px-4 focus-within:border-[#FFEA00] focus-within:shadow-[0_0_10px_rgba(255,234,0,0.08)]">
-            <span className="mr-1.5 text-lg font-extrabold text-[#FFEA00]">M</span>
+          <div className="mt-1.5 flex items-center rounded-[10px] border-2 border-[#262626] bg-[#121212] px-4 focus-within:border-[#FFF335] focus-within:shadow-[0_0_10px_rgba(255, 243, 53,0.08)]">
+            <span className="mr-1.5 text-lg font-extrabold text-[#FFF335]">M</span>
             <input
               type="number"
               inputMode="decimal"
@@ -711,7 +711,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         <button
           type="submit"
           disabled={submitting || (!isEditing && !areaId)}
-          className="h-[52px] w-full rounded-[10px] bg-[#FFEA00] text-base font-extrabold text-black shadow-[0_4px_12px_rgba(255,234,0,0.15)] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-[52px] w-full rounded-[10px] bg-[#FFF335] text-base font-extrabold text-[#121212] shadow-[0_4px_12px_rgba(255, 243, 53,0.15)] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting ? (isEditing ? "Saving…" : "Uploading…") : isEditing ? "Save Changes" : "Publish Event"}
         </button>

@@ -32,7 +32,7 @@ export default function PublicProfilePage({
   isViewerSignedIn,
 }: PublicProfilePageProps) {
   return (
-    <div className="flex justify-center min-h-screen bg-black px-5 pt-4 pb-16 font-body">
+    <div className="flex justify-center min-h-screen bg-[#121212] px-5 pt-4 pb-16 font-body">
       <div className="w-full max-w-[440px] md:max-w-[806px] flex flex-col">
         <ProfileHeader
           username={profile.username}
@@ -42,7 +42,7 @@ export default function PublicProfilePage({
 
         <BioSection bio={profile.bio} />
 
-        <hr className="border-none h-0.5 bg-[#FFE600] w-full mb-6" />
+        <hr className="border-none h-0.5 bg-[#FFF335] w-full mb-6" />
 
         <div className="flex gap-4 mb-7">
           <ConnectButton

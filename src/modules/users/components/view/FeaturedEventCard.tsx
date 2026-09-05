@@ -13,7 +13,7 @@ export default function FeaturedEventCard({ event }: FeaturedEventCardProps) {
   return (
     <Link
       href={`/events/${event.id}`}
-      className="flex items-center gap-4 rounded-2xl border-[3px] border-white p-1.5 transition-colors hover:border-[#FFE600]"
+      className="flex items-center gap-4 rounded-2xl border-[3px] border-white p-1.5 transition-colors hover:border-[#FFF335]"
     >
       <div className="relative h-[74px] w-[74px] shrink-0 overflow-hidden rounded-[10px] bg-[#3A3A3C]">
         {event.coverImageUrl && (
@@ -29,7 +29,7 @@ export default function FeaturedEventCard({ event }: FeaturedEventCardProps) {
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex w-full items-center justify-between">
-          <span className="font-display text-[15px] font-bold capitalize tracking-[-0.2px] text-[#FFE600]">
+          <span className="font-display text-[15px] font-bold capitalize tracking-[-0.2px] text-[#FFF335]">
             {event.countdownLabel}
           </span>
           {event.areaName && (

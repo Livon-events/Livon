@@ -23,11 +23,11 @@ export default function PeekPage({ data }: PeekPageProps) {
   const hasAttendingConnections = attendingConnections.length > 0;
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-[#121212] text-white">
       <div className="mx-auto flex w-[min(calc(100%-24px),798px)] flex-col gap-6 py-5 sm:w-[min(calc(100%-48px),798px)]">
         <Link
           href={`/events/${eventId}`}
-          className="w-full rounded-md border-2 border-[#FFEA00] py-3 text-center text-lg font-bold text-[#FFEA00] transition-transform active:scale-[0.98]"
+          className="w-full rounded-md border-2 border-[#FFF335] py-3 text-center text-lg font-bold text-[#FFF335] transition-transform active:scale-[0.98]"
         >
           View Event
         </Link>

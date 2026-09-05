@@ -14,7 +14,7 @@ type CitySelectProps = {
 };
 
 const selectClassName =
-  "w-full rounded-[10px] border-2 border-[#262626] bg-black px-4 py-3.5 text-[15px] font-medium text-white outline-none transition focus:border-[#FFEA00] focus:shadow-[0_0_10px_rgba(255,234,0,0.08)]";
+  "w-full rounded-[10px] border-2 border-[#262626] bg-[#121212] px-4 py-3.5 text-[15px] font-medium text-white outline-none transition focus:border-[#FFF335] focus:shadow-[0_0_10px_rgba(255, 243, 53,0.08)]";
 
 export default function CitySelect({ cities, value, onChange, id, className }: CitySelectProps) {
   if (cities.length < 2) return null;

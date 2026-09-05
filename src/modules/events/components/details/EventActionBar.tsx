@@ -47,8 +47,8 @@ export default function EventActionBar({
         data-event-id={eventId}
         className={`min-h-[44px] flex-1 rounded-md text-base font-extrabold transition-transform active:scale-[0.98] sm:min-h-[48px] ${
           going
-            ? "border-2 border-[#FFEA00] bg-black text-[#FFEA00]"
-            : "border-none bg-[#FFEA00] text-black"
+            ? "border-2 border-[#FFF335] bg-[#121212] text-[#FFF335]"
+            : "border-none bg-[#FFF335] text-[#121212]"
         }`}
       >
         Interested
@@ -58,7 +58,7 @@ export default function EventActionBar({
         onClick={handleShareClick}
         data-event-id={eventId}
         aria-label="Share event"
-        className="flex min-h-[44px] flex-[0_0_31%] items-center justify-center gap-2 rounded-md bg-[#FFEA00] text-base font-extrabold text-black transition-transform active:scale-[0.98] sm:min-h-[48px] sm:flex-[0_0_196px]"
+        className="flex min-h-[44px] flex-[0_0_31%] items-center justify-center gap-2 rounded-md bg-[#FFF335] text-base font-extrabold text-[#121212] transition-transform active:scale-[0.98] sm:min-h-[48px] sm:flex-[0_0_196px]"
       >
         {copied ? (
           <>
@@ -74,7 +74,7 @@ export default function EventActionBar({
       </button>
 
       {error && (
-        <p className="absolute -top-8 right-0 rounded-md bg-black px-2 py-1 text-[12px] font-semibold text-red-400">
+        <p className="absolute -top-8 right-0 rounded-md bg-[#121212] px-2 py-1 text-[12px] font-semibold text-red-400">
           {error}
         </p>
       )}

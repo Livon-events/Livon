@@ -21,7 +21,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-[1000] flex h-16 items-center justify-around border-t-[3.5px] border-[#FFEA00] bg-black px-6 pt-1.5"
+      className="fixed bottom-0 left-0 right-0 z-[1000] flex h-16 items-center justify-around border-t-[3.5px] border-[#FFF335] bg-[#121212] px-6 pt-1.5"
       style={{ paddingBottom: "calc(0.375rem + env(safe-area-inset-bottom, 0px))" }}
     >
       {/* Left: Home */}
@@ -37,8 +37,8 @@ export default function BottomNav() {
 
       {/* Center: Create Event */}
       <Link href="/create-event" className="flex items-center justify-center">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFEA00] shadow-[0_4px_12px_rgba(255,234,0,0.18)] transition-transform hover:scale-105 active:scale-90">
-          <Plus className="h-[22px] w-[22px] text-black" strokeWidth={3.5} />
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFF335] shadow-[0_4px_12px_rgba(255, 243, 53,0.18)] transition-transform hover:scale-105 active:scale-90">
+          <Plus className="h-[22px] w-[22px] text-[#121212]" strokeWidth={3.5} />
         </div>
       </Link>
 

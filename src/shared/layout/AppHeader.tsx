@@ -53,7 +53,7 @@ export default function AppHeader({
 
   return (
     <>
-      <header className="fixed left-0 right-0 top-0 z-[100] border-b-[3.5px] border-[#FFEA00] bg-black px-2.5 py-3">
+      <header className="fixed left-0 right-0 top-0 z-[100] border-b-[3.5px] border-[#FFF335] bg-[#121212] px-2.5 py-3">
         <div className="flex w-full items-center justify-between gap-3">
           {!searchActive && (
             <>
@@ -91,8 +91,8 @@ export default function AppHeader({
           >
             {searchActive ? (
               <>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
-                  <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFF335]">
+                  <Search className="h-[15px] w-[15px] text-[#121212]" strokeWidth={3} />
                 </span>
                 <input
                   ref={searchInputRef}
@@ -118,8 +118,8 @@ export default function AppHeader({
                 className="flex w-full items-center justify-between gap-2.5 py-0 pr-0 transition-transform active:scale-95"
               >
                 <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFEA00]">
-                  <Search className="h-[15px] w-[15px] text-black" strokeWidth={3} />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFF335]">
+                  <Search className="h-[15px] w-[15px] text-[#121212]" strokeWidth={3} />
                 </span>
               </button>
             )}
@@ -130,7 +130,7 @@ export default function AppHeader({
       {/* Bottom sheet overlay */}
       <div
         onClick={closeSheet}
-        className={`fixed inset-0 z-[1100] flex items-end bg-black/65 transition-opacity duration-[250ms] ease-out ${
+        className={`fixed inset-0 z-[1100] flex items-end bg-[#121212]/65 transition-opacity duration-[250ms] ease-out ${
           sheetOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
@@ -167,7 +167,7 @@ export default function AppHeader({
                   cities={cities}
                   value={selectedCity.id}
                   onChange={selectCity}
-                  className="w-full rounded-[10px] border-2 border-[#262626] bg-[#1a1a1a] px-4 py-3 text-[15px] font-medium text-white outline-none transition focus:border-[#FFEA00]"
+                  className="w-full rounded-[10px] border-2 border-[#262626] bg-[#1a1a1a] px-4 py-3 text-[15px] font-medium text-white outline-none transition focus:border-[#FFF335]"
                 />
               </div>
             )}
@@ -183,7 +183,7 @@ export default function AppHeader({
                       type="button"
                       onClick={() => selectArea(area)}
                       className={`flex w-full items-center justify-between rounded-xl border-[1.5px] px-4 py-3.5 text-[15px] font-semibold transition-colors active:bg-[#242424] ${
-                        isActive ? "border-[#FFEA00] bg-[#FFEA00] text-black" : "border-transparent bg-[#1a1a1a] text-white"
+                        isActive ? "border-[#FFF335] bg-[#FFF335] text-[#121212]" : "border-transparent bg-[#1a1a1a] text-white"
                       }`}
                     >
                       <span>{area.name}</span>

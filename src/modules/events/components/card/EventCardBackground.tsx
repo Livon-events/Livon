@@ -100,7 +100,7 @@ export default function EventCardBackground({ eventId }: { eventId: string }) {
       className="pointer-events-none absolute left-0 top-0 block"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path ref={pathRef} fill="#FFEA00" />
+      <path ref={pathRef} fill="#FFF335" />
     </svg>
   );
 }

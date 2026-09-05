@@ -3,10 +3,10 @@
    (auth)/layout.tsx rather than the original Google Fonts <link> tags. */
 
 .auth-scope {
-  --bg: #0a0a0a;
-  --card: #000000;
+  --bg: #121212;
+  --card: #121212;
   --card-edge: #201c10;
-  --yellow: #ffea00;
+  --yellow: #FFF335;
   --text: #f5f3ee;
   --text-dim: #9a988f;
   --text-faint: #67655c;
@@ -341,8 +341,8 @@
 .auth-scope .form-notice {
   font-size: 13px;
   color: var(--yellow);
-  background: rgba(255, 234, 0, 0.08);
-  border: 1px solid rgba(255, 234, 0, 0.3);
+  background: rgba(255, 243, 53, 0.08);
+  border: 1px solid rgba(255, 243, 53, 0.3);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   margin: 0 0 4px;
@@ -417,10 +417,10 @@
   }
 }
 
-/* ===== Sign-up page overrides: sharp black card, FFEA00 accent ===== */
+/* ===== Sign-up page overrides: sharp black card, FFBE0B accent ===== */
 .auth-scope.signup-page {
-  --card: #000000;
-  --yellow: #ffea00;
+  --card: #121212;
+  --yellow: #FFF335;
 }
 
 .auth-scope.signup-page .pass {
@@ -428,6 +428,6 @@
 }
 
 .auth-scope.signup-page .field input {
-  background: #000000;
+  background: #121212;
   border-color: #ffffff;
 }

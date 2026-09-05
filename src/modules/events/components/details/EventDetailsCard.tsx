@@ -15,10 +15,10 @@ export default function EventDetailsCard({ event }: EventDetailsCardProps) {
   const dateTimeLabel = getEventDateTimeLabel(new Date(event.startsAt), endsAt);
 
   return (
-    <div className="overflow-hidden rounded-lg border-2 border-[#FFEA00]">
+    <div className="overflow-hidden rounded-lg border-2 border-[#FFF335]">
       {/* Poster — 4px gap from the card border on all sides, matching the
           mockup's .poster-wrap/.poster treatment. */}
-      <div className="bg-black p-1">
+      <div className="bg-[#121212] p-1">
         {event.coverImageUrl ? (
           <PosterViewer src={event.coverImageUrl} alt={event.title} />
         ) : (
@@ -53,7 +53,7 @@ export default function EventDetailsCard({ event }: EventDetailsCardProps) {
           <span className="rounded bg-[#242424] px-2.5 py-2 text-xs font-extrabold text-[#e5e7eb] sm:px-3.5 sm:text-sm">
             {event.categoryName}
           </span>
-          <span className="text-2xl font-extrabold text-[#FFEA00] sm:text-[32px]">
+          <span className="text-2xl font-extrabold text-[#FFF335] sm:text-[32px]">
             {getPriceLabel(event.price)}
           </span>
         </div>

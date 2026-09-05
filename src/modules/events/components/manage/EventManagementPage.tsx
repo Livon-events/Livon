@@ -23,7 +23,7 @@ export default function EventManagementPage({
   attendees,
 }: EventManagementPageProps) {
   return (
-    <main className="min-h-screen bg-black text-white font-sans">
+    <main className="min-h-screen bg-[#121212] text-white font-sans">
       <div className="mx-auto w-[min(calc(100%-24px),798px)] sm:w-[min(calc(100%-48px),798px)] flex flex-col pt-4 pb-24 sm:pb-12">
         {/* Section Title */}
         <div className="mb-2 sm:mb-4">
