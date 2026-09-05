@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, Share2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, MessageCircle, Share2 } from "lucide-react";
 import { useGoingAction, type GoingVisibility } from "@/modules/rsvp";
 import { GoingPrivacyPopup } from "@/modules/rsvp";
 import { useShareEvent } from "@/modules/invites";
@@ -11,6 +12,9 @@ type EventCardActionsProps = {
   initialInterested?: boolean;
   initialVisibility?: GoingVisibility | null;
 };
+
+const secondaryButtonClass =
+  "flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[6px] bg-[#FFF335] text-[#121212] transition-transform active:scale-[0.96]";
 
 // "Interested" is this card's label for the same Going/RSVP action as the
 // event details page's "Going" button — full privacy-popup flow per
@@ -24,6 +28,7 @@ export default function EventCardActions({
   const { going, popup, handleButtonClick, closePopup, selectChangePrivacy, selectNotGoing, choosePrivacy } =
     useGoingAction(eventId, initialInterested, initialVisibility);
   const { share, copied, error } = useShareEvent(eventId);
+  const router = useRouter();
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -66,10 +71,19 @@ export default function EventCardActions({
       </button>
       <button
         type="button"
+        onClick={() => router.push(`/events/${eventId}/chat`)}
+        data-event-id={eventId}
+        aria-label="Chat"
+        className={secondaryButtonClass}
+      >
+        <MessageCircle className="h-5 w-5" strokeWidth={2.5} />
+      </button>
+      <button
+        type="button"
         onClick={handleShareClick}
         data-event-id={eventId}
         aria-label="Share event"
-        className="flex h-[50px] shrink-0 basis-1/4 items-center justify-center rounded-[6px] bg-[#FFF335] text-[#121212] transition-transform active:scale-[0.96]"
+        className={secondaryButtonClass}
       >
         {copied ? (
           <Check className="h-5 w-5" strokeWidth={2.5} />

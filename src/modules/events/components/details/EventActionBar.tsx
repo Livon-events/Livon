@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, Share2 } from "lucide-react";
+import Link from "next/link";
+import { Check, MessageCircle, Share2 } from "lucide-react";
 import { useGoingAction, type GoingVisibility } from "@/modules/rsvp";
 import { GoingPrivacyPopup } from "@/modules/rsvp";
 import { useShareEvent } from "@/modules/invites";
@@ -11,6 +12,9 @@ type EventActionBarProps = {
   initialGoing?: boolean;
   initialVisibility?: GoingVisibility | null;
 };
+
+const secondaryButtonClass =
+  "flex min-h-[44px] w-[48px] shrink-0 items-center justify-center rounded-md bg-[#FFF335] text-[#121212] transition-transform active:scale-[0.98] sm:min-h-[48px] sm:w-[52px]";
 
 // Full "Going" flow (privacy popup on first tap, change-privacy/not-going
 // menu on re-tap) per docs/FR/going-rsvp-privacy.md, via the shared
@@ -30,7 +34,7 @@ export default function EventActionBar({
   };
 
   return (
-    <div className="relative flex w-full gap-3 sm:gap-4">
+    <div className="relative flex w-full gap-2 sm:gap-3">
       {popup !== "closed" && (
         <GoingPrivacyPopup
           mode={popup}
@@ -53,23 +57,25 @@ export default function EventActionBar({
       >
         Interested
       </button>
+      <Link
+        href={`/events/${eventId}/chat`}
+        data-event-id={eventId}
+        aria-label="Chat"
+        className={secondaryButtonClass}
+      >
+        <MessageCircle className="h-5 w-5" strokeWidth={2.5} />
+      </Link>
       <button
         type="button"
         onClick={handleShareClick}
         data-event-id={eventId}
         aria-label="Share event"
-        className="flex min-h-[44px] flex-[0_0_31%] items-center justify-center gap-2 rounded-md bg-[#FFF335] text-base font-extrabold text-[#121212] transition-transform active:scale-[0.98] sm:min-h-[48px] sm:flex-[0_0_196px]"
+        className={secondaryButtonClass}
       >
         {copied ? (
-          <>
-            <Check className="h-5 w-5" strokeWidth={2.5} />
-            Copied!
-          </>
+          <Check className="h-5 w-5" strokeWidth={2.5} />
         ) : (
-          <>
-            <Share2 className="h-5 w-5" strokeWidth={2.5} />
-            Share
-          </>
+          <Share2 className="h-5 w-5" strokeWidth={2.5} />
         )}
       </button>
 
