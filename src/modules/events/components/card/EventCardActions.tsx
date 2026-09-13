@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Check, MessageCircle, Share2 } from "lucide-react";
+import { Check, Share2 } from "lucide-react";
 import { useGoingAction, type GoingVisibility } from "@/modules/rsvp";
 import { GoingPrivacyPopup } from "@/modules/rsvp";
 import { useShareEvent } from "@/modules/invites";
@@ -28,7 +27,6 @@ export default function EventCardActions({
   const { going, popup, handleButtonClick, closePopup, selectChangePrivacy, selectNotGoing, choosePrivacy } =
     useGoingAction(eventId, initialInterested, initialVisibility);
   const { share, copied, error } = useShareEvent(eventId);
-  const router = useRouter();
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -68,15 +66,6 @@ export default function EventCardActions({
         }`}
       >
         Interested
-      </button>
-      <button
-        type="button"
-        onClick={() => router.push(`/events/${eventId}/chat`)}
-        data-event-id={eventId}
-        aria-label="Chat"
-        className={secondaryButtonClass}
-      >
-        <MessageCircle className="h-5 w-5" strokeWidth={2.5} />
       </button>
       <button
         type="button"

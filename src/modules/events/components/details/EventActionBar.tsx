@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { Check, MessageCircle, Share2 } from "lucide-react";
+import { Check, Share2 } from "lucide-react";
 import { useGoingAction, type GoingVisibility } from "@/modules/rsvp";
 import { GoingPrivacyPopup } from "@/modules/rsvp";
 import { useShareEvent } from "@/modules/invites";
@@ -57,14 +56,6 @@ export default function EventActionBar({
       >
         Interested
       </button>
-      <Link
-        href={`/events/${eventId}/chat`}
-        data-event-id={eventId}
-        aria-label="Chat"
-        className={secondaryButtonClass}
-      >
-        <MessageCircle className="h-5 w-5" strokeWidth={2.5} />
-      </Link>
       <button
         type="button"
         onClick={handleShareClick}
