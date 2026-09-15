@@ -39,7 +39,7 @@ function mapOtherParty(row: ConnectionRow, viewerId: string): ConnectionUser {
   return {
     id: row.connection_id,
     userId: other?.user_id ?? "",
-    name: other?.username ?? "User",
+    username: other?.username ?? "User",
     avatarUrl: other?.avatar_url ?? undefined,
   };
 }

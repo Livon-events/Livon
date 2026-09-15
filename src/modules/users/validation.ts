@@ -24,6 +24,8 @@ export const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
 export const AVATAR_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 export const AVATAR_MAX_DIMENSION = 6000; // px, either side
 export const AVATAR_MAX_PIXELS = 30_000_000; // ~30MP decode budget (decompression-bomb guard)
+/** Stored avatar edge length (1:1). Matches event-cover headroom for sharp lightbox viewing. */
+export const AVATAR_OUTPUT_SIZE = 1600;
 export const ALLOWED_AVATAR_MIME = ["image/jpeg", "image/png", "image/webp"] as const;
 
 export const profileFieldsSchema = z.object({
@@ -46,7 +48,7 @@ export type ProfileFieldsInput = z.infer<typeof profileFieldsSchema>;
 
 // --- Social links (docs/FR/user-profile-fr.md §3) ---------------------
 //
-// Three fixed platform slots, no user-defined links — so "reject
+// Four fixed platform slots, no user-defined links — so "reject"
 // inappropriate links" here means "reject anything that isn't actually a
 // link to that platform," not general content moderation. A URL's
 // destination content can't be judged in the browser at all (or trusted
@@ -62,7 +64,37 @@ const PLATFORM_HOSTS: Record<SocialLink["platform"], readonly string[]> = {
   tiktok: ["tiktok.com"],
   instagram: ["instagram.com"],
   facebook: ["facebook.com", "fb.com"],
+  youtube: ["youtube.com", "youtu.be"],
 };
+
+function parseSocialLink(platform: SocialLink["platform"], raw: string): URL | null {
+  const value = raw.trim();
+  if (value === "" || value.length > SOCIAL_LINK_MAX_LENGTH) return null;
+
+  try {
+    const url = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`);
+    if (url.protocol !== "https:" || url.username || url.password) return null;
+
+    const host = url.hostname.toLowerCase().replace(/^(www|vm|vt|m)\./, "");
+    const allowed = PLATFORM_HOSTS[platform];
+    return allowed.some((allowedHost) => host === allowedHost || host.endsWith(`.${allowedHost}`))
+      ? url
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Returns the canonical HTTPS URL for storage/rendering. This is intentionally
+ * safe to run again on database values at the render boundary.
+ */
+export function normalizeSocialLink(
+  platform: SocialLink["platform"],
+  raw: string
+): string | null {
+  return parseSocialLink(platform, raw)?.href ?? null;
+}
 
 /**
  * Validates one link against its platform slot. Returns `null` when the
@@ -83,22 +115,7 @@ export function validateSocialLink(platform: SocialLink["platform"], raw: string
     return `Link must be ${SOCIAL_LINK_MAX_LENGTH} characters or fewer`;
   }
 
-  let url: URL;
-  try {
-    // No-scheme input ("tiktok.com/me") is a common paste — try once with
-    // https:// prepended before giving up, rather than rejecting it outright.
-    url = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`);
-  } catch {
-    return "Enter a valid link";
-  }
-
-  if (url.protocol !== "https:") {
-    return "Link must use https://";
-  }
-
-  const host = url.hostname.toLowerCase().replace(/^(www|vm|vt|m)\./, "");
-  const allowed = PLATFORM_HOSTS[platform];
-  if (!allowed.some((h) => host === h || host.endsWith(`.${h}`))) {
+  if (!parseSocialLink(platform, value)) {
     return `Enter a ${platform} link`;
   }
 

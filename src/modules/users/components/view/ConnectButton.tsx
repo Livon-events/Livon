@@ -6,6 +6,7 @@ import type { ConnectionState } from "@/modules/connections";
 
 interface ConnectButtonProps {
   profileUserId: string;
+  profileUsername: string;
   initialState: ConnectionState;
   isViewerSignedIn: boolean;
 }
@@ -22,6 +23,7 @@ const buttonClasses =
 
 export default function ConnectButton({
   profileUserId,
+  profileUsername,
   initialState,
   isViewerSignedIn,
 }: ConnectButtonProps) {
@@ -30,10 +32,10 @@ export default function ConnectButton({
   // Rather than let that happen silently, send them to sign in first.
   if (!isViewerSignedIn) {
     return (
-      <div className="flex-[1.8] flex flex-col">
+      <div className="flex w-full flex-col">
         <Link
-          href={`/login?next=/profile/${profileUserId}`}
-          className={`${buttonClasses} bg-[#FFF335] text-[#121212] border-[3px] border-transparent`}
+          href={`/login?next=${encodeURIComponent(`/users/${profileUsername}`)}`}
+          className={`${buttonClasses} bg-[#FFF335] text-[#191919] border-[3px] border-transparent`}
         >
           Sign in to Connect
         </Link>
@@ -60,7 +62,7 @@ function ConnectButtonInteractive({
   const isOutline = state.status === "outgoing" || state.status === "connected";
 
   return (
-    <div className="flex-[1.8] flex flex-col">
+    <div className="flex w-full flex-col">
       <button
         type="button"
         onClick={handleClick}
@@ -69,8 +71,8 @@ function ConnectButtonInteractive({
           isPending ? "cursor-wait" : "cursor-pointer"
         } ${
           isOutline
-            ? "bg-[#121212] text-[#FFF335] border-[3px] border-[#FFF335]"
-            : "bg-[#FFF335] text-[#121212] border-[3px] border-transparent"
+            ? "bg-[#191919] text-[#FFF335] border-[3px] border-[#FFF335]"
+            : "bg-[#FFF335] text-[#191919] border-[3px] border-transparent"
         }`}
       >
         {isPending ? "…" : LABEL[state.status]}

@@ -3,6 +3,7 @@ import {
   AVATAR_MAX_BYTES,
   AVATAR_MAX_DIMENSION,
   AVATAR_MAX_PIXELS,
+  AVATAR_OUTPUT_SIZE,
 } from "@/modules/users/validation";
 
 export type ProcessedAvatarImage = {
@@ -16,7 +17,6 @@ export type ProcessAvatarImageResult =
   | { ok: false; error: string };
 
 const ALLOWED_DETECTED_FORMATS = new Set(["jpeg", "png", "webp"]);
-const OUTPUT_SIZE = 400;
 
 export async function processAvatarImage(file: File): Promise<ProcessAvatarImageResult> {
   // Size check happens before any decoding work — reject oversized payloads
@@ -72,12 +72,12 @@ export async function processAvatarImage(file: File): Promise<ProcessAvatarImage
       // dropped (we never call .withMetadata()).
       .rotate()
       // fit: "cover" + fixed width/height == center-crop to a 1:1 square,
-      // then scale to exactly 400×400. withoutEnlargement is deliberately
+      // then scale to AVATAR_OUTPUT_SIZE. withoutEnlargement is deliberately
       // omitted here (unlike eventCover.ts) — avatars must always end up
-      // exactly 400×400 so every avatar in the app is a uniform size.
+      // a uniform square so list/thumbnail rendering stays consistent.
       .resize({
-        width: OUTPUT_SIZE,
-        height: OUTPUT_SIZE,
+        width: AVATAR_OUTPUT_SIZE,
+        height: AVATAR_OUTPUT_SIZE,
         fit: "cover",
         position: "centre",
       })

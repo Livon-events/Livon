@@ -29,6 +29,13 @@ function LinkIcon({ platform }: { platform: SocialLink["platform"] }) {
       </svg>
     );
   }
+  if (platform === "youtube") {
+    return (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-[22px] h-[22px]">
+        <path d="M23.5 6.2a3.05 3.05 0 0 0-2.15-2.16C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.35.44A3.05 3.05 0 0 0 .5 6.2 31.9 31.9 0 0 0 0 12a31.9 31.9 0 0 0 .5 5.8 3.05 3.05 0 0 0 2.15 2.16C4.5 20.4 12 20.4 12 20.4s7.5 0 9.35-.44a3.05 3.05 0 0 0 2.15-2.16A31.9 31.9 0 0 0 24 12a31.9 31.9 0 0 0-.5-5.8zM9.75 15.57V8.43L15.84 12l-6.09 3.57z" />
+      </svg>
+    );
+  }
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-[22px] h-[22px]">
       <path d="M13.5 21v-7.5h2.5l.4-3H13.5V8.5c0-.9.25-1.5 1.55-1.5H16.5V4.3C16.2 4.26 15.2 4.17 14 4.17c-2.4 0-4 1.46-4 4.14V10.5H7.5v3H10V21h3.5z" />
@@ -136,9 +143,9 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
 
       <div
         className={`absolute top-[calc(100%+12px)] inset-x-0 flex flex-col gap-2.5 
-          bg-[#17181A] border border-[#1F2023] rounded-2xl p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.6)] 
+          bg-[#17181A] border border-[#1F2023] rounded-2xl p-3.5 
           transition-all duration-[180ms] ease-out z-20
-          max-h-[min(65vh,280px)] supports-[height:100dvh]:max-h-[min(65dvh,280px)] overflow-y-auto overscroll-contain
+          max-h-[min(65vh,360px)] supports-[height:100dvh]:max-h-[min(65dvh,360px)] overflow-y-auto overscroll-contain
           ${isOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-1.5"}`}
       >
         {links.map((link) => {
@@ -169,7 +176,7 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
                 <button
                   type="button"
                   onClick={() => handleSubmit(link)}
-                  className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFF335] text-[#121212] flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
+                  className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFF335] text-[#191919] flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
                 >
                   <ArrowIcon />
                 </button>

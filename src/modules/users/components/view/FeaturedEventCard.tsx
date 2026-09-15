@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { MapPin } from "lucide-react";
 import type { FeaturedEvent } from "@/modules/events";
+import { safeImageUrl } from "@/shared/security/urls";
 
 interface FeaturedEventCardProps {
   event: FeaturedEvent;
@@ -10,15 +11,17 @@ interface FeaturedEventCardProps {
 // Styled directly off raw_html_and_css/profile_view/view_profile/profile.css
 // (.event-card / .event-image-placeholder / .event-meta / .event-title).
 export default function FeaturedEventCard({ event }: FeaturedEventCardProps) {
+  const coverImageUrl = safeImageUrl(event.coverImageUrl);
+
   return (
     <Link
       href={`/events/${event.id}`}
-      className="flex items-center gap-4 rounded-2xl border-[3px] border-white p-1.5 transition-colors hover:border-[#FFF335]"
+      className="flex items-center gap-3 rounded-[10px] border-[3px] border-white p-1.5 transition-colors hover:border-[#FFF335]"
     >
       <div className="relative h-[74px] w-[74px] shrink-0 overflow-hidden rounded-[10px] bg-[#3A3A3C]">
-        {event.coverImageUrl && (
+        {coverImageUrl && (
           <Image
-            src={event.coverImageUrl}
+            src={coverImageUrl}
             alt={event.title}
             fill
             sizes="74px"
@@ -39,7 +42,7 @@ export default function FeaturedEventCard({ event }: FeaturedEventCardProps) {
             </div>
           )}
         </div>
-        <h2 className="truncate font-display text-2xl font-extrabold tracking-[-0.6px] max-[380px]:text-[22px]">
+        <h2 className="truncate font-display text-[27px] font-extrabold tracking-[-0.7px] max-[380px]:text-[23px]">
           {event.title}
         </h2>
       </div>

@@ -379,7 +379,7 @@ type FeaturedEventRow = {
   title: string;
   starts_at: string;
   ends_at: string | null;
-  cover_image_url: string;
+  cover_image_url: string | null;
   areas: { name: string } | null;
 };
 
@@ -427,6 +427,49 @@ export async function getUpcomingActiveEventsOrganizedBy(userId: string): Promis
         coverImageUrl: row.cover_image_url,
       };
     });
+}
+
+type PublicProfileEventRow = {
+  event_id: string;
+  title: string;
+  starts_at: string;
+  cover_image_url: string | null;
+  area_name: string | null;
+};
+
+/**
+ * Upcoming events shown on another user's profile. An event qualifies when
+ * the profile owns it OR appears in its Talent lineup. The RPC is needed
+ * because event_talent deliberately has no public SELECT grant; it returns
+ * only public event-card fields and deduplicates profiles who are both host
+ * and Talent.
+ */
+export async function getUpcomingActiveEventsForProfile(userId: string): Promise<FeaturedEvent[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("get_public_profile_events", {
+    p_user_id: userId,
+  });
+
+  // During a staggered deploy, retain the existing organizer-only behavior
+  // until the Talent migration (and its RPC) reaches the database.
+  if (error?.code === "PGRST202") {
+    return getUpcomingActiveEventsOrganizedBy(userId);
+  }
+
+  if (error) {
+    throw new Error(`getUpcomingActiveEventsForProfile failed: ${error.message}`);
+  }
+
+  const now = new Date();
+
+  return ((data ?? []) as PublicProfileEventRow[]).map((row) => ({
+    id: row.event_id,
+    title: row.title,
+    countdownLabel: getCountdownLabel(new Date(row.starts_at), now),
+    areaName: row.area_name ?? "",
+    coverImageUrl: row.cover_image_url,
+  }));
 }
 
 type EventManagementDataRow = {

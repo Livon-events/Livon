@@ -22,6 +22,7 @@ interface UserProfilePageProps {
   tiktokUrl?: string | null;
   instagramUrl?: string | null;
   facebookUrl?: string | null;
+  youtubeUrl?: string | null;
   createdEvents: EventSummary[];
   goingEvents: EventSummary[];
   connectionRequests: ConnectionUser[];
@@ -35,6 +36,7 @@ export default function UserProfilePage({
   tiktokUrl,
   instagramUrl,
   facebookUrl,
+  youtubeUrl,
   createdEvents,
   goingEvents: initialGoingEvents,
   connectionRequests: initialConnectionRequests,
@@ -52,7 +54,7 @@ export default function UserProfilePage({
   const [bio, setBio] = useState(initialBio ?? null);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
 
-  // Links section (docs/FR/user-profile-fr.md §3) — three fixed platform
+  // Links section (docs/FR/user-profile-fr.md §3) — four fixed platform
   // slots, each with its own independent submit button (LinksSection
   // handles per-row draft/validation state itself; this just holds the
   // last-confirmed value per slot so a failed save can roll back).
@@ -60,6 +62,7 @@ export default function UserProfilePage({
     { id: "tiktok", platform: "tiktok", placeholder: "tiktok.com/@username", value: tiktokUrl ?? "" },
     { id: "instagram", platform: "instagram", placeholder: "instagram.com/username", value: instagramUrl ?? "" },
     { id: "facebook", platform: "facebook", placeholder: "facebook.com/username", value: facebookUrl ?? "" },
+    { id: "youtube", platform: "youtube", placeholder: "youtube.com/@username", value: youtubeUrl ?? "" },
   ]);
 
   // Local copy so the "leave" (X) button can remove an event from view
@@ -150,7 +153,7 @@ export default function UserProfilePage({
   }
 
   return (
-    <div className="flex justify-center min-h-screen bg-[#121212] px-5 pt-4 pb-16 font-body">
+    <div className="flex justify-center min-h-screen bg-[#191919] px-5 pt-4 pb-16 font-body">
       {/* Matches the desktop search capsule's max width (798px) + 8px on md+ screens */}
       <div className="w-full max-w-[440px] md:max-w-[806px] flex flex-col relative">
         <ProfileHeader

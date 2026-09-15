@@ -6,12 +6,16 @@ import {
   messageForUploadFailure,
   reportUploadFailure,
 } from "@/shared/uploads";
-import { validateSocialLink } from "@/modules/users/validation";
+import {
+  AVATAR_OUTPUT_SIZE,
+  normalizeSocialLink,
+  validateSocialLink,
+} from "@/modules/users/validation";
 import type { SocialLink } from "@/modules/users/types";
 
-/** Matches server OUTPUT_SIZE in modules/users/images.ts. */
+/** Matches AVATAR_OUTPUT_SIZE processed server-side in modules/users/images.ts. */
 const AVATAR_DOWNSCALE = {
-  maxEdge: 400,
+  maxEdge: AVATAR_OUTPUT_SIZE,
   quality: 0.9,
   skipUnderBytes: 600 * 1024,
 } as const;
@@ -133,23 +137,24 @@ export async function updateLocationPreference(input: {
   return { ok: true, data: undefined };
 }
 
-const SOCIAL_LINK_COLUMN: Record<SocialLink["platform"], "tiktok_url" | "instagram_url" | "facebook_url"> = {
+const SOCIAL_LINK_COLUMN: Record<SocialLink["platform"], "tiktok_url" | "instagram_url" | "facebook_url" | "youtube_url"> = {
   tiktok: "tiktok_url",
   instagram: "instagram_url",
   facebook: "facebook_url",
+  youtube: "youtube_url",
 };
 
 /**
- * Persists one of the three fixed social-link slots
- * (`docs/FR/user-profile-fr.md` §3) to `users.tiktok_url` /
- * `instagram_url` / `facebook_url`. Called per-row from `LinksSection`,
+ * Persists one of the four fixed social-link slots
+ * (`docs/FR/user-profile-fr.md` §3, plus YouTube) to `users.tiktok_url` /
+ * `instagram_url` / `facebook_url` / `youtube_url`. Called per-row from `LinksSection`,
  * independent of `updateProfile`/`EditProfileModal`'s own form.
  *
  * `LinksSection` already calls `validateSocialLink` before this ever
  * fires, so this repeat check is defense-in-depth (fails fast, avoids a
  * round trip for something the DB would reject anyway) — not the primary
  * gate. The actual authoritative boundary is now three `CHECK`
- * constraints on `users` (`users_tiktok_url_format` etc., see
+ * constraints on `users` (`users_tiktok_url_format`, `users_youtube_url_format`, etc., see
  * `docs/db/schema.md`), which enforce the same https+platform-domain
  * shape at the DB layer regardless of how the write reaches it. RLS
  * itself only ever proved ownership of the row, never content — a
@@ -165,6 +170,10 @@ export async function updateSocialLink(
   if (validationError) {
     return { ok: false, error: validationError };
   }
+  const normalized = trimmed === "" ? "" : normalizeSocialLink(platform, trimmed);
+  if (normalized === null) {
+    return { ok: false, error: `Enter a ${platform} link` };
+  }
 
   const supabase = createClient();
 
@@ -179,12 +188,12 @@ export async function updateSocialLink(
   const column = SOCIAL_LINK_COLUMN[platform];
   const { error } = await supabase
     .from("users")
-    .update({ [column]: trimmed === "" ? null : trimmed })
+    .update({ [column]: normalized === "" ? null : normalized })
     .eq("user_id", user.id);
 
   if (error) {
     return { ok: false, error: error.message };
   }
 
-  return { ok: true, data: { value: trimmed } };
+  return { ok: true, data: { value: normalized } };
 }

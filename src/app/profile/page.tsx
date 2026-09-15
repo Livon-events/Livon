@@ -29,6 +29,10 @@ export default async function ProfilePage() {
       username={profile?.username ?? user.email ?? "User"}
       bio={profile?.bio ?? null}
       avatarUrl={profile?.avatarUrl ?? undefined}
+      tiktokUrl={profile?.tiktokUrl ?? null}
+      instagramUrl={profile?.instagramUrl ?? null}
+      facebookUrl={profile?.facebookUrl ?? null}
+      youtubeUrl={profile?.youtubeUrl ?? null}
       createdEvents={createdEvents}
       goingEvents={goingEvents}
       connectionRequests={connectionRequests}
