@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getEventDateTimeLabel } from "@/modules/events";
 import type { EventSearchResult } from "@/modules/search/queries";
+import { safeImageUrl } from "@/shared/security/urls";
 
 type EventResultCardProps = {
   event: EventSearchResult;
@@ -11,15 +12,17 @@ type EventResultCardProps = {
 // than the home feed grid — thumbnail + title + venue/area + date, no
 // Going/price/host actions.
 export default function EventResultCard({ event }: EventResultCardProps) {
+  const coverImageUrl = safeImageUrl(event.coverImageUrl);
+
   return (
     <Link
       href={`/events/${event.id}`}
       className="flex items-center gap-3 rounded-xl bg-[#161616] p-2.5 transition-colors active:bg-[#1e1e1e]"
     >
       <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-[#3A3A3C]">
-        {event.coverImageUrl && (
+        {coverImageUrl && (
           <Image
-            src={event.coverImageUrl}
+            src={coverImageUrl}
             alt={event.title}
             fill
             sizes="64px"

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { EventDetailsPage } from "@/modules/events";
 import { getEventDetails } from "@/modules/events/queries";
+import { safeImageUrl } from "@/shared/security/urls";
 
 type EventPageProps = {
   params: Promise<{ id: string }>;
@@ -24,6 +25,7 @@ export async function generateMetadata({ params }: EventPageProps): Promise<Meta
   }
 
   const title = event.title;
+  const coverImageUrl = safeImageUrl(event.coverImageUrl);
   const description = truncateForPreview(
     event.description?.trim() ||
       [event.venueName, event.area].filter(Boolean).join(" · ") ||
@@ -39,18 +41,13 @@ export async function generateMetadata({ params }: EventPageProps): Promise<Meta
       description,
       url: `/events/${event.id}`,
       siteName: "Livon",
-      images: [
-        {
-          url: event.coverImageUrl,
-          alt: event.title,
-        },
-      ],
+      images: coverImageUrl ? [{ url: coverImageUrl, alt: event.title }] : [],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [event.coverImageUrl],
+      images: coverImageUrl ? [coverImageUrl] : [],
     },
   };
 }

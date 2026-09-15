@@ -1,8 +1,9 @@
+import { Suspense } from "react";
 import { EventCardGrid } from "@/modules/events";
 // import { CategoryFilterBar } from "@/modules/feed";
-import { getHomeFeed } from "@/modules/feed/queries";
-import { resolveFeedLocationScope } from "@/modules/location/feedScope";
-import { getLocationPickerData } from "@/modules/location/queries";
+import { HomePeopleDiscovery, type HomeFeedResult, type HomePeopleDiscoveryResult } from "@/modules/feed";
+import { getHomeFeed, getHomePeopleDiscovery } from "@/modules/feed/queries";
+import { getLocationPickerData, resolveFeedLocationScope } from "@/modules/location/queries";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
 import { createClient } from "@/shared/supabase/server";
 import { Analytics } from "@vercel/analytics/next";
@@ -11,6 +12,36 @@ import { Analytics } from "@vercel/analytics/next";
 // type HomeProps = {
 //   searchParams: Promise<{ category?: string }>;
 // };
+
+async function FeedContent({ feed }: { feed: Promise<HomeFeedResult> }) {
+  const { events } = await feed;
+  return <EventCardGrid events={events} />;
+}
+
+async function DiscoveryContent({ discovery }: { discovery: Promise<HomePeopleDiscoveryResult> }) {
+  return <HomePeopleDiscovery discovery={await discovery} />;
+}
+
+function DiscoverySkeleton() {
+  return (
+    <div className="mx-auto mb-5 w-full max-w-[1400px] px-3 lg:mb-7 lg:px-6" aria-label="Loading Talent">
+      <div className="h-8 w-48 animate-pulse rounded bg-[#262626]" />
+      <div className="mt-2 h-4 w-80 max-w-full animate-pulse rounded bg-[#202020]" />
+      <div className="mt-3 flex gap-3 overflow-hidden">
+        <div className="aspect-square w-[min(calc(100vw-3rem),22rem)] shrink-0 animate-pulse rounded-xl bg-[#262626]" />
+        <div className="aspect-square w-[min(calc(100vw-3rem),22rem)] shrink-0 animate-pulse rounded-xl bg-[#262626]" />
+      </div>
+    </div>
+  );
+}
+
+function FeedSkeleton() {
+  return (
+    <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 gap-[13px] px-3 lg:grid-cols-3 lg:px-6" aria-label="Loading events">
+      {[0, 1, 2].map((index) => <div key={index} className="aspect-[4/5] animate-pulse rounded-xl bg-[#262626]" />)}
+    </div>
+  );
+}
 
 export default async function Home() {
   // const { category: activeCategoryName } = await searchParams;
@@ -24,22 +55,28 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const cities = await getLocationPickerData();
-  const accountLocation = user ? await getOrganizerLocationContext(user.id) : null;
+  const [cities, accountLocation] = await Promise.all([
+    getLocationPickerData(),
+    user ? getOrganizerLocationContext(user.id) : Promise.resolve(null),
+  ]);
   const { cityId, areaId } = await resolveFeedLocationScope({
     cities,
     accountLocation,
   });
 
-  const { events } = await getHomeFeed({
+  // Deliberately start both independent reads together. Each is streamed
+  // through its own Suspense boundary below, so a slow discovery calculation
+  // cannot hold back the main event feed.
+  const feed = getHomeFeed({
     categoryId: null,
     cityId,
     areaId,
   });
+  const discovery = getHomePeopleDiscovery({ cityId, areaId });
 
   return (
     <main
-      className="min-h-screen bg-[#121212] pt-4 md:pt-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px)+1.5rem)] md:pb-0"
+      className="min-h-screen bg-[#0C0C0C] pt-4 md:pt-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px)+1.5rem)] md:pb-0"
     >
       <Analytics />
       {/* CategoryFilterBar hidden for MVP — uncomment when there are enough events
@@ -48,7 +85,12 @@ export default async function Home() {
         activeCategory={activeCategory?.name ?? null}
       />
       */}
-      <EventCardGrid events={events} />
+      <Suspense fallback={<DiscoverySkeleton />}>
+        <DiscoveryContent discovery={discovery} />
+      </Suspense>
+      <Suspense fallback={<FeedSkeleton />}>
+        <FeedContent feed={feed} />
+      </Suspense>
     </main>
   );
 }

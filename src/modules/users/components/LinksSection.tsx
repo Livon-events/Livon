@@ -176,7 +176,7 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
                 <button
                   type="button"
                   onClick={() => handleSubmit(link)}
-                  className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFF335] text-[#191919] flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
+                  className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFF335] text-[#0C0C0C] flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
                 >
                   <ArrowIcon />
                 </button>

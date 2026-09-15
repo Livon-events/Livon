@@ -41,7 +41,7 @@ export default function EventRow({ event, actionLabel, onAction }: EventRowProps
         onClick={() => onAction?.(event.id)}
         aria-label={actionLabel}
         title={actionLabel}
-        className="flex items-center justify-center border-none rounded-[10px] w-10 h-10 bg-[#FFF335] text-[#191919] cursor-pointer flex-shrink-0"
+        className="flex items-center justify-center border-none rounded-[10px] w-10 h-10 bg-[#FFF335] text-[#0C0C0C] cursor-pointer flex-shrink-0"
       >
         <Icon className="w-[18px] h-[18px]" strokeWidth={2.5} />
       </button>

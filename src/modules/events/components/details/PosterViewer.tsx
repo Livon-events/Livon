@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
+import { safeImageUrl } from "@/shared/security/urls";
 
 interface PosterViewerProps {
   src: string;
@@ -15,6 +16,7 @@ interface PosterViewerProps {
  */
 export default function PosterViewer({ src, alt }: PosterViewerProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const safeSrc = safeImageUrl(src) ?? "/images/event-cover-placeholder.jpg";
 
   // Close on Escape.
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function PosterViewer({ src, alt }: PosterViewerProps) {
         className="relative aspect-[16/7] min-h-[180px] w-full cursor-pointer overflow-hidden rounded-md bg-[#3A3A3C] border-0 p-0 appearance-none sm:min-h-[220px]"
       >
         <Image
-          src={src}
+          src={safeSrc}
           alt={alt}
           fill
           priority
@@ -63,7 +65,7 @@ export default function PosterViewer({ src, alt }: PosterViewerProps) {
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-[#121212]/90"
+            className="absolute inset-0 bg-[#0C0C0C]/90"
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
@@ -80,12 +82,12 @@ export default function PosterViewer({ src, alt }: PosterViewerProps) {
 
           {/* Full poster */}
           <div
-            className="relative z-[1] max-h-[90vh] w-[min(90vw,900px)] overflow-hidden rounded-lg shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
+            className="relative z-[1] max-h-[90vh] w-[min(90vw,900px)] overflow-hidden rounded-lg"
             onClick={(e) => e.stopPropagation()}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={src}
+              src={safeSrc}
               alt={alt}
               className="block h-auto max-h-[90vh] w-full object-contain"
             />

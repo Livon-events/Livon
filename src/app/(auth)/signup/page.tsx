@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { safeInternalPath } from "@/shared/security/urls";
 
 type SignupPageProps = {
   searchParams: Promise<{ next?: string }>;
@@ -6,9 +7,7 @@ type SignupPageProps = {
 
 export default async function SignupPage({ searchParams }: SignupPageProps) {
   const { next } = await searchParams;
-  const dest =
-    next && next.startsWith("/") && !next.startsWith("//")
-      ? `/login?next=${encodeURIComponent(next)}`
-      : "/login";
+  const destination = safeInternalPath(next, "");
+  const dest = destination ? `/login?next=${encodeURIComponent(destination)}` : "/login";
   redirect(dest);
 }

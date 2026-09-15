@@ -13,7 +13,7 @@ type EventCardActionsProps = {
 };
 
 const secondaryButtonClass =
-  "flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[6px] bg-[#FFF335] text-[#121212] transition-transform active:scale-[0.96]";
+  "flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[6px] bg-[#FFF335] text-[#0C0C0C] transition-transform active:scale-[0.96]";
 
 // "Interested" is this card's label for the same Going/RSVP action as the
 // event details page's "Going" button — full privacy-popup flow per
@@ -61,8 +61,8 @@ export default function EventCardActions({
         data-event-id={eventId}
         className={`h-[50px] flex-1 rounded-[6px] border-[3px] text-[1.2rem] font-black transition-all active:scale-[0.96] ${
           going
-            ? "border-[#FFF335] bg-[#121212] text-[#FFF335]"
-            : "border-transparent bg-[#FFF335] text-[#121212]"
+            ? "border-[#FFF335] bg-[#0C0C0C] text-[#FFF335]"
+            : "border-transparent bg-[#FFF335] text-[#0C0C0C]"
         }`}
       >
         Interested
@@ -82,7 +82,7 @@ export default function EventCardActions({
       </button>
 
       {error && (
-        <p className="absolute -top-8 right-0 rounded-[6px] bg-[#121212] px-2 py-1 text-[12px] font-semibold text-red-400">
+        <p className="absolute -top-8 right-0 rounded-[6px] bg-[#0C0C0C] px-2 py-1 text-[12px] font-semibold text-red-400">
           {error}
         </p>
       )}

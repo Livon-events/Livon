@@ -1,18 +1,12 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/shared/supabase/server";
+import { safeInternalPath } from "@/shared/security/urls";
 import { GoogleSignInButton } from "@/modules/auth";
 
 type LoginPageProps = {
   searchParams: Promise<{ next?: string; error?: string }>;
 };
-
-function safeNext(next: string | undefined): string {
-  if (next && next.startsWith("/") && !next.startsWith("//")) {
-    return next;
-  }
-  return "/profile";
-}
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next, error } = await searchParams;
@@ -23,7 +17,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect(safeNext(next));
+    redirect(safeInternalPath(next, "/profile"));
   }
 
   return (

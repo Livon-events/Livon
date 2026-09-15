@@ -1,4 +1,4 @@
-export type { EventEditData, EventDetails, EventSummary, FeaturedEvent, PeekPageData, PeekAttendee } from "./types";
+export type { EventEditData, EventDetails, EventSummary, FeaturedEvent, PeekPageData, PeekAttendee, EventTalentProfile } from "./types";
 export { IMAGE_MAX_BYTES } from "./validation";
 export { createEvent, updateEvent, cancelEvent, claimEvent } from "./mutations";
 export { recordEventView } from "./recordEventView";
@@ -22,10 +22,12 @@ export { default as EventHostLine } from "./components/card/EventHostLine";
 export { default as HostLink } from "./components/card/HostLink";
 export { default as BackButton } from "./components/create/BackButton";
 export { default as CreateEventForm } from "./components/create/CreateEventForm";
+export { default as TalentPicker } from "./components/create/TalentPicker";
 export { default as CreateEventPage } from "./components/create/CreateEventPage";
 export { default as EventAboutSection } from "./components/details/EventAboutSection";
 export { default as EventActionBar } from "./components/details/EventActionBar";
 export { default as EventDetailsCard } from "./components/details/EventDetailsCard";
+export { default as EventTalentSection } from "./components/details/EventTalentSection";
 export { default as EventDetailsPage } from "./components/details/EventDetailsPage";
 export { default as ClaimEventSection } from "./components/details/ClaimEventSection";
 export { default as PeekPage } from "./components/peek/PeekPage";

@@ -162,7 +162,7 @@ const PLATFORM_LABEL: Record<Platform, string> = {
 
 const PILL_CLASS =
 
-  "flex h-9 shrink-0 items-center gap-2 rounded-[14px] border border-white/10 bg-[#191919] px-4 font-body text-[14px] text-white active:scale-[0.98]";
+  "flex h-9 shrink-0 items-center gap-2 rounded-[14px] border border-white/10 bg-[#0C0C0C] px-4 font-body text-[14px] text-white active:scale-[0.98]";
 
 
 

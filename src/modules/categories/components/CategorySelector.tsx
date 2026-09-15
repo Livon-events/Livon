@@ -48,7 +48,7 @@ export default function CategorySelector({
   };
 
   return (
-    <nav className="w-full bg-[#121212]" aria-label="Event categories">
+    <nav className="w-full bg-[#0C0C0C]" aria-label="Event categories">
       {/* Constrained wrapper matching EventCardGrid max-width + horizontal padding */}
       <div
         className="

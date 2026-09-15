@@ -12,6 +12,7 @@ import {
   combineStartsAt,
   combineDateAndTime,
   MAX_YEARS_IN_FUTURE,
+  parseTalentIds,
 } from "@/modules/events/validation";
 
 /**
@@ -70,6 +71,11 @@ export async function createEventOnServer(
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return { ok: false, error: firstIssue?.message ?? "Invalid input.", status: 400 };
+  }
+
+  const talent = parseTalentIds(formData);
+  if (!talent.ok) {
+    return { ok: false, error: talent.error, status: 400 };
   }
 
   const { title, categoryId, startDate, startTime, venueName, description, admission, price } =
@@ -160,27 +166,25 @@ export async function createEventOnServer(
     uploadedObjectPath = objectPath;
   }
 
-  const { data: inserted, error: insertError } = await supabase
-    .from("events")
-    .insert({
-      organizer_id: userId,
-      category_id: categoryId,
-      city_id: area.cityId,
-      area_id: area.id,
-      title,
-      description: description && description.length > 0 ? description : null,
-      venue_name: venueName,
-      starts_at: startsAt.toISOString(),
-      ends_at: endsAt ? endsAt.toISOString() : null,
-      cover_image_url: coverImageUrl,
-      status: "active",
-      price: admission === "paid" ? price : 0,
-    })
-    .select("event_id")
-    .single();
+  const { data: insertedEventId, error: insertError } = await supabase.rpc(
+    "create_event_with_talent",
+    {
+      p_category_id: categoryId,
+      p_city_id: area.cityId,
+      p_area_id: area.id,
+      p_title: title,
+      p_description: description && description.length > 0 ? description : null,
+      p_venue_name: venueName,
+      p_starts_at: startsAt.toISOString(),
+      p_ends_at: endsAt ? endsAt.toISOString() : null,
+      p_cover_image_url: coverImageUrl,
+      p_price: admission === "paid" ? price : 0,
+      p_talent_ids: talent.data,
+    }
+  );
 
-  if (insertError || !inserted) {
-    console.error("event insert failed:", insertError?.message);
+  if (insertError || !insertedEventId) {
+    console.error("event/talent insert failed:", insertError?.message);
 
     if (uploadedObjectPath) {
       await supabase.storage.from(STORAGE_BUCKET).remove([uploadedObjectPath]).catch(() => {});
@@ -189,7 +193,7 @@ export async function createEventOnServer(
     return { ok: false, error: "Could not create the event. Please try again.", status: 500 };
   }
 
-  return { ok: true, data: { id: inserted.event_id } };
+  return { ok: true, data: { id: insertedEventId as string } };
 }
 
 function ownedStorageObjectPath(url: string): string | null {
@@ -239,22 +243,18 @@ export async function updateEventOnServer(
     return { ok: false, error: parsed.error, status: parsed.status };
   }
 
+  const talent = parseTalentIds(formData);
+  if (!talent.ok) {
+    return { ok: false, error: talent.error, status: 400 };
+  }
+
   const { title, categoryId, venueName, description, admission, price, startsAt, endsAt } = parsed.data;
 
   // city_id/area_id are intentionally left untouched on edit — see
   // docs/FR/location-toggle.md.
-  const updatePayload: Record<string, unknown> = {
-    title,
-    category_id: categoryId,
-    venue_name: venueName,
-    description,
-    starts_at: startsAt.toISOString(),
-    ends_at: endsAt ? endsAt.toISOString() : null,
-    price: admission === "paid" ? price : 0,
-  };
-
   let oldObjectPathToDelete: string | null = null;
   let newUploadedObjectPath: string | null = null;
+  let coverImageUrl = existing.cover_image_url;
 
   const coverEntry = formData.get("cover");
   if (coverEntry instanceof File && coverEntry.size > 0) {
@@ -283,21 +283,29 @@ export async function updateEventOnServer(
       data: { publicUrl },
     } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(objectPath);
 
-    updatePayload.cover_image_url = publicUrl;
+    coverImageUrl = publicUrl;
     newUploadedObjectPath = objectPath;
     oldObjectPathToDelete = ownedStorageObjectPath(existing.cover_image_url);
   }
 
-  const { data: updated, error: updateError } = await supabase
-    .from("events")
-    .update(updatePayload)
-    .eq("event_id", eventId)
-    .eq("organizer_id", userId)
-    .select("event_id")
-    .single();
+  const { data: updatedEventId, error: updateError } = await supabase.rpc(
+    "update_event_with_talent",
+    {
+      p_event_id: eventId,
+      p_category_id: categoryId,
+      p_title: title,
+      p_description: description,
+      p_venue_name: venueName,
+      p_starts_at: startsAt.toISOString(),
+      p_ends_at: endsAt ? endsAt.toISOString() : null,
+      p_cover_image_url: coverImageUrl,
+      p_price: admission === "paid" ? price : 0,
+      p_talent_ids: talent.data,
+    }
+  );
 
-  if (updateError || !updated) {
-    console.error("event update failed:", updateError?.message);
+  if (updateError || !updatedEventId) {
+    console.error("event/talent update failed:", updateError?.message);
 
     if (newUploadedObjectPath) {
       await supabase.storage.from(STORAGE_BUCKET).remove([newUploadedObjectPath]).catch(() => {});
@@ -310,5 +318,5 @@ export async function updateEventOnServer(
     await supabase.storage.from(STORAGE_BUCKET).remove([oldObjectPathToDelete]).catch(() => {});
   }
 
-  return { ok: true, data: { id: updated.event_id } };
+  return { ok: true, data: { id: updatedEventId as string } };
 }

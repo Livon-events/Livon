@@ -14,11 +14,11 @@ export default function ProfileTabs({ active, onChange, connectionsCount, events
         type="button"
         onClick={() => onChange("connections")}
         className={`flex-1 flex items-center justify-center gap-2 rounded-[9px] py-3 font-display text-[15px] font-bold cursor-pointer ${
-          active === "connections" ? "bg-[#191919] text-white" : "bg-transparent text-[#AEAEB2]"
+          active === "connections" ? "bg-[#0C0C0C] text-white" : "bg-transparent text-[#AEAEB2]"
         }`}
       >
         Connections
-        <span className="bg-[#FFF335] text-[#191919] text-[13px] font-extrabold px-2 py-0.5 rounded-full">
+        <span className="bg-[#FFF335] text-[#0C0C0C] text-[13px] font-extrabold px-2 py-0.5 rounded-full">
           {connectionsCount}
         </span>
       </button>
@@ -26,11 +26,11 @@ export default function ProfileTabs({ active, onChange, connectionsCount, events
         type="button"
         onClick={() => onChange("events")}
         className={`flex-1 flex items-center justify-center gap-2 rounded-[9px] py-3 font-display text-[15px] font-bold cursor-pointer ${
-          active === "events" ? "bg-[#191919] text-white" : "bg-transparent text-[#AEAEB2]"
+          active === "events" ? "bg-[#0C0C0C] text-white" : "bg-transparent text-[#AEAEB2]"
         }`}
       >
         Events
-        <span className="bg-[#FFF335] text-[#191919] text-[13px] font-extrabold px-2 py-0.5 rounded-full">
+        <span className="bg-[#FFF335] text-[#0C0C0C] text-[13px] font-extrabold px-2 py-0.5 rounded-full">
           {eventsCount}
         </span>
       </button>

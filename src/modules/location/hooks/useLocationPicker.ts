@@ -101,7 +101,7 @@ export function useLocationPicker({
       // cascade.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedCityId(stored.cityId);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setSelectedAreaId(resolvedAreaId);
       // Keep cookie in sync so the next SSR pass matches localStorage.
       writeStoredLocationPreference({ cityId: stored.cityId, areaId: stored.areaId });

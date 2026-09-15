@@ -35,7 +35,7 @@ export default function ConnectButton({
       <div className="flex w-full flex-col">
         <Link
           href={`/login?next=${encodeURIComponent(`/users/${profileUsername}`)}`}
-          className={`${buttonClasses} bg-[#FFF335] text-[#191919] border-[3px] border-transparent`}
+          className={`${buttonClasses} bg-[#FFF335] text-[#0C0C0C] border-[3px] border-transparent`}
         >
           Sign in to Connect
         </Link>
@@ -71,8 +71,8 @@ function ConnectButtonInteractive({
           isPending ? "cursor-wait" : "cursor-pointer"
         } ${
           isOutline
-            ? "bg-[#191919] text-[#FFF335] border-[3px] border-[#FFF335]"
-            : "bg-[#FFF335] text-[#191919] border-[3px] border-transparent"
+            ? "bg-[#0C0C0C] text-[#FFF335] border-[3px] border-[#FFF335]"
+            : "bg-[#FFF335] text-[#0C0C0C] border-[3px] border-transparent"
         }`}
       >
         {isPending ? "…" : LABEL[state.status]}

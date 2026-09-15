@@ -153,7 +153,7 @@ export default function UserProfilePage({
   }
 
   return (
-    <div className="flex justify-center min-h-screen bg-[#191919] px-5 pt-4 pb-16 font-body">
+    <div className="flex justify-center min-h-screen bg-[#0C0C0C] px-5 pt-4 pb-16 font-body">
       {/* Matches the desktop search capsule's max width (798px) + 8px on md+ screens */}
       <div className="w-full max-w-[440px] md:max-w-[806px] flex flex-col relative">
         <ProfileHeader

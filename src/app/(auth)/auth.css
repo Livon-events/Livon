@@ -3,8 +3,8 @@
    (auth)/layout.tsx rather than the original Google Fonts <link> tags. */
 
 .auth-scope {
-  --bg: #121212;
-  --card: #121212;
+  --bg: #0C0C0C;
+  --card: #0C0C0C;
   --card-edge: #201c10;
   --yellow: #FFF335;
   --text: #f5f3ee;
@@ -419,7 +419,7 @@
 
 /* ===== Sign-up page overrides: sharp black card, FFBE0B accent ===== */
 .auth-scope.signup-page {
-  --card: #121212;
+  --card: #0C0C0C;
   --yellow: #FFF335;
 }
 
@@ -428,6 +428,6 @@
 }
 
 .auth-scope.signup-page .field input {
-  background: #121212;
+  background: #0C0C0C;
   border-color: #ffffff;
 }

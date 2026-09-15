@@ -1,8 +1,7 @@
 import AppHeader from "./AppHeader";
 import DesktopHeader from "./DesktopHeader";
 import { createClient } from "@/shared/supabase/server";
-import { getLocationPickerData } from "@/modules/location/queries";
-import { readLocationPreferenceCookie } from "@/modules/location/cookie";
+import { getLocationPickerData, readLocationPreferenceCookie } from "@/modules/location/queries";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
 import { ALL_AREAS_ID, DEFAULT_CITY_NAME, compareCityNames } from "@/modules/location";
 

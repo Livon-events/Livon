@@ -78,7 +78,7 @@ export default function ProfileHeader({
           aria-label={`${username}'s profile picture`}
         >
           <div
-            className="absolute inset-0 bg-[#191919]/85"
+            className="absolute inset-0 bg-[#0C0C0C]/85"
             onClick={() => setIsViewerOpen(false)}
             aria-hidden="true"
           />

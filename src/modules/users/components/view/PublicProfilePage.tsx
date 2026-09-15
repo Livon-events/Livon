@@ -30,7 +30,7 @@ export default function PublicProfilePage({
   isViewerSignedIn,
 }: PublicProfilePageProps) {
   return (
-    <div className="flex min-h-screen justify-center bg-[#191919] px-5 pb-16 pt-6 font-body">
+    <div className="flex min-h-screen justify-center bg-[#0C0C0C] px-5 pb-16 pt-6 font-body">
       {/* Same width as own profile (UserProfilePage): 440px mobile, 806px md+ */}
       <div className="flex w-full max-w-[440px] flex-col md:max-w-[806px]">
         <ProfileHeader

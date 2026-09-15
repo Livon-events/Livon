@@ -5,10 +5,10 @@ interface GuestlistSectionProps {
 }
 
 const DEFAULT_ATTENDEES: GuestlistAttendee[] = [
-  { id: "1", handle: "@personA", socials: ["instagram", "facebook"] },
-  { id: "2", handle: "@personB", socials: [] },
-  { id: "3", handle: "@personC", socials: ["tiktok"] },
-  { id: "4", handle: "@personD", socials: ["tiktok", "instagram"] },
+  { id: "1", username: "person_a", socials: ["instagram", "facebook"] },
+  { id: "2", username: "person_b", socials: [] },
+  { id: "3", username: "person_c", socials: ["tiktok"] },
+  { id: "4", username: "person_d", socials: ["tiktok", "instagram"] },
 ];
 
 export default function GuestlistSection({

@@ -49,7 +49,7 @@ export default function ConnectionRow({
           <button
             type="button"
             onClick={() => onAction?.(connection.id)}
-            className="font-display text-sm font-extrabold border-none rounded-[10px] px-4 py-2.5 bg-[#FFF335] text-[#191919] cursor-pointer flex-1"
+            className="font-display text-sm font-extrabold border-none rounded-[10px] px-4 py-2.5 bg-[#FFF335] text-[#0C0C0C] cursor-pointer flex-1"
           >
             {actionLabel}
           </button>
@@ -78,7 +78,7 @@ export default function ConnectionRow({
       <button
         type="button"
         onClick={() => onAction?.(connection.id)}
-        className="font-display text-sm font-extrabold border-none rounded-[10px] px-4 py-2.5 bg-[#FFF335] text-[#191919] cursor-pointer"
+        className="font-display text-sm font-extrabold border-none rounded-[10px] px-4 py-2.5 bg-[#FFF335] text-[#0C0C0C] cursor-pointer"
       >
         {actionLabel}
       </button>

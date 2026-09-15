@@ -22,11 +22,50 @@ import type {
   FeaturedEvent,
   EventEditData,
   EventDetails,
+  EventTalentProfile,
   PeekPageData,
   EventManagementData,
 } from "@/modules/events/types";
 
 export type { EventEditData, EventDetails, PeekPageData };
+
+type EventTalentRow = {
+  user_id: string;
+  username: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  tiktok_url: string | null;
+  instagram_url: string | null;
+  facebook_url: string | null;
+  youtube_url: string | null;
+};
+
+/** Public-safe Talent roster, used for event details and edit prefill. */
+async function getEventTalent(eventId: string): Promise<EventTalentProfile[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_event_talent", { p_event_id: eventId });
+
+  // Talent is optional. Keep the event page usable if a deployment briefly
+  // reaches app code before the migration has been applied.
+  if (error) {
+    if (error.code === "PGRST202") return [];
+    console.error("get_event_talent failed:", error.message);
+    return [];
+  }
+
+  return ((data ?? []) as EventTalentRow[])
+    .filter((row) => Boolean(row.username))
+    .map((row) => ({
+      userId: row.user_id,
+      username: row.username ?? "User",
+      avatarUrl: row.avatar_url,
+      bio: row.bio,
+      tiktokUrl: row.tiktok_url,
+      instagramUrl: row.instagram_url,
+      facebookUrl: row.facebook_url,
+      youtubeUrl: row.youtube_url,
+    }));
+}
 
 /**
  * All reads of the `events` table live in this one file — merged during
@@ -80,6 +119,8 @@ export async function getEventForEdit(
   // PostgREST returns `numeric` columns as strings.
   const priceNum = parseFloat(data.price as unknown as string);
 
+  const talent = await getEventTalent(eventId);
+
   return {
     id: data.event_id,
     title: data.title,
@@ -94,6 +135,7 @@ export async function getEventForEdit(
     price: priceNum > 0 ? priceNum : undefined,
     coverImageUrl: data.cover_image_url,
     status: data.status,
+    talent,
   };
 }
 
@@ -133,18 +175,21 @@ export const getEventDetails = cache(async function getEventDetails(
 ): Promise<EventDetails | null> {
   const supabase = await createClient();
 
-  const { data: event, error } = await supabase
-    .from("events")
-    .select(
-      `event_id, title, description, venue_name, starts_at, ends_at,
-       cover_image_url, status, price, organizer_id,
-       claimed_at, intended_claim_user_id, intended_claim_email,
-       areas ( name ),
-       categories ( name ),
-       organizer:users!organizer_id ( username )`
-    )
-    .eq("event_id", eventId)
-    .single<EventDetailsRow>();
+  const [{ data: event, error }, talent] = await Promise.all([
+    supabase
+      .from("events")
+      .select(
+        `event_id, title, description, venue_name, starts_at, ends_at,
+         cover_image_url, status, price, organizer_id,
+         claimed_at, intended_claim_user_id, intended_claim_email,
+         areas ( name ),
+         categories ( name ),
+         organizer:users!organizer_id ( username )`
+      )
+      .eq("event_id", eventId)
+      .single<EventDetailsRow>(),
+    getEventTalent(eventId),
+  ]);
 
   if (error || !event) {
     return null;
@@ -210,6 +255,7 @@ export const getEventDetails = cache(async function getEventDetails(
     isClaimable,
     canViewerClaim,
     claimNeedsOpsTransfer,
+    talent,
   };
 });
 
@@ -384,8 +430,7 @@ type FeaturedEventRow = {
 };
 
 /**
- * "Featured Hosted-Events" strip on another user's profile — their active,
- * not-yet-ended events, soonest first. Renamed from
+ * Active, not-yet-ended events organized by a user, soonest first. Renamed from
  * `getPublicUpcomingHostedEvents`. Reuses the same
  * ends_at ?? starts_at+8h "still live" derivation as `get_home_feed`
  * rather than a stored "past" flag, per the archival-over-deletion
@@ -545,7 +590,7 @@ export async function getEventManagementData(
 
     return {
       id: row.user_id,
-      handle: row.username ? `@${row.username}` : "@user",
+      username: row.username ?? "user",
       avatarUrl: row.avatar_url ?? undefined,
       socials,
     };

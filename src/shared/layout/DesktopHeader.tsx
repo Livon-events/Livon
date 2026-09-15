@@ -56,7 +56,7 @@ export default function DesktopHeader({
 
   return (
     <>
-      <header className="fixed left-0 right-0 top-0 z-[100] border-b-[3.5px] border-[#FFF335] bg-[#121212] px-6 py-4">
+      <header className="fixed left-0 right-0 top-0 z-[100] border-b-[3.5px] border-[#FFF335] bg-[#0C0C0C] px-6 py-4">
         <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-8">
           {/* Left: logo + location */}
           <div className="flex shrink-0 items-center gap-4">
@@ -89,7 +89,7 @@ export default function DesktopHeader({
               {searchActive ? (
                 <>
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFF335]">
-                    <Search className="h-[15px] w-[15px] text-[#121212]" strokeWidth={3} />
+                    <Search className="h-[15px] w-[15px] text-[#0C0C0C]" strokeWidth={3} />
                   </span>
                   <input
                     ref={searchInputRef}
@@ -116,7 +116,7 @@ export default function DesktopHeader({
                 >
                   <span className="text-[15px] font-bold tracking-[-0.1px] text-white">Search</span>
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFF335]">
-                    <Search className="h-[15px] w-[15px] text-[#121212]" strokeWidth={3} />
+                    <Search className="h-[15px] w-[15px] text-[#0C0C0C]" strokeWidth={3} />
                   </span>
                 </button>
               )}
@@ -150,8 +150,8 @@ export default function DesktopHeader({
               </li>
               <li>
                 <Link href="/create-event" className="flex items-center">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFF335] shadow-[0_4px_12px_rgba(255, 243, 53,0.15)] transition-transform hover:scale-105 active:scale-95">
-                    <Plus className="h-[22px] w-[22px] text-[#121212]" strokeWidth={3.5} />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFF335] transition-transform hover:scale-105 active:scale-95">
+                    <Plus className="h-[22px] w-[22px] text-[#0C0C0C]" strokeWidth={3.5} />
                   </div>
                 </Link>
               </li>
@@ -163,13 +163,13 @@ export default function DesktopHeader({
       {/* Centered modal overlay (desktop equivalent of the mobile bottom sheet) */}
       <div
         onClick={closeSheet}
-        className={`fixed inset-0 z-[200] flex items-center justify-center bg-[#121212]/70 transition-opacity duration-[250ms] ease-out ${
+        className={`fixed inset-0 z-[200] flex items-center justify-center bg-[#0C0C0C]/70 transition-opacity duration-[250ms] ease-out ${
           sheetOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className={`w-full max-w-[440px] rounded-2xl border border-[#222222] bg-[#121212] p-6 transition-transform duration-[250ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
+          className={`w-full max-w-[440px] rounded-2xl border border-[#222222] bg-[#0C0C0C] p-6 transition-transform duration-[250ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
             sheetOpen ? "translate-y-0 scale-100" : "translate-y-2.5 scale-95"
           }`}
         >
@@ -212,7 +212,7 @@ export default function DesktopHeader({
                       type="button"
                       onClick={() => selectArea(area)}
                       className={`flex w-full items-center justify-between rounded-[10px] border-[1.5px] px-4 py-3 text-[15px] font-semibold transition-colors hover:bg-[#222222] active:bg-[#2a2a2a] ${
-                        active ? "border-[#FFF335] bg-[#FFF335] text-[#121212]" : "border-transparent bg-[#1a1a1a] text-white"
+                        active ? "border-[#FFF335] bg-[#FFF335] text-[#0C0C0C]" : "border-transparent bg-[#1a1a1a] text-white"
                       }`}
                     >
                       <span>{area.name}</span>
