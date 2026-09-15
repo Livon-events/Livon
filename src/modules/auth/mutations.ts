@@ -1,4 +1,5 @@
 import { createClient } from "@/shared/supabase/client";
+import { safeInternalPath } from "@/shared/security/urls";
 
 type Result<T = undefined> =
   | { ok: true; data: T }
@@ -21,8 +22,9 @@ export async function signInWithGoogle(next?: string): Promise<Result> {
   const supabase = createClient();
 
   const callbackUrl = new URL("/auth/callback", window.location.origin);
-  if (next && next.startsWith("/") && !next.startsWith("//")) {
-    callbackUrl.searchParams.set("next", next);
+  const destination = safeInternalPath(next, "");
+  if (destination) {
+    callbackUrl.searchParams.set("next", destination);
   }
 
   const { error } = await supabase.auth.signInWithOAuth({

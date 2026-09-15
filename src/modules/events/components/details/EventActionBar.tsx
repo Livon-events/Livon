@@ -13,7 +13,7 @@ type EventActionBarProps = {
 };
 
 const secondaryButtonClass =
-  "flex min-h-[44px] w-[48px] shrink-0 items-center justify-center rounded-md bg-[#FFF335] text-[#121212] transition-transform active:scale-[0.98] sm:min-h-[48px] sm:w-[52px]";
+  "flex min-h-[44px] w-[48px] shrink-0 items-center justify-center rounded-md bg-[#FFF335] text-[#0C0C0C] transition-transform active:scale-[0.98] sm:min-h-[48px] sm:w-[52px]";
 
 // Full "Going" flow (privacy popup on first tap, change-privacy/not-going
 // menu on re-tap) per docs/FR/going-rsvp-privacy.md, via the shared
@@ -50,8 +50,8 @@ export default function EventActionBar({
         data-event-id={eventId}
         className={`min-h-[44px] flex-1 rounded-md text-base font-extrabold transition-transform active:scale-[0.98] sm:min-h-[48px] ${
           going
-            ? "border-2 border-[#FFF335] bg-[#121212] text-[#FFF335]"
-            : "border-none bg-[#FFF335] text-[#121212]"
+            ? "border-2 border-[#FFF335] bg-[#0C0C0C] text-[#FFF335]"
+            : "border-none bg-[#FFF335] text-[#0C0C0C]"
         }`}
       >
         Interested
@@ -71,7 +71,7 @@ export default function EventActionBar({
       </button>
 
       {error && (
-        <p className="absolute -top-8 right-0 rounded-md bg-[#121212] px-2 py-1 text-[12px] font-semibold text-red-400">
+        <p className="absolute -top-8 right-0 rounded-md bg-[#0C0C0C] px-2 py-1 text-[12px] font-semibold text-red-400">
           {error}
         </p>
       )}

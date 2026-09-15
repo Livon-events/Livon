@@ -7,6 +7,7 @@ import EventCardActions from "./EventCardActions";
 import EventCardBackground from "./EventCardBackground";
 import EventHostLine from "./EventHostLine";
 import type { GoingVisibility } from "@/modules/rsvp";
+import { safeImageUrl } from "@/shared/security/urls";
 
 export type EventCardData = {
   id: string;
@@ -30,6 +31,8 @@ type EventCardProps = {
 };
 
 export default function EventCard({ event, priority = false }: EventCardProps) {
+  const coverImageUrl = safeImageUrl(event.coverImageUrl);
+
   return (
     <Link
       href={`/events/${event.id}`}
@@ -45,11 +48,11 @@ export default function EventCard({ event, priority = false }: EventCardProps) {
         eventId={event.id}
       />
 
-      <div className="relative z-10 m-[3px] mt-[5px] flex flex-1 flex-col overflow-hidden rounded-[10px] bg-[#121212]">
+      <div className="relative z-10 m-[3px] mt-[5px] flex flex-1 flex-col overflow-hidden rounded-[10px] bg-[#0C0C0C]">
         <div className="relative m-[4px] aspect-[1200/630] w-[calc(100%-8px)] shrink-0 overflow-hidden rounded-[9px] bg-[#3A3A3C]">
-          {event.coverImageUrl && (
+          {coverImageUrl && (
             <Image
-              src={event.coverImageUrl}
+              src={coverImageUrl}
               alt={event.title}
               fill
               sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"

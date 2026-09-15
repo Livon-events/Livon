@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ConnectionUser } from "./types";
+import { safeBackgroundImage } from "@/shared/security/urls";
 
 interface ConnectionRowProps {
   connection: ConnectionUser;
@@ -25,13 +26,16 @@ export default function ConnectionRow({
         {/* Action buttons are below, not nested inside this Link, so
             they need no preventDefault/stopPropagation to avoid
             double-triggering a navigation — same pattern as EventRow. */}
-        <Link href={`/profile/${connection.userId}`} className="flex items-center gap-3.5">
+        <Link
+          href={`/users/${encodeURIComponent(connection.username)}`}
+          className="flex items-center gap-3.5"
+        >
           <div
             className="w-11 h-11 rounded-full bg-[#3A3A3C] flex-shrink-0 bg-cover bg-center"
-            style={connection.avatarUrl ? { backgroundImage: `url(${connection.avatarUrl})` } : undefined}
+            style={connection.avatarUrl ? { backgroundImage: safeBackgroundImage(connection.avatarUrl) } : undefined}
           />
           <div className="flex-1 min-w-0">
-            <div className="font-display text-[17px] font-bold text-white truncate">{connection.name}</div>
+            <div className="font-display text-[17px] font-bold text-white truncate">{connection.username}</div>
           </div>
         </Link>
         <div className="flex items-center gap-2.5">
@@ -45,7 +49,7 @@ export default function ConnectionRow({
           <button
             type="button"
             onClick={() => onAction?.(connection.id)}
-            className="font-display text-sm font-extrabold border-none rounded-[10px] px-4 py-2.5 bg-[#FFF335] text-[#121212] cursor-pointer flex-1"
+            className="font-display text-sm font-extrabold border-none rounded-[10px] px-4 py-2.5 bg-[#FFF335] text-[#0C0C0C] cursor-pointer flex-1"
           >
             {actionLabel}
           </button>
@@ -59,19 +63,22 @@ export default function ConnectionRow({
       {/* Action button is a sibling, not nested inside this Link, so it
           needs no preventDefault/stopPropagation to avoid double-triggering
           a navigation — same pattern as EventRow. */}
-      <Link href={`/profile/${connection.userId}`} className="flex flex-1 min-w-0 items-center gap-3.5">
+      <Link
+        href={`/users/${encodeURIComponent(connection.username)}`}
+        className="flex flex-1 min-w-0 items-center gap-3.5"
+      >
         <div
           className="w-11 h-11 rounded-full bg-[#3A3A3C] flex-shrink-0 bg-cover bg-center"
-          style={connection.avatarUrl ? { backgroundImage: `url(${connection.avatarUrl})` } : undefined}
+          style={connection.avatarUrl ? { backgroundImage: safeBackgroundImage(connection.avatarUrl) } : undefined}
         />
         <div className="flex-1 min-w-0">
-          <div className="font-display text-[17px] font-bold text-white truncate">{connection.name}</div>
+          <div className="font-display text-[17px] font-bold text-white truncate">{connection.username}</div>
         </div>
       </Link>
       <button
         type="button"
         onClick={() => onAction?.(connection.id)}
-        className="font-display text-sm font-extrabold border-none rounded-[10px] px-4 py-2.5 bg-[#FFF335] text-[#121212] cursor-pointer"
+        className="font-display text-sm font-extrabold border-none rounded-[10px] px-4 py-2.5 bg-[#FFF335] text-[#0C0C0C] cursor-pointer"
       >
         {actionLabel}
       </button>

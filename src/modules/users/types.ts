@@ -7,7 +7,7 @@
 
 export interface SocialLink {
   id: string;
-  platform: "tiktok" | "instagram" | "facebook";
+  platform: "tiktok" | "instagram" | "facebook" | "youtube";
   placeholder: string;
   value: string;
 }

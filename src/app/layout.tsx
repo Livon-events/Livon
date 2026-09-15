@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import SiteHeader from "@/shared/layout/SiteHeader";
 import BottomNav from "@/shared/layout/BottomNav";
 import { getSiteUrl } from "@/shared/siteUrl";
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteHeader />
         {children}
         <div className="md:hidden"><BottomNav /></div>
+        <SpeedInsights />
       </body>
     </html>
   );

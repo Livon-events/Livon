@@ -1,11 +1,12 @@
 import React from "react";
 import Link from "next/link";
+import { safeBackgroundImage } from "@/shared/security/urls";
 
 export type SocialPlatform = "instagram" | "facebook" | "tiktok";
 
 export interface GuestlistAttendee {
   id: string;
-  handle: string;
+  username: string;
   avatarUrl?: string;
   socials?: SocialPlatform[];
 }
@@ -19,7 +20,7 @@ export default function GuestlistRow({ attendee }: GuestlistRowProps) {
     <div className="flex items-center justify-between py-2.5">
       {/* Left: Avatar + Handle — links to the attendee's public profile */}
       <Link
-        href={`/profile/${attendee.id}`}
+        href={`/users/${encodeURIComponent(attendee.username)}`}
         className="flex items-center gap-3.5 min-w-0 group"
       >
         {/* Gray placeholder shown until the attendee's avatar image loads */}
@@ -27,13 +28,13 @@ export default function GuestlistRow({ attendee }: GuestlistRowProps) {
           className="w-10 h-10 rounded-full bg-[#3A3A3C] shrink-0 bg-cover bg-center"
           style={
             attendee.avatarUrl
-              ? { backgroundImage: `url(${attendee.avatarUrl})` }
+              ? { backgroundImage: safeBackgroundImage(attendee.avatarUrl) }
               : undefined
           }
         />
         {/* Handle */}
         <span className="text-white text-base font-bold truncate group-hover:underline">
-          {attendee.handle}
+          @{attendee.username}
         </span>
       </Link>
 

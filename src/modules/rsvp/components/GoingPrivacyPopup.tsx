@@ -35,7 +35,7 @@ export default function GoingPrivacyPopup({
       <div className="fixed inset-0 z-40" onClick={onClose} aria-hidden="true" />
       <div
         onClick={(e) => e.stopPropagation()}
-        className="absolute bottom-full left-0 z-50 mb-2 w-64 overflow-hidden rounded-xl border border-[#262626] bg-[#161616] shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
+        className="absolute bottom-full left-0 z-50 mb-2 w-64 overflow-hidden rounded-xl border border-[#262626] bg-[#161616]"
       >
         {mode === "choose-privacy" ? (
           <>

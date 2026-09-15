@@ -18,6 +18,7 @@ export type PublicProfile = {
   tiktokUrl: string | null;
   instagramUrl: string | null;
   facebookUrl: string | null;
+  youtubeUrl: string | null;
 };
 
 type PublicProfileRow = {
@@ -28,6 +29,7 @@ type PublicProfileRow = {
   tiktok_url: string | null;
   instagram_url: string | null;
   facebook_url: string | null;
+  youtube_url: string | null;
 };
 
 /**
@@ -57,20 +59,15 @@ export async function getPublicProfile(userId: string): Promise<PublicProfile | 
     tiktokUrl: data.tiktok_url,
     instagramUrl: data.instagram_url,
     facebookUrl: data.facebook_url,
+    youtubeUrl: data.youtube_url,
   };
 }
 
 /**
- * Resolves a `username` to its `user_id`, for the `/users/[username]` ->
- * `/profile/[userId]` bridge (see that route's header comment). Goes
- * through `resolve_username_to_user_id`, a `SECURITY DEFINER` function
- * granted to `anon` + `authenticated` — same pattern as `getPublicProfile`
- * / `get_public_profile` — since a direct `users` table select would come
- * back empty for a logged-out visitor (`users` has no `anon` SELECT
- * policy, per docs/db/rls-policies.md). Exact-match, case-sensitive
- * lookup, matching `users.username`'s actual (non-functional) unique
- * index — usernames are already lowercased at signup, so this is a
- * non-issue in practice (see docs/db/schema.md's `users` notes).
+ * Resolves the public `/users/[username]` URL to its stable `user_id`.
+ * Goes through `resolve_username_to_user_id`, a narrow SECURITY DEFINER
+ * function granted to anonymous and authenticated visitors because the
+ * users table itself is not publicly readable.
  *
  * Returns null if no such username exists.
  */
@@ -95,6 +92,7 @@ export type OwnProfileBasics = {
   tiktokUrl: string | null;
   instagramUrl: string | null;
   facebookUrl: string | null;
+  youtubeUrl: string | null;
 };
 
 /**
@@ -116,7 +114,7 @@ export async function getOwnProfileBasics(userId: string): Promise<OwnProfileBas
 
   const { data, error } = await supabase
     .from("users")
-    .select("username, bio, avatar_url, tiktok_url, instagram_url, facebook_url")
+    .select("username, bio, avatar_url, tiktok_url, instagram_url, facebook_url, youtube_url")
     .eq("user_id", userId)
     .single();
 
@@ -131,6 +129,7 @@ export async function getOwnProfileBasics(userId: string): Promise<OwnProfileBas
     tiktokUrl: data.tiktok_url,
     instagramUrl: data.instagram_url,
     facebookUrl: data.facebook_url,
+    youtubeUrl: data.youtube_url,
   };
 }
 

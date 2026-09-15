@@ -17,6 +17,9 @@ import {
 } from "@/modules/events/validation";
 import type { CreateEventCategory } from "@/modules/events/components/create/CreateEventPage";
 import { CitySelect, compareCityNames, DEFAULT_CITY_NAME, type LocationCity } from "@/modules/location";
+import type { EventTalentProfile } from "@/modules/events";
+import { safeBackgroundImage } from "@/shared/security/urls";
+import TalentPicker from "./TalentPicker";
 
 type Admission = "free" | "paid";
 
@@ -32,6 +35,7 @@ export type EventFormInitialValues = {
   admission: Admission;
   price?: number;
   coverImageUrl: string;
+  talent: EventTalentProfile[];
 };
 
 type CreateEventFormProps = {
@@ -94,10 +98,10 @@ const TIME_PRESETS = [
 const chipBase =
   "rounded-full border-[1.5px] px-3 py-1.5 text-xs font-semibold transition active:scale-95";
 const chipInactive = "border-[#262626] text-white hover:border-white/40";
-const chipActive = "border-[#FFF335] bg-[#FFF335] text-[#121212] shadow-[0_3px_8px_rgba(255, 243, 53,0.15)]";
+const chipActive = "border-[#FFF335] bg-[#FFF335] text-[#0C0C0C]";
 
 const inputBase =
-  "w-full rounded-[10px] border-2 border-[#262626] bg-[#121212] px-4 py-3.5 text-[15px] font-medium text-white outline-none transition focus:border-[#FFF335] focus:shadow-[0_0_10px_rgba(255, 243, 53,0.08)]";
+  "w-full rounded-[10px] border-2 border-[#262626] bg-[#0C0C0C] px-4 py-3.5 text-[15px] font-medium text-white outline-none transition focus:border-[#FFF335]";
 
 export default function CreateEventForm(props: CreateEventFormProps) {
   const { categories } = props;
@@ -125,6 +129,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [admission, setAdmission] = useState<Admission>(initialValues?.admission ?? "free");
   const [price, setPrice] = useState(initialValues?.price ? String(initialValues.price) : "");
+  const [talent, setTalent] = useState<EventTalentProfile[]>(initialValues?.talent ?? []);
 
   const [showEndTime, setShowEndTime] = useState(
     Boolean(initialValues?.endDate && initialValues?.endTime)
@@ -290,6 +295,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           description: parsed.data.description ?? "",
           admission: parsed.data.admission,
           price: parsed.data.price,
+          talentIds: talent.map((entry) => entry.userId),
           coverImage: coverFile,
         })
       : await createEvent({
@@ -304,6 +310,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           description: parsed.data.description ?? "",
           admission: parsed.data.admission,
           price: parsed.data.price,
+          talentIds: talent.map((entry) => entry.userId),
           coverImage: coverFile,
         });
 
@@ -360,7 +367,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         <button
           type="button"
           onClick={() => router.push(`/events/${savedEventId}`)}
-          className="h-[52px] w-full max-w-xs rounded-[10px] bg-[#FFF335] text-base font-extrabold text-[#121212] shadow-[0_4px_12px_rgba(255, 243, 53,0.15)] transition active:scale-[0.97]"
+          className="h-[52px] w-full max-w-xs rounded-[10px] bg-[#FFF335] text-base font-extrabold text-[#0C0C0C] transition active:scale-[0.97]"
         >
           {isEditing ? "View Event" : "Done"}
         </button>
@@ -393,16 +400,16 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-[#FFF335] transition active:scale-[0.99]"
           style={
             coverPreview
-              ? { backgroundImage: `url(${coverPreview})`, backgroundSize: "cover", backgroundPosition: "center" }
+              ? { backgroundImage: safeBackgroundImage(coverPreview), backgroundSize: "cover", backgroundPosition: "center" }
               : undefined
           }
         >
           {coverPreview ? (
-            <span className="rounded-full bg-[#121212]/45 px-4 py-2 text-sm font-semibold text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.8)]">
+            <span className="rounded-full bg-[#0C0C0C]/45 px-4 py-2 text-sm font-semibold text-white">
               Change photo
             </span>
           ) : (
-            <span className="flex flex-col items-center gap-2 text-center text-lg font-extrabold text-[#121212]">
+            <span className="flex flex-col items-center gap-2 text-center text-lg font-extrabold text-[#0C0C0C]">
               <Camera className="h-6 w-6" strokeWidth={2.5} />
               Add a photo
             </span>
@@ -654,14 +661,14 @@ export default function CreateEventForm(props: CreateEventFormProps) {
       {/* Admission */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">ADMISSION</label>
-        <div className="flex gap-1 rounded-[10px] border border-[#262626] bg-[#121212] p-1">
+        <div className="flex gap-1 rounded-[10px] border border-[#262626] bg-[#0C0C0C] p-1">
           {(["free", "paid"] as Admission[]).map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => setAdmission(option)}
               className={`flex-1 rounded-[7px] py-2.5 text-sm font-bold capitalize transition ${
-                admission === option ? "bg-[#FFF335] text-[#121212]" : "text-[#8e8e8e] hover:text-white"
+                admission === option ? "bg-[#FFF335] text-[#0C0C0C]" : "text-[#8e8e8e] hover:text-white"
               }`}
             >
               {option}
@@ -670,7 +677,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         </div>
 
         {admission === "paid" && (
-          <div className="mt-1.5 flex items-center rounded-[10px] border-2 border-[#262626] bg-[#121212] px-4 focus-within:border-[#FFF335] focus-within:shadow-[0_0_10px_rgba(255, 243, 53,0.08)]">
+          <div className="mt-1.5 flex items-center rounded-[10px] border-2 border-[#262626] bg-[#0C0C0C] px-4 focus-within:border-[#FFF335]">
             <span className="mr-1.5 text-lg font-extrabold text-[#FFF335]">M</span>
             <input
               type="number"
@@ -707,11 +714,13 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         {errors.description && <p className="text-xs font-semibold text-[#ff453a]">{errors.description}</p>}
       </div>
 
+      <TalentPicker value={talent} onChange={setTalent} max={10} />
+
       <div className="flex flex-col gap-3 pb-6 pt-2">
         <button
           type="submit"
           disabled={submitting || (!isEditing && !areaId)}
-          className="h-[52px] w-full rounded-[10px] bg-[#FFF335] text-base font-extrabold text-[#121212] shadow-[0_4px_12px_rgba(255, 243, 53,0.15)] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-[52px] w-full rounded-[10px] bg-[#FFF335] text-base font-extrabold text-[#0C0C0C] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting ? (isEditing ? "Saving…" : "Uploading…") : isEditing ? "Save Changes" : "Publish Event"}
         </button>

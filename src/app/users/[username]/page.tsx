@@ -1,40 +1,60 @@
-import { redirect, notFound } from "next/navigation";
-import { resolveUsernameToUserId } from "@/modules/users/queries";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
+import { getConnectionStateBetween } from "@/modules/connections/queries";
+import { getUpcomingActiveEventsForProfile } from "@/modules/events/queries";
+import { PublicProfilePage } from "@/modules/users";
+import { getPublicProfile, resolveUsernameToUserId } from "@/modules/users/queries";
+import { createClient } from "@/shared/supabase/server";
 
-type UsernameResolverPageProps = {
+type ProfileByUsernamePageProps = {
   params: Promise<{ username: string }>;
 };
 
 /**
- * Thin resolver: `/u/[username]` -> `/profile/[userId]`.
- *
- * Every place a host/organizer's name shows up in the app (event cards,
- * event details) only has their `username` on hand, not their `user_id` —
- * `get_home_feed` returns `host_username`, not an id (see
- * docs/db/functions.md). The canonical profile route is still keyed by
- * `user_id` (per docs/FR/user-profile-fr.md: username is cosmetic/display,
- * never load-bearing), so this route exists purely to bridge the two
- * without having to thread organizer_id through the home-feed function
- * and every card type — a smaller, safer change than altering
- * `get_home_feed`'s return columns.
- *
- * Open to anonymous visitors, same as `/profile/[userId]` itself: the
- * lookup goes through `resolveUsernameToUserId` -> `resolve_username_to_user_id`,
- * a `SECURITY DEFINER` function granted to `anon` + `authenticated`
- * (see docs/db/rls-policies.md, docs/db/functions.md) — this used to be a
- * direct `users` table select, which came back empty for a logged-out
- * visitor since `users` has no `anon` SELECT policy, forcing a login
- * redirect before the visitor ever reached the (already anon-friendly)
- * profile page. That's what this route no longer does.
+ * Canonical public profile route. Database relationships remain keyed by
+ * stable user_id values; the username is resolved only at this URL boundary.
  */
-export default async function UsernameResolverPage({ params }: UsernameResolverPageProps) {
+export default async function ProfileByUsernamePage({ params }: ProfileByUsernamePageProps) {
   const { username } = await params;
-
-  const userId = await resolveUsernameToUserId(username);
+  const requestedUsername = username.toLowerCase();
+  const userId = await resolveUsernameToUserId(requestedUsername);
 
   if (!userId) {
     notFound();
   }
 
-  redirect(`/profile/${userId}`);
+  const supabase = await createClient();
+  const [
+    profile,
+    {
+      data: { user: viewer },
+    },
+  ] = await Promise.all([getPublicProfile(userId), supabase.auth.getUser()]);
+
+  if (!profile) {
+    notFound();
+  }
+
+  if (username !== profile.username) {
+    permanentRedirect(`/users/${encodeURIComponent(profile.username)}`);
+  }
+
+  if (viewer?.id === userId) {
+    redirect("/profile");
+  }
+
+  const [connectionState, featuredEvents] = await Promise.all([
+    viewer
+      ? getConnectionStateBetween(viewer.id, userId)
+      : Promise.resolve({ status: "none" as const }),
+    getUpcomingActiveEventsForProfile(userId),
+  ]);
+
+  return (
+    <PublicProfilePage
+      profile={profile}
+      connectionState={connectionState}
+      featuredEvents={featuredEvents}
+      isViewerSignedIn={!!viewer}
+    />
+  );
 }

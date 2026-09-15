@@ -1,5 +1,10 @@
 import "server-only";
 import { createClient } from "@/shared/supabase/server";
+import { DEFAULT_CITY_NAME } from "./constants";
+import { readLocationPreferenceCookie } from "./cookie";
+import type { OrganizerLocationContext } from "@/modules/users/queries";
+
+export { readLocationPreferenceCookie } from "./cookie";
 
 export type LocationPickerArea = {
   id: string;
@@ -89,4 +94,35 @@ export async function getAreaById(areaId: string): Promise<LocationAreaWithCity 
   }
 
   return { id: data.area_id, name: data.name, cityId: data.city_id, cityName: data.city.name };
+}
+
+export type FeedLocationScope = {
+  cityId: string;
+  /** null = All areas within `cityId`. */
+  areaId: string | null;
+};
+
+/** Resolves the same city/area scope used by the header and home feed. */
+export async function resolveFeedLocationScope({
+  cities,
+  accountLocation,
+}: {
+  cities: LocationPickerCity[];
+  accountLocation: OrganizerLocationContext | null;
+}): Promise<FeedLocationScope> {
+  const defaultCity = cities.find((city) => city.name === DEFAULT_CITY_NAME) ?? cities[0];
+  if (!defaultCity) {
+    throw new Error("resolveFeedLocationScope: no cities found â€” has the cities table been seeded?");
+  }
+
+  if (accountLocation) {
+    return { cityId: accountLocation.cityId, areaId: accountLocation.areaId };
+  }
+
+  const devicePref = await readLocationPreferenceCookie();
+  if (devicePref && cities.some((city) => city.id === devicePref.cityId)) {
+    return { cityId: devicePref.cityId, areaId: devicePref.areaId };
+  }
+
+  return { cityId: defaultCity.id, areaId: null };
 }

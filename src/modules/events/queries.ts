@@ -22,11 +22,50 @@ import type {
   FeaturedEvent,
   EventEditData,
   EventDetails,
+  EventTalentProfile,
   PeekPageData,
   EventManagementData,
 } from "@/modules/events/types";
 
 export type { EventEditData, EventDetails, PeekPageData };
+
+type EventTalentRow = {
+  user_id: string;
+  username: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  tiktok_url: string | null;
+  instagram_url: string | null;
+  facebook_url: string | null;
+  youtube_url: string | null;
+};
+
+/** Public-safe Talent roster, used for event details and edit prefill. */
+async function getEventTalent(eventId: string): Promise<EventTalentProfile[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_event_talent", { p_event_id: eventId });
+
+  // Talent is optional. Keep the event page usable if a deployment briefly
+  // reaches app code before the migration has been applied.
+  if (error) {
+    if (error.code === "PGRST202") return [];
+    console.error("get_event_talent failed:", error.message);
+    return [];
+  }
+
+  return ((data ?? []) as EventTalentRow[])
+    .filter((row) => Boolean(row.username))
+    .map((row) => ({
+      userId: row.user_id,
+      username: row.username ?? "User",
+      avatarUrl: row.avatar_url,
+      bio: row.bio,
+      tiktokUrl: row.tiktok_url,
+      instagramUrl: row.instagram_url,
+      facebookUrl: row.facebook_url,
+      youtubeUrl: row.youtube_url,
+    }));
+}
 
 /**
  * All reads of the `events` table live in this one file — merged during
@@ -80,6 +119,8 @@ export async function getEventForEdit(
   // PostgREST returns `numeric` columns as strings.
   const priceNum = parseFloat(data.price as unknown as string);
 
+  const talent = await getEventTalent(eventId);
+
   return {
     id: data.event_id,
     title: data.title,
@@ -94,6 +135,7 @@ export async function getEventForEdit(
     price: priceNum > 0 ? priceNum : undefined,
     coverImageUrl: data.cover_image_url,
     status: data.status,
+    talent,
   };
 }
 
@@ -133,18 +175,21 @@ export const getEventDetails = cache(async function getEventDetails(
 ): Promise<EventDetails | null> {
   const supabase = await createClient();
 
-  const { data: event, error } = await supabase
-    .from("events")
-    .select(
-      `event_id, title, description, venue_name, starts_at, ends_at,
-       cover_image_url, status, price, organizer_id,
-       claimed_at, intended_claim_user_id, intended_claim_email,
-       areas ( name ),
-       categories ( name ),
-       organizer:users!organizer_id ( username )`
-    )
-    .eq("event_id", eventId)
-    .single<EventDetailsRow>();
+  const [{ data: event, error }, talent] = await Promise.all([
+    supabase
+      .from("events")
+      .select(
+        `event_id, title, description, venue_name, starts_at, ends_at,
+         cover_image_url, status, price, organizer_id,
+         claimed_at, intended_claim_user_id, intended_claim_email,
+         areas ( name ),
+         categories ( name ),
+         organizer:users!organizer_id ( username )`
+      )
+      .eq("event_id", eventId)
+      .single<EventDetailsRow>(),
+    getEventTalent(eventId),
+  ]);
 
   if (error || !event) {
     return null;
@@ -210,6 +255,7 @@ export const getEventDetails = cache(async function getEventDetails(
     isClaimable,
     canViewerClaim,
     claimNeedsOpsTransfer,
+    talent,
   };
 });
 
@@ -379,13 +425,12 @@ type FeaturedEventRow = {
   title: string;
   starts_at: string;
   ends_at: string | null;
-  cover_image_url: string;
+  cover_image_url: string | null;
   areas: { name: string } | null;
 };
 
 /**
- * "Featured Hosted-Events" strip on another user's profile — their active,
- * not-yet-ended events, soonest first. Renamed from
+ * Active, not-yet-ended events organized by a user, soonest first. Renamed from
  * `getPublicUpcomingHostedEvents`. Reuses the same
  * ends_at ?? starts_at+8h "still live" derivation as `get_home_feed`
  * rather than a stored "past" flag, per the archival-over-deletion
@@ -427,6 +472,49 @@ export async function getUpcomingActiveEventsOrganizedBy(userId: string): Promis
         coverImageUrl: row.cover_image_url,
       };
     });
+}
+
+type PublicProfileEventRow = {
+  event_id: string;
+  title: string;
+  starts_at: string;
+  cover_image_url: string | null;
+  area_name: string | null;
+};
+
+/**
+ * Upcoming events shown on another user's profile. An event qualifies when
+ * the profile owns it OR appears in its Talent lineup. The RPC is needed
+ * because event_talent deliberately has no public SELECT grant; it returns
+ * only public event-card fields and deduplicates profiles who are both host
+ * and Talent.
+ */
+export async function getUpcomingActiveEventsForProfile(userId: string): Promise<FeaturedEvent[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("get_public_profile_events", {
+    p_user_id: userId,
+  });
+
+  // During a staggered deploy, retain the existing organizer-only behavior
+  // until the Talent migration (and its RPC) reaches the database.
+  if (error?.code === "PGRST202") {
+    return getUpcomingActiveEventsOrganizedBy(userId);
+  }
+
+  if (error) {
+    throw new Error(`getUpcomingActiveEventsForProfile failed: ${error.message}`);
+  }
+
+  const now = new Date();
+
+  return ((data ?? []) as PublicProfileEventRow[]).map((row) => ({
+    id: row.event_id,
+    title: row.title,
+    countdownLabel: getCountdownLabel(new Date(row.starts_at), now),
+    areaName: row.area_name ?? "",
+    coverImageUrl: row.cover_image_url,
+  }));
 }
 
 type EventManagementDataRow = {
@@ -502,7 +590,7 @@ export async function getEventManagementData(
 
     return {
       id: row.user_id,
-      handle: row.username ? `@${row.username}` : "@user",
+      username: row.username ?? "user",
       avatarUrl: row.avatar_url ?? undefined,
       socials,
     };

@@ -22,7 +22,7 @@ export { default as SegmentedTabs } from "./components/SegmentedTabs";
 export { default as UserProfilePage } from "./components/UserProfilePage";
 export { default as ConnectButton } from "./components/view/ConnectButton";
 export { default as FeaturedEventCard } from "./components/view/FeaturedEventCard";
-export { default as PublicLinksButton } from "./components/view/PublicLinksButton";
+export { default as PublicSocialIcons } from "./components/view/PublicSocialIcons";
 export { default as PublicProfilePage } from "./components/view/PublicProfilePage";
 
 // Server-only — not re-exported here deliberately. `applyProfileUpdate`

@@ -7,4 +7,5 @@ export const mockSocialLinks: SocialLink[] = [
   { id: "tiktok", platform: "tiktok", placeholder: "tiktok.com/@username", value: "" },
   { id: "instagram", platform: "instagram", placeholder: "instagram.com/username", value: "" },
   { id: "facebook", platform: "facebook", placeholder: "facebook.com/username", value: "" },
+  { id: "youtube", platform: "youtube", placeholder: "youtube.com/@username", value: "" },
 ];

@@ -36,11 +36,11 @@ export default function EventAboutSection({
           type="button"
           onClick={handlePeekClick}
           data-event-id={eventId}
-          className="relative flex min-h-[36px] min-w-[84px] items-center justify-center rounded-[7px] border-[3px] border-[#FFF335] bg-[#121212] px-4 text-[14px] font-bold text-[#FFF335] transition-transform active:scale-95 sm:min-h-[40px] sm:min-w-[104px]"
+          className="relative flex min-h-[36px] min-w-[84px] items-center justify-center rounded-[7px] border-[3px] border-[#FFF335] bg-[#0C0C0C] px-4 text-[14px] font-bold text-[#FFF335] transition-transform active:scale-95 sm:min-h-[40px] sm:min-w-[104px]"
         >
           <span className={peekConnectionsCount > 0 ? "-translate-x-1.5" : ""}>Peek</span>
           {peekConnectionsCount > 0 && (
-            <span className="absolute right-[6px] top-1/2 flex min-w-[16px] h-4 -translate-y-1/2 items-center justify-center rounded-full bg-[#FFF335] px-1 text-[10px] font-black leading-none text-[#121212]">
+            <span className="absolute right-[6px] top-1/2 flex min-w-[16px] h-4 -translate-y-1/2 items-center justify-center rounded-full bg-[#FFF335] px-1 text-[10px] font-black leading-none text-[#0C0C0C]">
               {peekConnectionsCount}
             </span>
           )}

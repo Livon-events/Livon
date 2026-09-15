@@ -6,8 +6,8 @@
 
 export interface ConnectionUser {
   id: string; // connection_id — what accept/decline/remove actions act on
-  userId: string; // the other party's user_id, kept for future profile links
-  name: string;
+  userId: string; // the other party's stable user_id
+  username: string;
   avatarUrl?: string;
 }
 

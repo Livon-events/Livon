@@ -137,6 +137,16 @@ function jsonToFormData(
       formData.set(key, String(field));
       continue;
     }
+    // Repeated primitive fields preserve arrays such as event talent ids
+    // across the JSON and legacy multipart request formats. Complex nested
+    // objects remain deliberately unsupported by this generic adapter.
+    if (
+      Array.isArray(field) &&
+      field.every((entry) => typeof entry === "string" || typeof entry === "number")
+    ) {
+      for (const entry of field) formData.append(key, String(entry));
+      continue;
+    }
     return { ok: false, error: "Could not read the submitted form.", status: 400 };
   }
 

@@ -13,6 +13,7 @@ export const TITLE_MAX = 60;
 export const VENUE_MIN = 3;
 export const VENUE_MAX = 60;
 export const DESCRIPTION_MAX = 750;
+export const TALENT_MAX = 10;
 
 // price is `numeric` on Events, defaults to 0. Upper bound isn't specified by
 // the FR — this is a defensive sanity cap, not a business rule, so a typo or
@@ -129,6 +130,26 @@ export const eventTextFieldsSchema = z.object({
 });
 
 export type EventTextFields = z.infer<typeof eventTextFieldsSchema>;
+
+const talentIdsSchema = z
+  .array(z.string().uuid("Invalid Talent profile"))
+  .max(TALENT_MAX, `You can feature up to ${TALENT_MAX} Talent profiles`)
+  .superRefine((ids, ctx) => {
+    if (new Set(ids).size !== ids.length) {
+      ctx.addIssue({ code: "custom", message: "Talent profiles must be unique" });
+    }
+  });
+
+/** Parses repeated `talentIds` fields from JSON or multipart event requests. */
+export function parseTalentIds(formData: FormData):
+  | { ok: true; data: string[] }
+  | { ok: false; error: string } {
+  const parsed = talentIdsSchema.safeParse(formData.getAll("talentIds"));
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid Talent profiles" };
+  }
+  return { ok: true, data: parsed.data };
+}
 
 /**
  * Combines the validated date + time strings into an ISO timestamp.

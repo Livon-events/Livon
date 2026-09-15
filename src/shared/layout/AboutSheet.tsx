@@ -44,7 +44,7 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
   return (
     <div
       onClick={onClose}
-      className={`fixed inset-0 flex bg-[#121212]/65 transition-opacity duration-[250ms] ease-out ${
+      className={`fixed inset-0 flex bg-[#0C0C0C]/65 transition-opacity duration-[250ms] ease-out ${
         isSheet
           ? "z-[1100] items-end"
           : "z-[200] items-center justify-center"
@@ -58,10 +58,10 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
         aria-labelledby="about-livon-title"
         className={
           isSheet
-            ? `flex w-full max-h-[85dvh] flex-col origin-bottom rounded-t-3xl border-t border-[#222222] bg-[#121212] px-5 pt-4 transition-transform duration-[350ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
+            ? `flex w-full max-h-[85dvh] flex-col origin-bottom rounded-t-3xl border-t border-[#222222] bg-[#0C0C0C] px-5 pt-4 transition-transform duration-[350ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
                 open ? "translate-y-0" : "translate-y-full"
               }`
-            : `w-full max-w-[480px] rounded-2xl border border-[#222222] bg-[#121212] p-6 transition-transform duration-[250ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
+            : `w-full max-w-[480px] rounded-2xl border border-[#222222] bg-[#0C0C0C] p-6 transition-transform duration-[250ms] ease-[cubic-bezier(0.25,1,0.5,1)] ${
                 open ? "translate-y-0 scale-100" : "translate-y-2.5 scale-95"
               }`
         }

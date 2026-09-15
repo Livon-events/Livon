@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { PeekPageData } from "@/modules/events/types";
+import { safeBackgroundImage } from "@/shared/security/urls";
 
 type PeekPageProps = {
   data: PeekPageData;
@@ -23,7 +24,7 @@ export default function PeekPage({ data }: PeekPageProps) {
   const hasAttendingConnections = attendingConnections.length > 0;
 
   return (
-    <main className="min-h-screen bg-[#121212] text-white">
+    <main className="min-h-screen bg-[#0C0C0C] text-white">
       <div className="mx-auto flex w-[min(calc(100%-24px),798px)] flex-col gap-6 py-5 sm:w-[min(calc(100%-48px),798px)]">
         <Link
           href={`/events/${eventId}`}
@@ -55,7 +56,7 @@ export default function PeekPage({ data }: PeekPageProps) {
                 <div key={person.userId} className="flex items-center gap-3.5 py-3">
                   <div
                     className="h-11 w-11 shrink-0 rounded-full bg-[#d11a8c] bg-cover bg-center"
-                    style={person.avatarUrl ? { backgroundImage: `url(${person.avatarUrl})` } : undefined}
+                    style={person.avatarUrl ? { backgroundImage: safeBackgroundImage(person.avatarUrl) } : undefined}
                   />
                   <span className="text-base font-semibold text-white">@{person.username}</span>
                 </div>

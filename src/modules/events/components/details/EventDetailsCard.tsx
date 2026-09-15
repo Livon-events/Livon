@@ -18,7 +18,7 @@ export default function EventDetailsCard({ event }: EventDetailsCardProps) {
     <div className="overflow-hidden rounded-lg border-2 border-[#FFF335]">
       {/* Poster — 4px gap from the card border on all sides, matching the
           mockup's .poster-wrap/.poster treatment. */}
-      <div className="bg-[#121212] p-1">
+      <div className="bg-[#0C0C0C] p-1">
         {event.coverImageUrl ? (
           <PosterViewer src={event.coverImageUrl} alt={event.title} />
         ) : (

@@ -1,5 +1,7 @@
 export type { EventSearchResult, PersonSearchResult } from "./queries";
 export { useHeaderSearch } from "./hooks/useHeaderSearch";
+export { searchPeopleForTalent } from "./clientQueries";
+export type { TalentSearchResult } from "./clientQueries";
 export { default as SearchResults } from "./components/SearchResults";
 export { default as EventResultCard } from "./components/EventResultCard";
 export { default as PersonResultCard } from "./components/PersonResultCard";

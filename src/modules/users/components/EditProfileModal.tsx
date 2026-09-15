@@ -10,6 +10,7 @@ import {
   ALLOWED_AVATAR_MIME,
   AVATAR_MAX_BYTES,
 } from "@/modules/users/validation";
+import { safeBackgroundImage } from "@/shared/security/urls";
 
 interface EditProfileModalProps {
   username: string;
@@ -117,9 +118,9 @@ export default function EditProfileModal({
 
   return (
     <div className="fixed inset-0 z-[1100] flex items-center justify-center px-5">
-      <div className="absolute inset-0 bg-[#121212]/70" onClick={pending ? undefined : onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-[#0C0C0C]/70" onClick={pending ? undefined : onClose} aria-hidden="true" />
 
-      <div className="relative w-full max-w-[420px] max-h-[90vh] supports-[height:100dvh]:max-h-[90dvh] overflow-y-auto rounded-2xl border border-[#1F2023] bg-[#17181A] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.6)]">
+      <div className="relative w-full max-w-[420px] max-h-[90vh] supports-[height:100dvh]:max-h-[90dvh] overflow-y-auto rounded-2xl border border-[#1F2023] bg-[#17181A] p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-display text-[20px] font-extrabold text-white">Edit profile</h2>
           <button
@@ -143,10 +144,10 @@ export default function EditProfileModal({
               onClick={() => fileInputRef.current?.click()}
               disabled={pending}
               className="relative w-24 h-24 rounded-full bg-[#3A3A3C] bg-cover bg-center flex-shrink-0 disabled:opacity-60"
-              style={avatarPreview ? { backgroundImage: `url(${avatarPreview})` } : undefined}
+              style={avatarPreview ? { backgroundImage: safeBackgroundImage(avatarPreview) } : undefined}
               aria-label="Change profile picture"
             >
-              <span className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#FFF335] border-2 border-[#17181A] flex items-center justify-center text-[#121212]">
+              <span className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#FFF335] border-2 border-[#17181A] flex items-center justify-center text-[#0C0C0C]">
                 <Camera className="w-4 h-4" />
               </span>
             </button>
@@ -216,7 +217,7 @@ export default function EditProfileModal({
             <button
               type="submit"
               disabled={pending}
-              className="flex-1 h-12 rounded-xl bg-[#FFF335] text-[#121212] font-display font-bold text-[15px] disabled:opacity-60"
+              className="flex-1 h-12 rounded-xl bg-[#FFF335] text-[#0C0C0C] font-display font-bold text-[15px] disabled:opacity-60"
             >
               {pending ? "Saving…" : "Save"}
             </button>
