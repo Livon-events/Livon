@@ -86,6 +86,9 @@ export async function applyProfileUpdate(
       .from(STORAGE_BUCKET)
       .upload(objectPath, new Uint8Array(processed.data.buffer), {
         contentType: processed.data.contentType,
+        // Object names are UUID-versioned, so replacements always receive a
+        // new URL and can be cached for a year without serving stale avatars.
+        cacheControl: "31536000",
         upsert: false,
       });
 

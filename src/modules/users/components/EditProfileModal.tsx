@@ -10,7 +10,7 @@ import {
   ALLOWED_AVATAR_MIME,
   AVATAR_MAX_BYTES,
 } from "@/modules/users/validation";
-import { safeBackgroundImage } from "@/shared/security/urls";
+import AvatarImage from "./AvatarImage";
 
 interface EditProfileModalProps {
   username: string;
@@ -143,10 +143,15 @@ export default function EditProfileModal({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={pending}
-              className="relative w-24 h-24 rounded-full bg-[#3A3A3C] bg-cover bg-center flex-shrink-0 disabled:opacity-60"
-              style={avatarPreview ? { backgroundImage: safeBackgroundImage(avatarPreview) } : undefined}
+              className="relative h-24 w-24 shrink-0 rounded-full disabled:opacity-60"
               aria-label="Change profile picture"
             >
+              <AvatarImage
+                src={avatarPreview}
+                alt=""
+                sizes="96px"
+                className="h-full w-full rounded-full"
+              />
               <span className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#FFF335] border-2 border-[#17181A] flex items-center justify-center text-[#0C0C0C]">
                 <Camera className="w-4 h-4" />
               </span>

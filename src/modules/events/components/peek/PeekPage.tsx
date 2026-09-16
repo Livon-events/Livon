@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { PeekPageData } from "@/modules/events/types";
-import { safeBackgroundImage } from "@/shared/security/urls";
+import { AvatarImage } from "@/modules/users";
 
 type PeekPageProps = {
   data: PeekPageData;
@@ -54,9 +54,11 @@ export default function PeekPage({ data }: PeekPageProps) {
             <div className="flex flex-col">
               {attendingConnections.map((person) => (
                 <div key={person.userId} className="flex items-center gap-3.5 py-3">
-                  <div
-                    className="h-11 w-11 shrink-0 rounded-full bg-[#d11a8c] bg-cover bg-center"
-                    style={person.avatarUrl ? { backgroundImage: safeBackgroundImage(person.avatarUrl) } : undefined}
+                  <AvatarImage
+                    src={person.avatarUrl}
+                    alt=""
+                    sizes="44px"
+                    className="h-11 w-11 shrink-0 rounded-full"
                   />
                   <span className="text-base font-semibold text-white">@{person.username}</span>
                 </div>

@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
   // sharp 0.35 could crash mid-upload with "libvipsVersion is not a function").
   serverExternalPackages: ["sharp"],
   images: {
+    // Keep the default quality for general imagery and allow a slightly
+    // higher step for faces, where compression artifacts are more noticeable.
+    qualities: [75, 82],
     remotePatterns: [
       { protocol: "https", hostname: "picsum.photos" },
       {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { EventTalentProfile } from "@/modules/events";
-import { safeBackgroundImage } from "@/shared/security/urls";
+import { AvatarImage } from "@/modules/users";
 
 type EventTalentSectionProps = {
   talent: EventTalentProfile[];
@@ -24,9 +24,11 @@ export default function EventTalentSection({ talent }: EventTalentSectionProps) 
               aria-label={`View ${person.username}'s Livon profile`}
               className="flex min-h-[64px] items-center gap-3 border-b border-white py-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF335]"
             >
-              <div
-                className="h-10 w-10 shrink-0 rounded-full bg-[#3A3A3C] bg-cover bg-center"
-                style={person.avatarUrl ? { backgroundImage: safeBackgroundImage(person.avatarUrl) } : undefined}
+              <AvatarImage
+                src={person.avatarUrl}
+                alt=""
+                sizes="40px"
+                className="h-10 w-10 shrink-0 rounded-full"
               />
               <span className="min-w-0 flex-1 truncate text-base font-bold text-white">
                 @{person.username}

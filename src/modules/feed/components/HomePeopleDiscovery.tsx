@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Zap } from "lucide-react";
 import type { HomePeopleDiscoveryResult } from "@/modules/feed";
-import { safeBackgroundImage } from "@/shared/security/urls";
+import { AvatarImage } from "@/modules/users";
 
 type Mode = "talent" | "makers";
 
@@ -72,10 +72,15 @@ export default function HomePeopleDiscovery({ discovery }: HomePeopleDiscoveryPr
                 className="group relative block aspect-square overflow-hidden rounded-xl bg-[#3A3A3C] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF335]"
               >
                 {person.avatarUrl && (
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                    style={{ backgroundImage: safeBackgroundImage(person.avatarUrl) }}
-                  />
+                  <span className="absolute inset-0">
+                    <AvatarImage
+                      src={person.avatarUrl}
+                      alt=""
+                      sizes="(max-width: 400px) calc(100vw - 3rem), 352px"
+                      className="h-full w-full"
+                      imageClassName="transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </span>
                 )}
                 <span className="absolute inset-x-2 bottom-2 flex items-center rounded-full border-2 border-white bg-[#0C0C0C] py-0.5 pl-3 pr-0.5">
                   <span className="min-w-0 flex-1 truncate text-center text-[13px] font-extrabold text-white">

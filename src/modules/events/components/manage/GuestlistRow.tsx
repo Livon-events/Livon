@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { safeBackgroundImage } from "@/shared/security/urls";
+import { AvatarImage } from "@/modules/users";
 
 export type SocialPlatform = "instagram" | "facebook" | "tiktok";
 
@@ -24,13 +24,11 @@ export default function GuestlistRow({ attendee }: GuestlistRowProps) {
         className="flex items-center gap-3.5 min-w-0 group"
       >
         {/* Gray placeholder shown until the attendee's avatar image loads */}
-        <div
-          className="w-10 h-10 rounded-full bg-[#3A3A3C] shrink-0 bg-cover bg-center"
-          style={
-            attendee.avatarUrl
-              ? { backgroundImage: safeBackgroundImage(attendee.avatarUrl) }
-              : undefined
-          }
+        <AvatarImage
+          src={attendee.avatarUrl}
+          alt=""
+          sizes="40px"
+          className="h-10 w-10 shrink-0 rounded-full"
         />
         {/* Handle */}
         <span className="text-white text-base font-bold truncate group-hover:underline">

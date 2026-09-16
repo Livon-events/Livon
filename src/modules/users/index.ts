@@ -9,6 +9,7 @@ export { updateProfile, updateLocationPreference, updateSocialLink } from "./mut
 export type { UpdateProfileInput, UpdateProfileData } from "./mutations";
 export type { SocialLink, ConnectionsSubTab, EventsSubTab, ProfileMainTab } from "./types";
 
+export { default as AvatarImage } from "./components/AvatarImage";
 export { default as BioSection } from "./components/BioSection";
 export { default as ConnectionRow } from "./components/ConnectionRow";
 export { default as ConnectionsPanel } from "./components/ConnectionsPanel";

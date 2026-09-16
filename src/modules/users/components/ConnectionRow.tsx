@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ConnectionUser } from "./types";
-import { safeBackgroundImage } from "@/shared/security/urls";
+import AvatarImage from "./AvatarImage";
 
 interface ConnectionRowProps {
   connection: ConnectionUser;
@@ -30,9 +30,11 @@ export default function ConnectionRow({
           href={`/users/${encodeURIComponent(connection.username)}`}
           className="flex items-center gap-3.5"
         >
-          <div
-            className="w-11 h-11 rounded-full bg-[#3A3A3C] flex-shrink-0 bg-cover bg-center"
-            style={connection.avatarUrl ? { backgroundImage: safeBackgroundImage(connection.avatarUrl) } : undefined}
+          <AvatarImage
+            src={connection.avatarUrl}
+            alt=""
+            sizes="44px"
+            className="h-11 w-11 shrink-0 rounded-full"
           />
           <div className="flex-1 min-w-0">
             <div className="font-display text-[17px] font-bold text-white truncate">{connection.username}</div>
@@ -67,9 +69,11 @@ export default function ConnectionRow({
         href={`/users/${encodeURIComponent(connection.username)}`}
         className="flex flex-1 min-w-0 items-center gap-3.5"
       >
-        <div
-          className="w-11 h-11 rounded-full bg-[#3A3A3C] flex-shrink-0 bg-cover bg-center"
-          style={connection.avatarUrl ? { backgroundImage: safeBackgroundImage(connection.avatarUrl) } : undefined}
+        <AvatarImage
+          src={connection.avatarUrl}
+          alt=""
+          sizes="44px"
+          className="h-11 w-11 shrink-0 rounded-full"
         />
         <div className="flex-1 min-w-0">
           <div className="font-display text-[17px] font-bold text-white truncate">{connection.username}</div>

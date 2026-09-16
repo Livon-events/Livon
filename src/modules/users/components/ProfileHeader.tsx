@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { safeBackgroundImage, safeImageUrl } from "@/shared/security/urls";
+import { safeImageUrl } from "@/shared/security/urls";
+import AvatarImage from "./AvatarImage";
 
 interface ProfileHeaderProps {
   username: string;
@@ -20,6 +21,7 @@ export default function ProfileHeader({
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const isPublic = variant === "public";
   const safeAvatarUrl = safeImageUrl(avatarUrl);
+  const avatarSizes = isPublic ? "(max-width: 380px) 76px, 88px" : "(max-width: 380px) 56px, 64px";
 
   // Close on Escape while the viewer is open.
   useEffect(() => {
@@ -47,13 +49,20 @@ export default function ProfileHeader({
         onClick={() => safeAvatarUrl && setIsViewerOpen(true)}
         disabled={!safeAvatarUrl}
         aria-label={safeAvatarUrl ? `View ${username}'s profile picture` : undefined}
-        className={`rounded-full bg-[#3A3A3C] flex-shrink-0 bg-cover bg-center appearance-none p-0 border-0 enabled:cursor-pointer disabled:cursor-default ${
+        className={`shrink-0 appearance-none rounded-full border-0 p-0 enabled:cursor-pointer disabled:cursor-default ${
           isPublic
             ? "h-[88px] w-[88px] max-[380px]:h-[76px] max-[380px]:w-[76px]"
             : "w-16 h-16 max-[380px]:w-14 max-[380px]:h-14"
         }`}
-        style={safeAvatarUrl ? { backgroundImage: safeBackgroundImage(safeAvatarUrl) } : undefined}
-      />
+      >
+        <AvatarImage
+          src={safeAvatarUrl}
+          alt=""
+          sizes={avatarSizes}
+          eager
+          className="h-full w-full rounded-full"
+        />
+      </button>
       <div className="flex flex-col gap-1">
         <div className="font-display text-[26px] max-[380px]:text-[22px] font-extrabold tracking-[-0.6px] text-white">
           {username}
@@ -96,12 +105,11 @@ export default function ProfileHeader({
             className="relative z-[1] w-[min(90vw,90vh,440px)] md:w-[min(80vw,80vh,806px)] aspect-square overflow-hidden rounded-full"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Native img (same as PosterViewer) so the modal shows full resolution, not a scaled CSS background. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <AvatarImage
               src={safeAvatarUrl}
               alt={`${username}'s profile picture`}
-              className="block h-full w-full object-cover object-center"
+              sizes="(min-width: 1008px) 806px, (min-width: 768px) 80vw, (min-width: 489px) 440px, 90vw"
+              className="h-full w-full rounded-full"
             />
           </div>
         </div>

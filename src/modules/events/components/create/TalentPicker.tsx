@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
 import { searchPeopleForTalent } from "@/modules/search";
 import type { EventTalentProfile } from "@/modules/events";
-import { safeBackgroundImage } from "@/shared/security/urls";
+import { AvatarImage } from "@/modules/users";
 
 type TalentPickerProps = {
   value: EventTalentProfile[];
@@ -98,9 +98,11 @@ export default function TalentPicker({ value, onChange, max }: TalentPickerProps
         <ul className="flex flex-col gap-2">
           {value.map((talent) => (
             <li key={talent.userId} className="flex items-center gap-3 rounded-xl bg-[#1a1a1a] px-3 py-2.5">
-              <div
-                className="h-9 w-9 shrink-0 rounded-full bg-[#3A3A3C] bg-cover bg-center"
-                style={talent.avatarUrl ? { backgroundImage: safeBackgroundImage(talent.avatarUrl) } : undefined}
+              <AvatarImage
+                src={talent.avatarUrl}
+                alt=""
+                sizes="36px"
+                className="h-9 w-9 shrink-0 rounded-full"
               />
               <span className="min-w-0 flex-1 truncate text-sm font-bold text-white">@{talent.username}</span>
               <button
@@ -127,9 +129,11 @@ export default function TalentPicker({ value, onChange, max }: TalentPickerProps
               onClick={() => addTalent(talent)}
               className="flex w-full items-center gap-3 border-b border-[#262626] px-3 py-3 text-left last:border-b-0 hover:bg-white/5"
             >
-              <div
-                className="h-10 w-10 shrink-0 rounded-full bg-[#3A3A3C] bg-cover bg-center"
-                style={talent.avatarUrl ? { backgroundImage: safeBackgroundImage(talent.avatarUrl) } : undefined}
+              <AvatarImage
+                src={talent.avatarUrl}
+                alt=""
+                sizes="40px"
+                className="h-10 w-10 shrink-0 rounded-full"
               />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-bold text-white">@{talent.username}</span>
