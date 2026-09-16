@@ -28,6 +28,12 @@ const nextConfig: NextConfig = {
     qualities: [75, 82],
     remotePatterns: [
       { protocol: "https", hostname: "picsum.photos" },
+      // Google OAuth avatars stored on signup via auth trigger.
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
       {
         protocol: "https",
         hostname: "zzgnkqpkmumpwjpsbbil.supabase.co",
