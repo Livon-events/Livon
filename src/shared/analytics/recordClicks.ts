@@ -49,22 +49,12 @@ export async function recordDiscoveryPersonClick({
     if (viewer.kind === "auth" && viewer.userId === targetUserId) return;
 
     const supabase = createClient();
-    const row =
-      viewer.kind === "auth"
-        ? {
-            target_user_id: targetUserId,
-            section,
-            viewer_user_id: viewer.userId,
-            anon_session_id: null,
-          }
-        : {
-            target_user_id: targetUserId,
-            section,
-            viewer_user_id: null,
-            anon_session_id: viewer.anonSessionId,
-          };
-
-    const { error } = await supabase.from("discovery_person_clicks").insert(row);
+    const { error } = await supabase.from("discovery_person_clicks").insert({
+      target_user_id: targetUserId,
+      section,
+      viewer_user_id: viewer.kind === "auth" ? viewer.userId : null,
+      anon_session_id: viewer.kind === "anon" ? viewer.anonSessionId : null,
+    });
     if (error) {
       console.error("recordDiscoveryPersonClick failed", error);
     }
@@ -92,22 +82,12 @@ export async function recordProfileSocialClick({
     if (viewer.kind === "auth" && viewer.userId === profileUserId) return;
 
     const supabase = createClient();
-    const row =
-      viewer.kind === "auth"
-        ? {
-            profile_user_id: profileUserId,
-            platform,
-            viewer_user_id: viewer.userId,
-            anon_session_id: null,
-          }
-        : {
-            profile_user_id: profileUserId,
-            platform,
-            viewer_user_id: null,
-            anon_session_id: viewer.anonSessionId,
-          };
-
-    const { error } = await supabase.from("profile_social_clicks").insert(row);
+    const { error } = await supabase.from("profile_social_clicks").insert({
+      profile_user_id: profileUserId,
+      platform,
+      viewer_user_id: viewer.kind === "auth" ? viewer.userId : null,
+      anon_session_id: viewer.kind === "anon" ? viewer.anonSessionId : null,
+    });
     if (error) {
       console.error("recordProfileSocialClick failed", error);
     }
