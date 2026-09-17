@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Zap } from "lucide-react";
 import type { HomePeopleDiscoveryResult } from "@/modules/feed";
 import { AvatarImage } from "@/modules/users";
+import { recordDiscoveryPersonClick } from "@/shared/analytics/recordClicks";
 
 type Mode = "talent" | "makers";
 
@@ -69,6 +70,12 @@ export default function HomePeopleDiscovery({ discovery }: HomePeopleDiscoveryPr
             <li key={person.userId} className="w-[min(calc(100vw-3rem),22rem)] shrink-0 snap-start">
               <Link
                 href={`/users/${encodeURIComponent(person.username)}`}
+                onClick={() => {
+                  void recordDiscoveryPersonClick({
+                    targetUserId: person.userId,
+                    section: mode,
+                  });
+                }}
                 className="group relative block aspect-square overflow-hidden rounded-xl bg-[#3A3A3C] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF335]"
               >
                 {person.avatarUrl && (
@@ -78,7 +85,6 @@ export default function HomePeopleDiscovery({ discovery }: HomePeopleDiscoveryPr
                       alt=""
                       sizes="(max-width: 400px) calc(100vw - 3rem), 352px"
                       className="h-full w-full"
-                      imageClassName="transition-transform duration-300 group-hover:scale-105"
                     />
                   </span>
                 )}

@@ -45,6 +45,7 @@ export default function PublicProfilePage({
 
         <section className="flex w-full min-w-0 flex-col gap-3" aria-label="Social links and connect">
           <PublicSocialIcons
+            profileUserId={profile.userId}
             facebookUrl={profile.facebookUrl}
             instagramUrl={profile.instagramUrl}
             tiktokUrl={profile.tiktokUrl}

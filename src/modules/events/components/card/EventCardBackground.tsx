@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 
+/**
+ * Yellow Peek-notch card chrome. Happy path keeps the measured SVG notch
+ * (Livon differentiator). Falls back to a static yellow rounded frame when
+ * measure fails or the user prefers reduced motion — see
+ * docs/FR/home-feed-performance.md.
+ */
 export default function EventCardBackground({ eventId }: { eventId: string }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
@@ -10,31 +16,72 @@ export default function EventCardBackground({ eventId }: { eventId: string }) {
   // this card's own layout actually changed, per bug: repeated redraws
   // with identical values were still causing a visible flicker.
   const lastRef = useRef<{ w: number; h: number; x1: number; x2: number } | null>(null);
+  const [useFallback, setUseFallback] = useState(false);
 
   useEffect(() => {
+    if (useFallback) return;
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) {
+      setUseFallback(true);
+      return;
+    }
+
     const svg = svgRef.current;
     if (!svg) return;
 
     const card = svg.parentElement;
     if (!card) return;
 
+    let pendingFrame: number | null = null;
+    let disposed = false;
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (!disposed) scheduleDraw();
+    });
+
+    const enterFallback = () => {
+      if (disposed) return;
+      disposed = true;
+      if (pendingFrame !== null) {
+        cancelAnimationFrame(pendingFrame);
+        pendingFrame = null;
+      }
+      resizeObserver.disconnect();
+      setUseFallback(true);
+    };
+
     const drawCard = () => {
+      if (disposed) return;
+
       const btn = card.querySelector<HTMLElement>(`#peekBtn-${CSS.escape(eventId)}`);
       const path = pathRef.current;
 
-      if (!btn || !path) return;
+      if (!btn || !path) {
+        enterFallback();
+        return;
+      }
 
       const W = card.offsetWidth;
       const H = card.offsetHeight;
 
-      if (W === 0 || H === 0) return; // not laid out yet
+      if (W === 0 || H === 0) return; // not laid out yet — wait for next tick
 
       const cardRect = card.getBoundingClientRect();
       const btnRect = btn.getBoundingClientRect();
 
+      if (btnRect.width <= 0 || btnRect.height <= 0) {
+        enterFallback();
+        return;
+      }
+
       const gap = 5; // visible yellow gap between peek button and notch
       const x1 = Math.round(btnRect.left - cardRect.left - gap);
       const x2 = Math.round(btnRect.right - cardRect.left + gap);
+
+      // Transitional layout can produce out-of-range notch coords — skip this
+      // frame instead of permanently degrading chrome.
+      if (x2 <= x1 || x1 < 0 || x2 > W) return;
 
       const last = lastRef.current;
       if (last && last.w === W && last.h === H && last.x1 === x1 && last.x2 === x2) {
@@ -42,9 +89,9 @@ export default function EventCardBackground({ eventId }: { eventId: string }) {
       }
       lastRef.current = { w: W, h: H, x1, x2 };
 
-      const d = 46;   // notch depth = head height
-      const r = 12;   // card outer corner radius
-      const nr = 10;   // notch corner radius
+      const d = 46; // notch depth = head height
+      const r = 12; // card outer corner radius
+      const nr = 10; // notch corner radius
 
       svg.setAttribute("width", W.toString());
       svg.setAttribute("height", H.toString());
@@ -74,25 +121,32 @@ export default function EventCardBackground({ eventId }: { eventId: string }) {
       );
     };
 
-    let pendingFrame: number | null = null;
-    const scheduleDraw = () => {
-      if (pendingFrame !== null) return; // already coalesced into a pending frame
+    function scheduleDraw() {
+      if (disposed || pendingFrame !== null) return;
       pendingFrame = requestAnimationFrame(() => {
         pendingFrame = null;
         drawCard();
       });
-    };
+    }
 
     scheduleDraw();
-
-    const resizeObserver = new ResizeObserver(() => scheduleDraw());
     resizeObserver.observe(card);
 
     return () => {
+      disposed = true;
       if (pendingFrame !== null) cancelAnimationFrame(pendingFrame);
       resizeObserver.disconnect();
     };
-  }, [eventId]);
+  }, [eventId, useFallback]);
+
+  if (useFallback) {
+    return (
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 rounded-[12px] bg-[#FFF335]"
+      />
+    );
+  }
 
   return (
     <svg

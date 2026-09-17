@@ -25,7 +25,7 @@ const MASERU_CITY_FALLBACK_ID = '11111111-1111-1111-1111-111111111102';
 const MASERU_CENTRAL_AREA_FALLBACK_ID = '11111111-1111-1111-1111-111111111203';
 
 const CATEGORY = {
-  SPORTS: '11111111-1111-1111-1111-111111111302',
+  FAITH_WORSHIP: '11111111-1111-1111-1111-111111111302',
   ARTS_CULTURE: '11111111-1111-1111-1111-111111111304',
   NIGHTLIFE: '11111111-1111-1111-1111-111111111306',
 };
@@ -74,36 +74,64 @@ const ANON_VIEW = {
   B: '11111111-1111-1111-1111-111111111802',
 };
 
-// Profile fields keyed by username — filled in with real city/area ids at
-// runtime once seedLocation() has resolved them (see main()).
+// Stable keys for cross-referencing in seedEvents / connections / interests.
+const USER = {
+  THABO: 'thabo',
+  LERATO: 'lerato',
+  NTSIKELELO: 'ntsi',
+  PULANE: 'pulane',
+};
+
+// Profile fields — city/area ids are filled at runtime in seedUsers() after
+// seedLocation() resolves Maseru Central.
 const TEST_USER_DEFS = [
   {
-    email: 'seed.user1@livonseed.test',
-    password: 'SeedUser1!23',
-    username: 'seed_user1',
-    bio: 'Seed test account #1 — organizer of most seed events, Maseru Central.',
+    key: USER.THABO,
+    email: 'thabo.moleko@livonseed.test',
+    password: 'ThaboMoleko!23',
+    username: 'thabo_moleko',
+    bio: 'Everyday is my birthday\nThe best organizer around maseru central',
     hasLocationPreference: true,
+    instagramUrl: 'https://instagram.com/thabo_moleko_ls',
+    tiktokUrl: 'https://tiktok.com/@thabo_moleko_ls',
+    facebookUrl: null,
+    youtubeUrl: 'https://youtube.com/@thabo_moleko_football',
   },
   {
-    email: 'seed.user2@livonseed.test',
-    password: 'SeedUser2!23',
-    username: 'seed_user2',
-    bio: 'Seed test account #2 — regular attendee, Maseru Central.',
+    key: USER.LERATO,
+    email: 'lerato.sekhonyana@livonseed.test',
+    password: 'LeratoSekh!23',
+    username: 'lerato_sekhonyana',
+    bio: 'Maseru local — always on the guestlist for heritage talks and gallery openings. Blanket season is year-round.',
     hasLocationPreference: true,
+    instagramUrl: 'https://instagram.com/lerato.sekhonyana',
+    tiktokUrl: null,
+    facebookUrl: 'https://facebook.com/lerato.sekhonyana.maseru',
+    youtubeUrl: null,
   },
   {
-    email: 'seed.user3@livonseed.test',
-    password: 'SeedUser3!23',
-    username: 'seed_user3',
-    bio: 'Seed test account #3 — Maseru based, hosts arts & nightlife events.',
+    key: USER.NTSIKELELO,
+    email: 'ntsi.mokone@livonseed.test',
+    password: 'NtsiMokone!23',
+    username: 'ntsi_mokone',
+    bio: 'Friday night sessions & arts in Maseru. DJ sets, weaving showcases, rooftop vibes.',
     hasLocationPreference: true,
+    instagramUrl: 'https://instagram.com/ntsi_mokone',
+    tiktokUrl: 'https://tiktok.com/@ntsi_mokone',
+    facebookUrl: 'https://facebook.com/ntsi.mokone.events',
+    youtubeUrl: 'https://youtube.com/@ntsi_mokone_sessions',
   },
   {
-    email: 'seed.user4@livonseed.test',
-    password: 'SeedUser4!23',
-    username: 'seed_user4',
-    bio: 'Seed test account #4 — no city preference set.',
+    key: USER.PULANE,
+    email: 'pulane.mohapi@livonseed.test',
+    password: 'PulaneMohapi!23',
+    username: 'pulane_mohapi',
+    bio: 'Still choosing my corner of Maseru — browsing events before I set a home area on Livon.',
     hasLocationPreference: false, // deliberate test case: null city/area preference
+    instagramUrl: 'https://instagram.com/pulane_mohapi',
+    tiktokUrl: 'https://tiktok.com/@pulane_mohapi',
+    facebookUrl: null,
+    youtubeUrl: null,
   },
 ];
 
@@ -250,7 +278,7 @@ async function seedCategories() {
     .from('categories')
     .upsert(
       [
-        { category_id: CATEGORY.SPORTS, name: 'Sports' },
+        { category_id: CATEGORY.FAITH_WORSHIP, name: 'Faith & Worship' },
         { category_id: CATEGORY.ARTS_CULTURE, name: 'Arts & Culture' },
         { category_id: CATEGORY.NIGHTLIFE, name: 'Nightlife' },
       ],
@@ -263,7 +291,7 @@ async function seedUsers({ cityId, areaId }) {
   const userIds = {};
   for (const u of TEST_USER_DEFS) {
     const authUser = await findOrCreateAuthUser(u);
-    userIds[u.username] = authUser.id;
+    userIds[u.key] = authUser.id;
 
     // handle_new_user trigger already created/updates the base public.users row
     // (user_id, email, username, avatar_url) on auth user creation. Update the
@@ -272,7 +300,12 @@ async function seedUsers({ cityId, areaId }) {
     const res = await supabase
       .from('users')
       .update({
+        username: u.username,
         bio: u.bio,
+        instagram_url: u.instagramUrl,
+        tiktok_url: u.tiktokUrl,
+        facebook_url: u.facebookUrl,
+        youtube_url: u.youtubeUrl,
         preferred_city_id: u.hasLocationPreference ? cityId : null,
         preferred_area_id: u.hasLocationPreference ? areaId : null,
       })
@@ -283,8 +316,8 @@ async function seedUsers({ cityId, areaId }) {
 }
 
 async function seedEvents(userIds, { cityId, areaId }) {
-  const organizer1 = userIds['seed_user1'];
-  const organizer2 = userIds['seed_user3'];
+  const organizer1 = userIds[USER.THABO];
+  const organizer2 = userIds[USER.NTSIKELELO];
 
   const placeholderImg = (seed) => `https://picsum.photos/seed/${seed}/800/450`;
 
@@ -293,7 +326,7 @@ async function seedEvents(userIds, { cityId, areaId }) {
       {
         event_id: EVENT.ONE,
         organizer_id: organizer1,
-        category_id: CATEGORY.SPORTS,
+        category_id: CATEGORY.FAITH_WORSHIP,
         city_id: cityId,
         area_id: areaId,
         title: 'Basotho Derby: 5-a-side Showcase',
@@ -368,7 +401,7 @@ async function seedEvents(userIds, { cityId, areaId }) {
       {
         event_id: EVENT.SIX_CANCELLED,
         organizer_id: organizer1,
-        category_id: CATEGORY.SPORTS,
+        category_id: CATEGORY.FAITH_WORSHIP,
         city_id: cityId,
         area_id: areaId,
         title: '5-a-side Tournament (Cancelled)',
@@ -384,7 +417,7 @@ async function seedEvents(userIds, { cityId, areaId }) {
       {
         event_id: EVENT.SEVEN,
         organizer_id: organizer1,
-        category_id: CATEGORY.SPORTS,
+        category_id: CATEGORY.FAITH_WORSHIP,
         city_id: cityId,
         area_id: areaId,
         title: 'Likhopo Cycling Trail Ride',
@@ -433,9 +466,9 @@ async function seedEvents(userIds, { cityId, areaId }) {
 }
 
 async function seedConnections(userIds) {
-  const u1 = userIds['seed_user1'];
-  const u2 = userIds['seed_user2'];
-  const u3 = userIds['seed_user3'];
+  const u1 = userIds[USER.THABO];
+  const u2 = userIds[USER.LERATO];
+  const u3 = userIds[USER.NTSIKELELO];
 
   const res = await supabase.from('connections').upsert(
     [
@@ -458,10 +491,10 @@ async function seedConnections(userIds) {
 }
 
 async function seedEventInterests(userIds) {
-  const u1 = userIds['seed_user1'];
-  const u2 = userIds['seed_user2'];
-  const u3 = userIds['seed_user3'];
-  const u4 = userIds['seed_user4'];
+  const u1 = userIds[USER.THABO];
+  const u2 = userIds[USER.LERATO];
+  const u3 = userIds[USER.NTSIKELELO];
+  const u4 = userIds[USER.PULANE];
 
   const res = await supabase.from('event_interests').upsert(
     [
@@ -480,7 +513,7 @@ async function seedEventInterests(userIds) {
 }
 
 async function seedViews(userIds) {
-  const u4 = userIds['seed_user4'];
+  const u4 = userIds[USER.PULANE];
 
   const viewsRes = await supabase.from('event_views').upsert(
     [
@@ -550,9 +583,9 @@ async function main() {
 
   await removeStaleCategoryRows();
 
-  console.log('\nDone. Test login credentials:');
+  console.log('\nDone. Test login credentials (Basotho seed personas):');
   for (const u of TEST_USER_DEFS) {
-    console.log(`  ${u.email} / ${u.password}`);
+    console.log(`  @${u.username} — ${u.email} / ${u.password}`);
   }
 }
 

@@ -57,6 +57,8 @@ const DEFAULT_PAGE_SIZE = 12; // matches 3-col grid at the lg breakpoint
 
 type GetHomeFeedParams = {
   categoryId?: string | null;
+  /** When true, only events with price = 0 (SQL filter, not a category). */
+  freeOnly?: boolean;
   /** Required for location-scoped feeds — events.city_id match. */
   cityId?: string | null;
   /** null/omitted = all areas in the city; set = events.area_id match. */
@@ -83,6 +85,7 @@ type HomeFeedRow = {
 
 export async function getHomeFeed({
   categoryId = null,
+  freeOnly = false,
   cityId = null,
   areaId = null,
   cursor = null,
@@ -99,6 +102,7 @@ export async function getHomeFeed({
     p_cursor_starts_at: cursor?.startsAt ?? null,
     p_cursor_event_id: cursor?.eventId ?? null,
     p_page_size: pageSize,
+    p_free_only: freeOnly,
   });
 
   if (error) {

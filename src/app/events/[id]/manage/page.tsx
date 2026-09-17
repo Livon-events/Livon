@@ -32,6 +32,7 @@ export default async function EventManageRoute({ params }: EventManageRouteProps
       dateLabel={data.dateLabel}
       attendingCount={data.attendingCount}
       sharesCount={data.sharesCount}
+      viewsCount={data.viewsCount}
       attendees={data.attendees}
     />
   );

@@ -220,11 +220,11 @@ AS $function$
     ) as shares_count,
     (
       (
-        select count(distinct ev.user_id)
+        select count(*)::integer
         from public.event_views ev
         where ev.event_id = e.event_id
       ) + (
-        select count(distinct aev.anon_session_id)
+        select count(*)::integer
         from public.anonymous_event_views aev
         where aev.event_id = e.event_id
       )
@@ -506,7 +506,8 @@ CREATE OR REPLACE FUNCTION public.get_home_feed(
   p_cursor_total_going integer DEFAULT NULL::integer,
   p_cursor_starts_at timestamp with time zone DEFAULT NULL::timestamp with time zone,
   p_cursor_event_id uuid DEFAULT NULL::uuid,
-  p_page_size integer DEFAULT 20
+  p_page_size integer DEFAULT 20,
+  p_free_only boolean DEFAULT false
 )
 RETURNS TABLE(
   id uuid,
@@ -599,6 +600,7 @@ AS $function$
       and (p_category_id is null or e.category_id = p_category_id)
       and (p_city_id is null or e.city_id = p_city_id)
       and (p_area_id is null or e.area_id = p_area_id)
+      and (not coalesce(p_free_only, false) or e.price = 0)
   ),
   scored as (
     select
@@ -883,10 +885,10 @@ GRANT EXECUTE ON FUNCTION public.get_home_people_discovery(uuid, uuid, integer)
   TO anon, authenticated, service_role;
 
 REVOKE ALL ON FUNCTION public.get_home_feed(
-  uuid, uuid, uuid, integer, integer, timestamp with time zone, uuid, integer
+  uuid, uuid, uuid, integer, integer, timestamp with time zone, uuid, integer, boolean
 ) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_home_feed(
-  uuid, uuid, uuid, integer, integer, timestamp with time zone, uuid, integer
+  uuid, uuid, uuid, integer, integer, timestamp with time zone, uuid, integer, boolean
 ) TO anon, authenticated, service_role;
 
 REVOKE ALL ON FUNCTION public.search_events(text, integer) FROM PUBLIC;

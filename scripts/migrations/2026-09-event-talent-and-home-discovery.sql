@@ -16,7 +16,9 @@ CREATE INDEX IF NOT EXISTS event_talent_talent_user_id_idx
 ALTER TABLE public.event_talent ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON TABLE public.event_talent FROM anon, authenticated;
-GRANT INSERT, DELETE ON TABLE public.event_talent TO authenticated;
+-- SELECT is required alongside DELETE/INSERT: with RLS enabled, Postgres
+-- needs SELECT to find the rows the invoker is allowed to mutate.
+GRANT SELECT, INSERT, DELETE ON TABLE public.event_talent TO authenticated;
 
 DROP POLICY IF EXISTS event_talent_insert_own_event ON public.event_talent;
 CREATE POLICY event_talent_insert_own_event

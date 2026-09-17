@@ -1,10 +1,9 @@
-// src/components/categories/CategorySelector.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 interface CategorySelectorProps {
-  // No hardcoded default: categories are DB-driven (see lib/queries/categories.ts)
+  // No hardcoded default: categories are DB-driven (see modules/categories/queries.ts)
   // and every real caller (CategoryFilterBar, CreateEventForm) already passes
   // them explicitly. A local fallback list here would silently drift from
   // whatever the `categories` table actually contains.
@@ -13,28 +12,34 @@ interface CategorySelectorProps {
   /** Pass this + onChange for controlled usage. `null` means no filter (all events). */
   activeCategory?: string | null;
   onChange?: (category: string | null) => void;
+  /** Price filter (not a category). Omit to hide the Free chip. */
+  freeOnly?: boolean;
+  onFreeChange?: (freeOnly: boolean) => void;
 }
 
+const chipBase =
+  "shrink-0 whitespace-nowrap rounded-[7px] px-4 py-2.5 text-[15px] font-bold leading-none";
+
 /**
- * Horizontal scrollable category chips.
+ * Horizontal scrollable category chips, with an optional leading Free price filter.
  *
  * Uses an outer overflow-x-auto container constrained to the same max-width +
  * padding as EventCardGrid, with an inner flex row of `w-max` so chips never
- * force the page wider than the viewport. This prevents the classic "flex
- * nowrap expands the body" overflow that makes the grid feel squished.
+ * force the page wider than the viewport.
  */
 export default function CategorySelector({
   categories,
   defaultActive = null,
   activeCategory,
   onChange,
+  freeOnly,
+  onFreeChange,
 }: CategorySelectorProps) {
-  const [internalActive, setInternalActive] = useState<string | null>(
-    defaultActive
-  );
+  const [internalActive, setInternalActive] = useState<string | null>(defaultActive);
 
   const isControlled = activeCategory !== undefined;
   const active = isControlled ? activeCategory : internalActive;
+  const showFree = freeOnly !== undefined && onFreeChange !== undefined;
 
   const handleClick = (category: string) => {
     // Clicking the already-active category clears the filter (shows all events).
@@ -48,8 +53,7 @@ export default function CategorySelector({
   };
 
   return (
-    <nav className="w-full bg-[#0C0C0C]" aria-label="Event categories">
-      {/* Constrained wrapper matching EventCardGrid max-width + horizontal padding */}
+    <nav className="w-full bg-[#0C0C0C]" aria-label="Event filters">
       <div
         className="
           mx-auto max-w-[1400px]
@@ -61,6 +65,22 @@ export default function CategorySelector({
         "
       >
         <ul className="flex w-max min-w-full list-none flex-nowrap items-center gap-1.5">
+          {showFree && (
+            <li className="shrink-0">
+              <button
+                type="button"
+                onClick={() => onFreeChange(!freeOnly)}
+                aria-pressed={freeOnly}
+                className={`${chipBase} ${
+                  freeOnly
+                    ? "border-2 border-[#FFF335] bg-[#0C0C0C] text-white"
+                    : "border-2 border-white/80 bg-[#0C0C0C] text-white hover:bg-[#1a1a1a]"
+                }`}
+              >
+                Free
+              </button>
+            </li>
+          )}
           {categories.map((category) => {
             const isActive = category === active;
             return (
@@ -68,17 +88,11 @@ export default function CategorySelector({
                 <button
                   type="button"
                   onClick={() => handleClick(category)}
-                  className={`
-                    shrink-0 whitespace-nowrap rounded-[7px]
-                    px-4 py-2.5 text-[15px] font-bold leading-none
-                    transition-colors duration-150 ease-in-out
-                    active:scale-[0.97]
-                    ${
-                      isActive
-                        ? 'border-2 border-[#FFF335] bg-[#1f1f1f] text-white'
-                        : 'border-2 border-transparent bg-[#1f1f1f] text-white hover:bg-[#2a2a2a]'
-                    }
-                  `}
+                  className={`${chipBase} ${
+                    isActive
+                      ? "border-2 border-[#FFF335] bg-[#1f1f1f] text-white"
+                      : "border-2 border-transparent bg-[#1f1f1f] text-white hover:bg-[#2a2a2a]"
+                  }`}
                 >
                   {category}
                 </button>

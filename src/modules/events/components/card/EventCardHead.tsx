@@ -43,7 +43,7 @@ export default function EventCardHead({
         id={`peekBtn-${eventId}`}
         onClick={handlePeekClick}
         data-event-id={eventId}
-        className="relative flex h-full flex-1 items-center justify-center rounded-[7px] border-[3px] border-[#FFF335] bg-[#0C0C0C] text-[14px] font-bold text-[#FFF335] transition-transform active:scale-95"
+        className="relative flex h-full flex-1 items-center justify-center rounded-[7px] border-[3px] border-[#FFF335] bg-[#0C0C0C] text-[14px] font-bold text-[#FFF335]"
       >
         <span className={peekConnectionsCount > 0 ? "-translate-x-1.5" : ""}>Peek</span>
 

@@ -554,9 +554,9 @@ type EventManagementDataRow = {
  * This function does the same underlying work (guestlist join, three
  * counts) in one query — each count/subquery still runs once, not once
  * per guestlist row, so cost doesn't increase with attendee count.
- * `views_count` is unique viewers (authenticated user_id + anonymous
- * session id), not raw page loads, so a refresh does not raise the
- * number organizers see.
+ * `views_count` is opens (row count of authenticated + anonymous view
+ * inserts). Same-tab refresh is suppressed client-side via sessionStorage
+ * in recordEventView, so F5 does not raise the number organizers see.
  */
 export async function getEventManagementData(
   eventId: string,

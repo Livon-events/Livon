@@ -3,6 +3,7 @@
 import EventDateMetric from "./EventDateMetric";
 import AttendingCountMetric from "./AttendingCountMetric";
 import SharesCountMetric from "./SharesCountMetric";
+import ViewsCountMetric from "./ViewsCountMetric";
 import GuestlistSection from "./GuestlistSection";
 import type { GuestlistAttendee } from "./GuestlistRow";
 
@@ -10,6 +11,7 @@ export interface EventManagementPageProps {
   dateLabel?: string;
   attendingCount?: number;
   sharesCount?: number;
+  viewsCount?: number;
   attendees?: GuestlistAttendee[];
 }
 
@@ -17,6 +19,7 @@ export default function EventManagementPage({
   dateLabel = "Dec 25, 2026",
   attendingCount = 15,
   sharesCount = 2,
+  viewsCount = 0,
   attendees,
 }: EventManagementPageProps) {
   return (
@@ -40,6 +43,9 @@ export default function EventManagementPage({
 
           {/* Metric 3: Shares Count */}
           <SharesCountMetric count={sharesCount} />
+
+          {/* Metric 4: Views (opens) */}
+          <ViewsCountMetric count={viewsCount} />
 
           {/* Metrics Divider */}
           <div className="w-full h-px bg-white/20 my-3 sm:my-4" />
