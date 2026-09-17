@@ -32,7 +32,7 @@ function LinkIcon({ platform }: { platform: SocialLink["platform"] }) {
   if (platform === "youtube") {
     return (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-[22px] h-[22px]">
-        <path d="M23.5 6.2a3.05 3.05 0 0 0-2.15-2.16C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.35.44A3.05 3.05 0 0 0 .5 6.2 31.9 31.9 0 0 0 0 12a31.9 31.9 0 0 0 .5 5.8 3.05 3.05 0 0 0 2.15 2.16C4.5 20.4 12 20.4 12 20.4s7.5 0 9.35-.44a3.05 3.05 0 0 0 2.15-2.16A31.9 31.9 0 0 0 24 12a31.9 31.9 0 0 0-.5-5.8zM9.75 15.57V8.43L15.84 12l-6.09 3.57z" />
+        <path d="M23.5 6.2a3.05 3.05 0 0 0-2.15-2.16C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.35.44A3.05 3.05 0 0 0 .5 6.2 31.9 31.9 0 0 0 0 12a31.9 31.9 0 0 0 .5 5.8 3.05 3.05 0 0 0 2.15 2.16C4.5 20.4 12 20.4 12 20.4s-7.5 0 9.35-.44a3.05 3.05 0 0 0 2.15-2.16A31.9 31.9 0 0 0 24 12a31.9 31.9 0 0 0-.5-5.8zM9.75 15.57V8.43L15.84 12l-6.09 3.57z" />
       </svg>
     );
   }
@@ -60,6 +60,22 @@ function ArrowIcon() {
   );
 }
 
+function CheckIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-5 h-5"
+    >
+      <polyline points="6 12 10 16 18 8" />
+    </svg>
+  );
+}
+
 export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit }: LinksSectionProps) {
   const { isOpen, toggle, close } = useLinksDropdown();
 
@@ -71,6 +87,17 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
     Object.fromEntries(links.map((link) => [link.id, link.value]))
   );
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+
+  // Brief "just saved" flash — flag clears after 1.5s so the button
+  // reverts to its resting filled state (checkmark stays, green glow fades).
+  const [justSaved, setJustSaved] = useState<Record<string, boolean>>({});
+
+  function flashSaved(id: string) {
+    setJustSaved((prev) => ({ ...prev, [id]: true }));
+    setTimeout(() => {
+      setJustSaved((prev) => ({ ...prev, [id]: false }));
+    }, 1500);
+  }
 
   // Re-sync drafts when the parent hands back new canonical `links` (e.g.
   // after a successful save updates state from the server response).
@@ -108,6 +135,7 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
 
     setErrors((prev) => ({ ...prev, [link.id]: undefined }));
     onLinkSubmit?.(link.id, value.trim());
+    flashSaved(link.id);
   }
 
   return (
@@ -151,6 +179,10 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
         {links.map((link) => {
           const value = draftValues[link.id] ?? link.value;
           const error = errors[link.id];
+          const hasSavedValue = link.value.trim().length > 0;
+          const isDirty = value.trim() !== link.value.trim();
+          const showCheck = hasSavedValue && !isDirty;
+          const isSaving = justSaved[link.id];
           return (
             <div key={link.id} className="flex flex-col gap-1">
               <div className="flex items-center gap-2.5">
@@ -170,17 +202,29 @@ export default function LinksSection({ links, onEdit, onLinkChange, onLinkSubmit
                     }
                   }}
                   className={`flex-1 h-12 bg-[#1F2023] border-2 rounded-xl px-3.5 text-white text-[15px] outline-none placeholder:text-[#AEAEB2] focus:border-[#FFF335] ${
-                    error ? "border-[#ff453a]" : "border-[#1F2023]"
+                    error
+                      ? "border-[#ff453a]"
+                      : showCheck
+                        ? "border-[#FFF335]/40"
+                        : "border-[#1F2023]"
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => handleSubmit(link)}
-                  className="w-12 h-12 flex-shrink-0 border-none rounded-xl bg-[#FFF335] text-[#0C0C0C] flex items-center justify-center cursor-pointer active:scale-[0.985] transition-transform"
+                  aria-label={showCheck ? "Link saved" : "Save link"}
+                  className={`w-12 h-12 flex-shrink-0 border-none rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300 active:scale-[0.985] ${
+                    isSaving
+                      ? "bg-[#30D158] text-white shadow-[0_0_12px_rgba(48,209,88,0.4)]"
+                      : "bg-[#FFF335] text-[#0C0C0C]"
+                  }`}
                 >
-                  <ArrowIcon />
+                  {showCheck || isSaving ? <CheckIcon /> : <ArrowIcon />}
                 </button>
               </div>
+              {isSaving && (
+                <p className="pl-[42px] text-xs font-semibold text-[#30D158]">Saved!</p>
+              )}
               {error && (
                 <p className="pl-[42px] text-xs font-semibold text-[#ff453a]">{error}</p>
               )}
