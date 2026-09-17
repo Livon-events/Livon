@@ -66,20 +66,26 @@ export default function CategorySelector({
       >
         <ul className="flex w-max min-w-full list-none flex-nowrap items-center gap-1.5">
           {showFree && (
-            <li className="shrink-0">
-              <button
-                type="button"
-                onClick={() => onFreeChange(!freeOnly)}
-                aria-pressed={freeOnly}
-                className={`${chipBase} ${
-                  freeOnly
-                    ? "border-2 border-[#FFF335] bg-[#0C0C0C] text-white"
-                    : "border-2 border-white/80 bg-[#0C0C0C] text-white hover:bg-[#1a1a1a]"
-                }`}
-              >
-                Free
-              </button>
-            </li>
+            <>
+              <li className="shrink-0">
+                <button
+                  type="button"
+                  onClick={() => onFreeChange(!freeOnly)}
+                  aria-pressed={freeOnly}
+                  className={`${chipBase} ${
+                    freeOnly
+                      ? "border-2 border-white bg-white text-[#0C0C0C]"
+                      : "border-2 border-white/80 bg-[#0C0C0C] text-white hover:bg-[#1a1a1a]"
+                  }`}
+                >
+                  Free
+                </button>
+              </li>
+              <li
+                aria-hidden="true"
+                className="mx-1.5 h-7 w-px shrink-0 self-center bg-white/30"
+              />
+            </>
           )}
           {categories.map((category) => {
             const isActive = category === active;
