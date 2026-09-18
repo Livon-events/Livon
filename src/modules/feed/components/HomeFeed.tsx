@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { EventCardGrid } from "@/modules/events";
 import type { HomeFeedCursor, HomeFeedEvent, HomeFeedResult } from "@/modules/feed";
@@ -15,10 +15,20 @@ export default function HomeFeed({ initial }: HomeFeedProps) {
   const [nextCursor, setNextCursor] = useState<HomeFeedCursor | null>(initial.nextCursor);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
   const loadingRef = useRef(false);
+  const nextCursorRef = useRef(nextCursor);
+  const errorRef = useRef(error);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<() => Promise<void>>(async () => {});
+
+  nextCursorRef.current = nextCursor;
+  errorRef.current = error;
 
   const loadMore = useCallback(async () => {
-    if (!nextCursor || loadingRef.current) return;
+    const cursor = nextCursorRef.current;
+    if (!cursor || loadingRef.current || errorRef.current) return;
+
     loadingRef.current = true;
     setIsLoading(true);
     setError(null);
@@ -28,10 +38,10 @@ export default function HomeFeed({ initial }: HomeFeedProps) {
     const free = searchParams.get("free");
     if (category) params.set("category", category);
     if (free === "1" || free === "true") params.set("free", "1");
-    params.set("rankScore", String(nextCursor.rankScore));
-    params.set("totalGoingCount", String(nextCursor.totalGoingCount));
-    params.set("startsAt", nextCursor.startsAt);
-    params.set("eventId", nextCursor.eventId);
+    params.set("rankScore", String(cursor.rankScore));
+    params.set("totalGoingCount", String(cursor.totalGoingCount));
+    params.set("startsAt", cursor.startsAt);
+    params.set("eventId", cursor.eventId);
 
     try {
       const res = await fetch(`/api/feed?${params.toString()}`, {
@@ -51,7 +61,27 @@ export default function HomeFeed({ initial }: HomeFeedProps) {
       loadingRef.current = false;
       setIsLoading(false);
     }
-  }, [nextCursor, searchParams]);
+  }, [searchParams]);
+
+  loadMoreRef.current = loadMore;
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !nextCursor) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          void loadMoreRef.current();
+        }
+      },
+      // Modest prefetch — avoids mid-fling spam on low-end while still feeling automatic.
+      { root: null, rootMargin: "120px", threshold: 0 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [nextCursor]);
 
   if (events.length === 0) {
     return (
@@ -67,20 +97,27 @@ export default function HomeFeed({ initial }: HomeFeedProps) {
       <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-2 px-3 py-6 lg:px-6">
         {nextCursor ? (
           <>
-            <button
-              type="button"
-              onClick={() => {
-                void loadMore();
-              }}
-              disabled={isLoading}
-              className="rounded-[10px] bg-[#1F2023] px-6 py-3 font-display text-[15px] font-bold text-white disabled:opacity-60"
-            >
-              {isLoading ? "Loading…" : "Load more"}
-            </button>
+            <div ref={sentinelRef} className="h-1 w-full" aria-hidden="true" />
+            {isLoading ? (
+              <p className="text-center text-[15px] text-[#8e8e8e]">Loading…</p>
+            ) : null}
             {error ? (
-              <p className="text-center text-[13px] text-[#ff453a]" role="alert">
-                {error}
-              </p>
+              <>
+                <p className="text-center text-[13px] text-[#ff453a]" role="alert">
+                  {error}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    errorRef.current = null;
+                    setError(null);
+                    void loadMore();
+                  }}
+                  className="rounded-[10px] bg-[#1F2023] px-6 py-3 font-display text-[15px] font-bold text-white"
+                >
+                  Try again
+                </button>
+              </>
             ) : null}
           </>
         ) : (
