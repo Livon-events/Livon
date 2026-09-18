@@ -1,6 +1,5 @@
 import { Suspense } from "react";
-import { EventCardGrid } from "@/modules/events";
-import { CategoryFilterBar, HomePeopleDiscovery, type HomeFeedResult, type HomePeopleDiscoveryResult } from "@/modules/feed";
+import { CategoryFilterBar, HomeFeed, HomePeopleDiscovery, type HomeFeedResult, type HomePeopleDiscoveryResult } from "@/modules/feed";
 import { getHomeFeed, getHomePeopleDiscovery } from "@/modules/feed/queries";
 import { getCategories } from "@/modules/categories/queries";
 import { getLocationPickerData, resolveFeedLocationScope } from "@/modules/location/queries";
@@ -12,9 +11,15 @@ type HomeProps = {
   searchParams: Promise<{ category?: string; free?: string }>;
 };
 
-async function FeedContent({ feed }: { feed: Promise<HomeFeedResult> }) {
-  const { events } = await feed;
-  return <EventCardGrid events={events} />;
+async function FeedContent({
+  feed,
+  remountKey,
+}: {
+  feed: Promise<HomeFeedResult>;
+  remountKey: string;
+}) {
+  const initial = await feed;
+  return <HomeFeed key={remountKey} initial={initial} />;
 }
 
 async function DiscoveryContent({ discovery }: { discovery: Promise<HomePeopleDiscoveryResult> }) {
@@ -103,7 +108,10 @@ export default async function Home({ searchParams }: HomeProps) {
         />
       </Suspense>
       <Suspense fallback={<FeedSkeleton />}>
-        <FeedContent feed={feed} />
+        <FeedContent
+          feed={feed}
+          remountKey={`${activeCategory?.name ?? ""}:${freeOnly}:${cityId}:${areaId ?? ""}`}
+        />
       </Suspense>
     </main>
   );
