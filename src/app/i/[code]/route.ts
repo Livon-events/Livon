@@ -68,22 +68,26 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       : crypto.randomUUID();
   const issuedAnonSessionId = anonSessionId !== null && !hasValidAnonSession;
 
-  const { data, error } = await createAdminClient()
-    .rpc("redeem_invite", {
-      p_code: code,
-      p_anon_session_id: anonSessionId,
-      p_user_id: user?.id ?? null,
-      p_client_ip: clientIpFrom(request),
-    })
-    .single<RedeemInviteResult>();
+  // RETURNS jsonb (scalar), not a set — do not use .single()/.maybeSingle().
+  const { data, error } = await createAdminClient().rpc("redeem_invite", {
+    p_code: code,
+    p_anon_session_id: anonSessionId,
+    p_user_id: user?.id ?? null,
+    p_client_ip: clientIpFrom(request),
+  });
+
+  const eventId =
+    data && typeof data === "object" && "event_id" in data
+      ? (data as RedeemInviteResult).event_id
+      : null;
 
   // Unknown code, or the RPC itself failed — nothing sensible to redirect
   // to, so send the visitor home rather than a broken event page.
-  if (error || !data?.event_id) {
+  if (error || !eventId) {
     return homeRedirect;
   }
 
-  const response = NextResponse.redirect(new URL(`/events/${data.event_id}`, request.url));
+  const response = NextResponse.redirect(new URL(`/events/${eventId}`, request.url));
 
   if (issuedAnonSessionId && anonSessionId) {
     response.cookies.set(ANON_SESSION_COOKIE, anonSessionId, {
