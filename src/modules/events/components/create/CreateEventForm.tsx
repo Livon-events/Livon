@@ -476,7 +476,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           {sortedCities.length > 1 && (
             <>
               <label htmlFor="eventCity" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
-                CITY
+                DISTRICT
               </label>
               <CitySelect
                 id="eventCity"

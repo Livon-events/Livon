@@ -185,9 +185,11 @@ function must(label, { error }) {
 const BEREA_COMMUNITY_COUNCIL_AREAS = [
   'Teyateyaneng (TY)',
   'Kanana',
+  'Khubetsoana',
   'Kueneng',
   'Mabote',
   'Makeoana',
+  'Makhoroana',
   'Maluba-Lube',
   'Mapoteng',
   'Motanasela',

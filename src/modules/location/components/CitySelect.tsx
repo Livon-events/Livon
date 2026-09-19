@@ -24,7 +24,7 @@ export default function CitySelect({ cities, value, onChange, id, className }: C
       id={id}
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      aria-label="City"
+      aria-label="District"
       className={className ?? selectClassName}
       style={{ colorScheme: "dark" }}
     >

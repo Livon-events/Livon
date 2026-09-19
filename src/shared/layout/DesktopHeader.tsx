@@ -189,7 +189,7 @@ export default function DesktopHeader({
             {cities.length > 1 && (
               <div className="mb-4">
                 <label htmlFor="desktop-header-city-select" className="mb-1.5 block text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
-                  CITY
+                  DISTRICT
                 </label>
                 <CitySelect
                   id="desktop-header-city-select"
