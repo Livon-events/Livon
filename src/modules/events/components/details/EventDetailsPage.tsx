@@ -12,7 +12,7 @@ type EventDetailsPageProps = {
 export default function EventDetailsPage({ event }: EventDetailsPageProps) {
   return (
     <main className="min-h-screen bg-[#0C0C0C] text-white">
-      <RecordEventView eventId={event.id} organizerId={event.organizerId} />
+      <RecordEventView eventId={event.id} />
       <div className="mx-auto w-[min(calc(100%-24px),798px)] pb-24 sm:w-[min(calc(100%-48px),798px)] sm:pb-12">
         <h1 className="mb-1 text-2xl font-extrabold leading-tight sm:mb-2 sm:text-[32px]">
           Event details

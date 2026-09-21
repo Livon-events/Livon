@@ -25,13 +25,13 @@ function markViewLoggedThisSession(eventId: string): void {
 }
 
 /**
- * Records one event-details page view. Dedupes refreshes via sessionStorage
- * (same tab). Organizers opening their own listing are not counted.
- * Signed-out visitors use a localStorage anon session id so the same
- * browser stays one unique viewer. Failures are swallowed — view logging
- * must never block or surface errors on the details page.
+ * Records one event-details page view via rate-limited RPC (30 / 5 min per
+ * viewer). Dedupes refreshes via sessionStorage (same tab). Organizer
+ * self-views are rejected server-side. Signed-out visitors use a
+ * localStorage anon session id. Failures are swallowed — view logging must
+ * never block or surface errors on the details page.
  */
-export async function recordEventView(eventId: string, organizerId: string): Promise<void> {
+export async function recordEventView(eventId: string): Promise<void> {
   if (typeof window === "undefined") return;
   if (hasLoggedViewThisSession(eventId) || pendingEventViews.has(eventId)) return;
 
@@ -44,44 +44,30 @@ export async function recordEventView(eventId: string, organizerId: string): Pro
       error: authError,
     } = await supabase.auth.getUser();
 
-    // A signed-out visitor is the expected case here, and getUser() reports
-    // it as an AuthSessionMissingError rather than a plain null user — so
-    // treating every authError as fatal would skip the anonymous branch
-    // below entirely. Any other auth error is still a real failure.
+    // Signed-out is expected; getUser() surfaces AuthSessionMissingError.
     if (authError && authError.name !== "AuthSessionMissingError") {
       console.error("recordEventView failed", authError);
       return;
     }
 
-    if (user?.id === organizerId) {
-      markViewLoggedThisSession(eventId);
+    let anonSessionId: string | null = null;
+    if (!user) {
+      anonSessionId = getOrCreateAnonSessionId();
+      if (!anonSessionId) return;
+    }
+
+    const { error } = await supabase.rpc("record_event_view", {
+      p_event_id: eventId,
+      p_anon_session_id: anonSessionId,
+    });
+    if (error) {
+      console.error("recordEventView failed", error);
       return;
     }
 
-    if (user) {
-      const { error } = await supabase.from("event_views").insert({
-        event_id: eventId,
-        user_id: user.id,
-      });
-      if (error) {
-        console.error("recordEventView failed", error);
-        return;
-      }
-    } else {
-      const anonSessionId = getOrCreateAnonSessionId();
-      if (!anonSessionId) return;
-
-      const { error } = await supabase.from("anonymous_event_views").insert({
-        event_id: eventId,
-        anon_session_id: anonSessionId,
-      });
-      if (error) {
-        console.error("recordEventView failed", error);
-        return;
-      }
-    }
-
     markViewLoggedThisSession(eventId);
+  } catch (error) {
+    console.error("recordEventView failed", error);
   } finally {
     pendingEventViews.delete(eventId);
   }

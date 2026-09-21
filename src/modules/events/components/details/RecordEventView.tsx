@@ -5,14 +5,13 @@ import { recordEventView } from "../../recordEventView";
 
 type RecordEventViewProps = {
   eventId: string;
-  organizerId: string;
 };
 
 /** Logs one details-page view after mount. Renders nothing. */
-export default function RecordEventView({ eventId, organizerId }: RecordEventViewProps) {
+export default function RecordEventView({ eventId }: RecordEventViewProps) {
   useEffect(() => {
-    void recordEventView(eventId, organizerId);
-  }, [eventId, organizerId]);
+    void recordEventView(eventId);
+  }, [eventId]);
 
   return null;
 }

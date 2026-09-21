@@ -195,7 +195,54 @@ async function main() {
     assert((data ?? []).length === 0, "search_events rejects an overlong query", (data ?? []).length);
   }
 
-  section("authenticated non-owner is still refused");
+  section("record_event_view: anon can write; malformed input is a no-op");
+
+  const anonSessionId = crypto.randomUUID();
+  const createdAnonViewIds = [];
+  const createdAuthViewIds = [];
+  const rateKeysToClean = [`event_view:anon:${anonSessionId}`];
+
+  {
+    const { error } = await anon.rpc("record_event_view", {
+      p_event_id: eventRow.event_id,
+      p_anon_session_id: anonSessionId,
+    });
+    assert(!error, "record_event_view is callable by anon", error);
+
+    const { data: anonRows, error: anonSelectError } = await admin
+      .from("anonymous_event_views")
+      .select("anon_view_id")
+      .eq("event_id", eventRow.event_id)
+      .eq("anon_session_id", anonSessionId);
+    assert(!anonSelectError, "can read anonymous_event_views for verification", anonSelectError);
+    assert((anonRows ?? []).length === 1, "anon RPC inserts one anonymous_event_views row", anonRows);
+    for (const row of anonRows ?? []) createdAnonViewIds.push(row.anon_view_id);
+
+    const beforeMissing = (anonRows ?? []).length;
+    const { error: missingAnonError } = await anon.rpc("record_event_view", {
+      p_event_id: eventRow.event_id,
+      p_anon_session_id: null,
+    });
+    assert(!missingAnonError, "record_event_view accepts a null anon session without erroring", missingAnonError);
+    const { count: afterMissing } = await admin
+      .from("anonymous_event_views")
+      .select("*", { count: "exact", head: true })
+      .eq("event_id", eventRow.event_id)
+      .eq("anon_session_id", anonSessionId);
+    assert(
+      afterMissing === beforeMissing,
+      "null anon session does not insert another anonymous view",
+      { beforeMissing, afterMissing }
+    );
+
+    const { error: unknownEventError } = await anon.rpc("record_event_view", {
+      p_event_id: "00000000-0000-0000-0000-000000000000",
+      p_anon_session_id: crypto.randomUUID(),
+    });
+    assert(!unknownEventError, "record_event_view accepts an unknown event id without erroring", unknownEventError);
+  }
+
+  section("record_event_view: authenticated write, organizer self-view, direct INSERT denied");
 
   const password = `pw-${crypto.randomUUID()}`;
   const email = `authz-test-${crypto.randomUUID()}@example.com`;
@@ -216,6 +263,8 @@ async function main() {
       .select("*", { count: "exact", head: true })
       .eq("user_id", created.user.id);
     assert(triggeredRows === 1, "signup still creates exactly one public.users row", triggeredRows);
+
+    rateKeysToClean.push(`event_view:auth:${created.user.id}`);
 
     const user = createClient(url, anonKey, { auth: { persistSession: false } });
     const { error: signInError } = await user.auth.signInWithPassword({ email, password });
@@ -264,10 +313,105 @@ async function main() {
       });
       assert(isNotCallable(redeemError), "redeem_invite is not callable by authenticated", redeemError);
 
+      const { error: authViewError } = await user.rpc("record_event_view", {
+        p_event_id: eventRow.event_id,
+        p_anon_session_id: crypto.randomUUID(), // ignored for authenticated callers
+      });
+      assert(!authViewError, "record_event_view is callable by authenticated", authViewError);
+
+      const { data: authRows, error: authSelectError } = await admin
+        .from("event_views")
+        .select("event_view_id")
+        .eq("event_id", eventRow.event_id)
+        .eq("user_id", created.user.id);
+      assert(!authSelectError, "can read event_views for verification", authSelectError);
+      assert((authRows ?? []).length === 1, "authenticated RPC inserts one event_views row", authRows);
+      for (const row of authRows ?? []) createdAuthViewIds.push(row.event_view_id);
+
+      const { data: rateRow } = await admin
+        .from("rpc_rate_limits")
+        .select("request_count")
+        .eq("rate_key", `event_view:auth:${created.user.id}`)
+        .maybeSingle();
+      assert(
+        (rateRow?.request_count ?? 0) >= 1,
+        "authenticated view increments the rate-limit counter",
+        rateRow
+      );
+
+      // Organizer self-view: temporary event owned by the throwaway user.
+      const ownedEventId = crypto.randomUUID();
+      const { data: template } = await admin
+        .from("events")
+        .select("venue_name, starts_at, ends_at, city_id, area_id, category_id, price, cover_image_url")
+        .eq("event_id", eventRow.event_id)
+        .single();
+
+      if (!template) {
+        console.log("  skip  could not load a template event for organizer self-view");
+      } else {
+        const { error: insertOwnedError } = await admin.from("events").insert({
+          event_id: ownedEventId,
+          organizer_id: created.user.id,
+          title: `authz-view-self-${ownedEventId.slice(0, 8)}`,
+          status: "active",
+          venue_name: template.venue_name,
+          starts_at: template.starts_at,
+          ends_at: template.ends_at,
+          city_id: template.city_id,
+          area_id: template.area_id,
+          category_id: template.category_id,
+          price: template.price ?? 0,
+          cover_image_url: template.cover_image_url,
+        });
+        assert(!insertOwnedError, "can create a throwaway owned event for self-view", insertOwnedError);
+
+        if (!insertOwnedError) {
+          const { error: selfViewError } = await user.rpc("record_event_view", {
+            p_event_id: ownedEventId,
+          });
+          assert(!selfViewError, "organizer self-view RPC completes without error", selfViewError);
+
+          const { count: selfViewCount } = await admin
+            .from("event_views")
+            .select("*", { count: "exact", head: true })
+            .eq("event_id", ownedEventId)
+            .eq("user_id", created.user.id);
+          assert(selfViewCount === 0, "organizer self-view does not insert an event_views row", selfViewCount);
+
+          await admin.from("events").delete().eq("event_id", ownedEventId);
+        }
+      }
+
+      // Direct inserts must be locked down (phase-2 migration).
+      const { error: directAuthInsertError } = await user.from("event_views").insert({
+        event_id: eventRow.event_id,
+        user_id: created.user.id,
+      });
+      assert(!!directAuthInsertError, "authenticated cannot INSERT event_views directly", directAuthInsertError);
+
       await user.auth.signOut();
     }
 
     await admin.auth.admin.deleteUser(created.user.id);
+  }
+
+  {
+    const { error: directAnonInsertError } = await anon.from("anonymous_event_views").insert({
+      event_id: eventRow.event_id,
+      anon_session_id: crypto.randomUUID(),
+    });
+    assert(!!directAnonInsertError, "anon cannot INSERT anonymous_event_views directly", directAnonInsertError);
+  }
+
+  if (createdAnonViewIds.length > 0) {
+    await admin.from("anonymous_event_views").delete().in("anon_view_id", createdAnonViewIds);
+  }
+  if (createdAuthViewIds.length > 0) {
+    await admin.from("event_views").delete().in("event_view_id", createdAuthViewIds);
+  }
+  if (rateKeysToClean.length > 0) {
+    await admin.from("rpc_rate_limits").delete().in("rate_key", rateKeysToClean);
   }
 
   if (failures > 0) {
