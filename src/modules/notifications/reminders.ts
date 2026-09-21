@@ -1,8 +1,8 @@
 import "server-only";
-import { Resend } from "resend";
 import { getDaysUntilEventStart } from "@/modules/events";
 import { createAdminClient } from "@/shared/supabase/admin";
 import { getSiteUrl } from "@/shared/siteUrl";
+import { getFromEmail, getResendClient } from "@/modules/notifications/resendClient";
 import {
   buildEventReminderHtml,
   buildEventReminderSubject,
@@ -16,6 +16,7 @@ export type SendDueEventRemindersOptions = {
 };
 
 export type SendDueEventRemindersResult = {
+  sent30d: number;
   sent7d: number;
   sent1d: number;
   skipped: number;
@@ -45,9 +46,12 @@ function firstOrSelf<T>(value: T | T[] | null | undefined): T | null {
 }
 
 const REMINDER_OFFSETS: Record<ReminderType, number> = {
+  "30d": 30,
   "7d": 7,
   "1d": 1,
 };
+
+const REMINDER_TYPES = ["30d", "7d", "1d"] as const satisfies readonly ReminderType[];
 
 function getStartsAtRangeForOffset(dayOffset: number, now: Date): { start: string; end: string } {
   const targetDay =
@@ -58,20 +62,10 @@ function getStartsAtRangeForOffset(dayOffset: number, now: Date): { start: strin
   return { start: rangeStart.toISOString(), end: rangeEnd.toISOString() };
 }
 
-function getResendClient(): Resend {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    throw new Error("Missing RESEND_API_KEY.");
-  }
-  return new Resend(apiKey);
-}
-
-function getFromEmail(): string {
-  const from = process.env.RESEND_FROM_EMAIL?.trim();
-  if (!from) {
-    throw new Error("Missing RESEND_FROM_EMAIL.");
-  }
-  return from;
+function bumpSentCount(result: SendDueEventRemindersResult, reminderType: ReminderType): void {
+  if (reminderType === "30d") result.sent30d += 1;
+  else if (reminderType === "7d") result.sent7d += 1;
+  else result.sent1d += 1;
 }
 
 export async function sendDueEventReminders(
@@ -83,6 +77,7 @@ export async function sendDueEventReminders(
   const siteUrl = getSiteUrl();
 
   const result: SendDueEventRemindersResult = {
+    sent30d: 0,
     sent7d: 0,
     sent1d: 0,
     skipped: 0,
@@ -92,7 +87,7 @@ export async function sendDueEventReminders(
   const resend = dryRun ? null : getResendClient();
   const fromEmail = dryRun ? "" : getFromEmail();
 
-  for (const reminderType of ["7d", "1d"] as const) {
+  for (const reminderType of REMINDER_TYPES) {
     const dayOffset = REMINDER_OFFSETS[reminderType];
     const { start, end } = getStartsAtRangeForOffset(dayOffset, now);
 
@@ -176,18 +171,22 @@ export async function sendDueEventReminders(
         };
 
         if (dryRun) {
-          if (reminderType === "7d") result.sent7d += 1;
-          else result.sent1d += 1;
+          bumpSentCount(result, reminderType);
           continue;
         }
 
-        const { error: sendError } = await resend!.emails.send({
-          from: fromEmail,
-          to: email,
-          subject: buildEventReminderSubject(event.title, reminderType),
-          html: buildEventReminderHtml(emailInput),
-          text: buildEventReminderText(emailInput),
-        });
+        const { error: sendError } = await resend!.emails.send(
+          {
+            from: fromEmail,
+            to: email,
+            subject: buildEventReminderSubject(event.title, reminderType),
+            html: buildEventReminderHtml(emailInput),
+            text: buildEventReminderText(emailInput),
+          },
+          {
+            idempotencyKey: `event-reminder:${event.event_id}:${interest.user_id}:${reminderType}`,
+          }
+        );
 
         if (sendError) {
           result.errors.push(
@@ -209,8 +208,7 @@ export async function sendDueEventReminders(
           continue;
         }
 
-        if (reminderType === "7d") result.sent7d += 1;
-        else result.sent1d += 1;
+        bumpSentCount(result, reminderType);
       }
     }
   }

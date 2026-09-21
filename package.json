@@ -11,6 +11,7 @@
     "send-reminders": "node scripts/send-event-reminders.mjs",
     "send-reminders:dry-run": "node scripts/send-event-reminders.mjs --dry-run",
     "test:reminder-windows": "node scripts/test-reminder-windows.mjs",
+    "test:notification-templates": "node scripts/test-notification-templates.mjs",
     "test:rpc-authorization": "node scripts/test-rpc-authorization.mjs"
   },
   "dependencies": {

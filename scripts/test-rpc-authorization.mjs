@@ -132,6 +132,32 @@ async function main() {
     assert(isNotCallable(error), `${fn} is not callable by anon`, error);
   }
 
+  {
+    const { error } = await anon.rpc("claim_connection_event_notifications", {
+      p_limit: 1,
+      p_stale_minutes: 15,
+      p_max_attempts: 5,
+    });
+    assert(
+      isNotCallable(error),
+      "claim_connection_event_notifications is not callable by anon",
+      error
+    );
+  }
+
+  {
+    const { error } = await anon.rpc("preview_connection_event_notifications", {
+      p_limit: 1,
+      p_stale_minutes: 15,
+      p_max_attempts: 5,
+    });
+    assert(
+      isNotCallable(error),
+      "preview_connection_event_notifications is not callable by anon",
+      error
+    );
+  }
+
   section("anon can still reach every intentional public read");
 
   const publicReads = [
@@ -304,6 +330,37 @@ async function main() {
         "check_and_increment_rate_limit is not callable by authenticated",
         rateLimitError
       );
+
+      {
+        const { error } = await user.rpc("claim_connection_event_notifications", {
+          p_limit: 1,
+          p_stale_minutes: 15,
+          p_max_attempts: 5,
+        });
+        assert(
+          isNotCallable(error),
+          "claim_connection_event_notifications is not callable by authenticated",
+          error
+        );
+      }
+
+      {
+        const { error } = await user.rpc("preview_connection_event_notifications", {
+          p_limit: 1,
+          p_stale_minutes: 15,
+          p_max_attempts: 5,
+        });
+        assert(
+          isNotCallable(error),
+          "preview_connection_event_notifications is not callable by authenticated",
+          error
+        );
+      }
+
+      {
+        const { error } = await user.from("connection_event_notification_queue").select("id").limit(1);
+        assert(!!error, "authenticated cannot SELECT connection_event_notification_queue", error);
+      }
 
       const { error: redeemError } = await user.rpc("redeem_invite", {
         p_code: "anything",

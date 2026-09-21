@@ -96,6 +96,11 @@ const eslintConfig = defineConfig([
         { pattern: "**/modules/*/queries.ts", category: "moduleServerOnly" },
         { pattern: "**/modules/*/serverMutations.ts", category: "moduleServerOnly" },
         { pattern: "**/modules/*/reminders.ts", category: "moduleServerOnly" },
+        {
+          pattern: "**/modules/*/connectionEventNotifications.ts",
+          category: "moduleServerOnly",
+        },
+        { pattern: "**/modules/*/resendClient.ts", category: "moduleServerOnly" },
       ],
     },
     rules: {

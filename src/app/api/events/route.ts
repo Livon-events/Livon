@@ -1,8 +1,9 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/shared/supabase/server";
 import { isSameOriginRequest, jsonError, readJsonOrMultipartFormData } from "@/shared/http";
 import { createEventOnServer } from "@/modules/events/serverMutations";
 import { IMAGE_MAX_BYTES } from "@/modules/events";
+import { sendDueConnectionEventNotifications } from "@/modules/notifications/connectionEventNotifications";
 
 // The current client sends JSON after browser downscale. Legacy multipart
 // is still accepted. Either path reaches sharp here, so this stays on
@@ -63,6 +64,24 @@ export async function POST(request: NextRequest) {
   if (!result.ok) {
     return jsonError(result.error, result.status);
   }
+
+  // The insert trigger already enqueued accepted connections. Deliver in the
+  // background so create latency and Resend outages never fail the response;
+  // the daily cron retries anything left pending/failed.
+  after(async () => {
+    try {
+      const delivery = await sendDueConnectionEventNotifications({ limit: 100 });
+      if (delivery.errors.length > 0) {
+        console.error(
+          "[api/events] connection notification errors",
+          JSON.stringify(delivery.errors)
+        );
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      console.error("[api/events] connection notification run failed", message);
+    }
+  });
 
   return NextResponse.json({ id: result.data.id }, { status: 201 });
 }

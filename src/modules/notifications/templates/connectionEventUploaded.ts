@@ -1,43 +1,29 @@
 import { getEventDateTimeLabel } from "@/modules/events";
 
-export type ReminderType = "30d" | "7d" | "1d";
-
-export type EventReminderEmailInput = {
+export type ConnectionEventUploadedEmailInput = {
   recipientUsername: string;
+  organizerUsername: string;
   eventTitle: string;
   eventUrl: string;
   startsAt: Date;
   endsAt: Date | null;
   venueName: string;
   areaName: string;
-  reminderType: ReminderType;
 };
 
-function reminderLead(reminderType: ReminderType): string {
-  if (reminderType === "30d") {
-    return "This is a friendly reminder that an event you're interested in is coming up in 30 days.";
-  }
-  if (reminderType === "7d") {
-    return "This is a friendly reminder that an event you're interested in is coming up in one week.";
-  }
-  return "This is a friendly reminder that an event you're interested in is happening tomorrow.";
-}
-
-export function buildEventReminderSubject(
-  eventTitle: string,
-  reminderType: ReminderType
+export function buildConnectionEventUploadedSubject(
+  organizerUsername: string,
+  eventTitle: string
 ): string {
-  const prefix =
-    reminderType === "30d"
-      ? "Coming up in 30 days"
-      : reminderType === "7d"
-        ? "Coming up in 1 week"
-        : "Happening tomorrow";
-  return `${prefix}: ${eventTitle}`;
+  const host = organizerUsername.trim() || "A connection";
+  return `${host} uploaded a new event: ${eventTitle}`;
 }
 
-export function buildEventReminderHtml(input: EventReminderEmailInput): string {
+export function buildConnectionEventUploadedHtml(
+  input: ConnectionEventUploadedEmailInput
+): string {
   const displayName = input.recipientUsername || "there";
+  const host = input.organizerUsername.trim() || "A connection";
   const when = getEventDateTimeLabel(input.startsAt, input.endsAt);
   const location = `${input.venueName}, ${input.areaName}`;
 
@@ -45,7 +31,7 @@ export function buildEventReminderHtml(input: EventReminderEmailInput): string {
 <html>
 <body style="font-family: system-ui, sans-serif; line-height: 1.5; color: #111;">
   <p>Hi ${escapeHtml(displayName)},</p>
-  <p>${escapeHtml(reminderLead(input.reminderType))}</p>
+  <p><strong>${escapeHtml(host)}</strong> just uploaded a new event on Livon.</p>
   <p><strong>${escapeHtml(input.eventTitle)}</strong><br>
   ${escapeHtml(when)}<br>
   ${escapeHtml(location)}</p>
@@ -55,14 +41,17 @@ export function buildEventReminderHtml(input: EventReminderEmailInput): string {
 </html>`;
 }
 
-export function buildEventReminderText(input: EventReminderEmailInput): string {
+export function buildConnectionEventUploadedText(
+  input: ConnectionEventUploadedEmailInput
+): string {
   const displayName = input.recipientUsername || "there";
+  const host = input.organizerUsername.trim() || "A connection";
   const when = getEventDateTimeLabel(input.startsAt, input.endsAt);
   const location = `${input.venueName}, ${input.areaName}`;
 
   return `Hi ${displayName},
 
-${reminderLead(input.reminderType)}
+${host} just uploaded a new event on Livon.
 
 ${input.eventTitle}
 ${when}

@@ -42,11 +42,26 @@ const in20Hours = new Date(Date.UTC(2026, 7, 30, 11, 0, 0)); // Aug 30 11:00 —
 // True "late RSVP same-day / missed 1d window" case: event later TODAY.
 const laterToday = new Date(Date.UTC(2026, 7, 29, 23, 0, 0)); // same calendar day, ~8h left
 const in3Days = new Date(Date.UTC(2026, 8, 1, 18, 0, 0)); // Sep 1
+const in30Days = new Date(Date.UTC(2026, 7, 29 + 30, 18, 0, 0)); // Sep 28 18:00
+const in29Days = new Date(Date.UTC(2026, 7, 29 + 29, 18, 0, 0)); // Sep 27
+const in31Days = new Date(Date.UTC(2026, 7, 29 + 31, 18, 0, 0)); // Sep 29
 
 assert(getDaysUntilEventStart(in7Days, now) === 7, "7-day event → offset 7 (receives 7d reminder)");
 assert(getDaysUntilEventStart(tomorrow, now) === 1, "tomorrow event → offset 1 (receives 1d reminder)");
 assert(getDaysUntilEventStart(laterToday, now) === 0, "same-day event → offset 0 (no 7d or 1d reminder)");
 assert(getDaysUntilEventStart(in3Days, now) === 3, "3-day event → offset 3 (missed 7d; not yet 1d)");
+assert(
+  getDaysUntilEventStart(in30Days, now) === 30,
+  "30-day event → offset 30 (receives 30d reminder)"
+);
+assert(
+  getDaysUntilEventStart(in29Days, now) === 29,
+  "29-day event → offset 29 (no 30d reminder)"
+);
+assert(
+  getDaysUntilEventStart(in31Days, now) === 31,
+  "31-day event → offset 31 (too early for 30d)"
+);
 
 // Late RSVP with ~20h left that falls on tomorrow's calendar day still gets 1d
 // if cron runs THAT morning — but if they RSVP after the morning cron on the

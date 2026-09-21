@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { checkRateLimit } from "@/shared/security/rateLimit";
 import { sendDueEventReminders } from "@/modules/notifications/reminders";
+import { sendDueConnectionEventNotifications } from "@/modules/notifications/connectionEventNotifications";
 
 export const runtime = "nodejs";
 
@@ -55,21 +56,32 @@ export async function GET(request: NextRequest) {
   const dryRun = request.nextUrl.searchParams.get("dryRun") === "true";
 
   try {
-    const result = await sendDueEventReminders({ dryRun });
+    const [reminders, connectionUploads] = await Promise.all([
+      sendDueEventReminders({ dryRun }),
+      sendDueConnectionEventNotifications({ dryRun }),
+    ]);
 
     // Failure details stay in the server log — the response only carries a
     // count, so event/user ids and raw Postgres messages aren't echoed back.
-    if (result.errors.length > 0) {
-      console.error("[cron/event-reminders] errors", JSON.stringify(result.errors));
+    const allErrors = [...reminders.errors, ...connectionUploads.errors];
+    if (allErrors.length > 0) {
+      console.error("[cron/event-reminders] errors", JSON.stringify(allErrors));
     }
 
     return NextResponse.json({
       ok: true,
       dryRun,
-      sent7d: result.sent7d,
-      sent1d: result.sent1d,
-      skipped: result.skipped,
-      errorCount: result.errors.length,
+      sent30d: reminders.sent30d,
+      sent7d: reminders.sent7d,
+      sent1d: reminders.sent1d,
+      skipped: reminders.skipped,
+      connectionUploads: {
+        claimed: connectionUploads.claimed,
+        sent: connectionUploads.sent,
+        skipped: connectionUploads.skipped,
+        failed: connectionUploads.failed,
+      },
+      errorCount: allErrors.length,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
