@@ -32,7 +32,8 @@ async function resolveViewer(): Promise<
 
 /**
  * Logs a home discovery person-card click (Talent / Makers → profile).
- * Failures are swallowed — tracking must never block navigation.
+ * Server-side rate limit: 30 / 5 min per viewer. Failures are swallowed —
+ * tracking must never block navigation.
  */
 export async function recordDiscoveryPersonClick({
   targetUserId,
@@ -49,11 +50,10 @@ export async function recordDiscoveryPersonClick({
     if (viewer.kind === "auth" && viewer.userId === targetUserId) return;
 
     const supabase = createClient();
-    const { error } = await supabase.from("discovery_person_clicks").insert({
-      target_user_id: targetUserId,
-      section,
-      viewer_user_id: viewer.kind === "auth" ? viewer.userId : null,
-      anon_session_id: viewer.kind === "anon" ? viewer.anonSessionId : null,
+    const { error } = await supabase.rpc("record_discovery_person_click", {
+      p_target_user_id: targetUserId,
+      p_section: section,
+      p_anon_session_id: viewer.kind === "anon" ? viewer.anonSessionId : null,
     });
     if (error) {
       console.error("recordDiscoveryPersonClick failed", error);
@@ -64,8 +64,9 @@ export async function recordDiscoveryPersonClick({
 }
 
 /**
- * Logs a public-profile social chip click. Failures are swallowed — tracking
- * must never block opening the external link.
+ * Logs a public-profile social chip click. Server-side rate limit: 30 / 5 min
+ * per viewer. Failures are swallowed — tracking must never block opening the
+ * external link.
  */
 export async function recordProfileSocialClick({
   profileUserId,
@@ -82,11 +83,10 @@ export async function recordProfileSocialClick({
     if (viewer.kind === "auth" && viewer.userId === profileUserId) return;
 
     const supabase = createClient();
-    const { error } = await supabase.from("profile_social_clicks").insert({
-      profile_user_id: profileUserId,
-      platform,
-      viewer_user_id: viewer.kind === "auth" ? viewer.userId : null,
-      anon_session_id: viewer.kind === "anon" ? viewer.anonSessionId : null,
+    const { error } = await supabase.rpc("record_profile_social_click", {
+      p_profile_user_id: profileUserId,
+      p_platform: platform,
+      p_anon_session_id: viewer.kind === "anon" ? viewer.anonSessionId : null,
     });
     if (error) {
       console.error("recordProfileSocialClick failed", error);

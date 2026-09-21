@@ -166,19 +166,19 @@ export async function getHomeFeed({
 }
 
 /**
- * Optional home discovery data. It intentionally fails soft: the event feed
- * remains the primary page content and should still render when this newer
- * feature's RPC is unavailable or temporarily unhealthy.
+ * Optional home discovery data (nationwide — not scoped by the location
+ * picker). It intentionally fails soft: the event feed remains the primary
+ * page content and should still render when this newer feature's RPC is
+ * unavailable or temporarily unhealthy.
+ *
+ * Talent includes people on Livon-organized events; only Makers exclude
+ * username `livon` (handled in SQL).
  */
-export async function getHomePeopleDiscovery({
-  cityId = null,
-  areaId = null,
-}: Pick<GetHomeFeedParams, "cityId" | "areaId"> = {}): Promise<HomePeopleDiscoveryResult> {
+export async function getHomePeopleDiscovery(): Promise<HomePeopleDiscoveryResult> {
   const empty: HomePeopleDiscoveryResult = { talent: [], makers: [] };
   const supabase = await createClient();
+  // Omit p_city_id / p_area_id so RPC defaults (NULL) mean all cities.
   const { data, error } = await supabase.rpc("get_home_people_discovery", {
-    p_city_id: cityId,
-    p_area_id: areaId,
     p_limit: 12,
   });
 

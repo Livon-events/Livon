@@ -90,7 +90,8 @@ export default async function Home({ searchParams }: HomeProps) {
     cityId,
     areaId,
   });
-  const discovery = getHomePeopleDiscovery({ cityId, areaId });
+  // Discovery is nationwide — location only scopes the event feed.
+  const discovery = getHomePeopleDiscovery();
 
   return (
     <main
