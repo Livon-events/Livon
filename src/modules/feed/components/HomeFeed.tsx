@@ -22,9 +22,6 @@ export default function HomeFeed({ initial }: HomeFeedProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<() => Promise<void>>(async () => {});
 
-  nextCursorRef.current = nextCursor;
-  errorRef.current = error;
-
   const loadMore = useCallback(async () => {
     const cursor = nextCursorRef.current;
     if (!cursor || loadingRef.current || errorRef.current) return;
@@ -63,7 +60,11 @@ export default function HomeFeed({ initial }: HomeFeedProps) {
     }
   }, [searchParams]);
 
-  loadMoreRef.current = loadMore;
+  useEffect(() => {
+    nextCursorRef.current = nextCursor;
+    errorRef.current = error;
+    loadMoreRef.current = loadMore;
+  }, [nextCursor, error, loadMore]);
 
   useEffect(() => {
     const el = sentinelRef.current;

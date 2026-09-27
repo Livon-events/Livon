@@ -1,6 +1,22 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useSyncExternalStore } from "react";
+
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(onChange: () => void) {
+  const media = window.matchMedia(REDUCED_MOTION_QUERY);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function getReducedMotion() {
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+function getServerReducedMotion() {
+  return false;
+}
 
 /**
  * Yellow Peek-notch card chrome. Happy path keeps the measured SVG notch
@@ -16,16 +32,16 @@ export default function EventCardBackground({ eventId }: { eventId: string }) {
   // this card's own layout actually changed, per bug: repeated redraws
   // with identical values were still causing a visible flicker.
   const lastRef = useRef<{ w: number; h: number; x1: number; x2: number } | null>(null);
-  const [useFallback, setUseFallback] = useState(false);
+  const [measureFailed, setMeasureFailed] = useState(false);
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotion,
+    getServerReducedMotion
+  );
+  const useFallback = reducedMotion || measureFailed;
 
   useEffect(() => {
     if (useFallback) return;
-
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) {
-      setUseFallback(true);
-      return;
-    }
 
     const svg = svgRef.current;
     if (!svg) return;
@@ -48,7 +64,7 @@ export default function EventCardBackground({ eventId }: { eventId: string }) {
         pendingFrame = null;
       }
       resizeObserver.disconnect();
-      setUseFallback(true);
+      setMeasureFailed(true);
     };
 
     const drawCard = () => {
