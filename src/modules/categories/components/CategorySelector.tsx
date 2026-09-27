@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { categoryChipBase as chipBase, categoryChipInactive } from "../chipStyles";
 
 interface CategorySelectorProps {
   // No hardcoded default: categories are DB-driven (see modules/categories/queries.ts)
@@ -16,9 +17,6 @@ interface CategorySelectorProps {
   freeOnly?: boolean;
   onFreeChange?: (freeOnly: boolean) => void;
 }
-
-const chipBase =
-  "shrink-0 whitespace-nowrap rounded-[7px] px-4 py-2.5 text-[15px] font-bold leading-none";
 
 /**
  * Horizontal scrollable category chips, with an optional leading Free price filter.
@@ -97,7 +95,7 @@ export default function CategorySelector({
                   className={`${chipBase} ${
                     isActive
                       ? "border-2 border-[#FFF335] bg-[#1f1f1f] text-white"
-                      : "border-2 border-transparent bg-[#1f1f1f] text-white hover:bg-[#2a2a2a]"
+                      : `${categoryChipInactive} hover:bg-[#2a2a2a]`
                   }`}
                 >
                   {category}

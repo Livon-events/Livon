@@ -522,7 +522,8 @@ RETURNS TABLE(
   peek_connections_count integer,
   rank_score integer,
   total_going_count integer,
-  is_claimable boolean
+  is_claimable boolean,
+  category_name text
 )
 LANGUAGE sql
 STABLE
@@ -550,6 +551,7 @@ AS $function$
       e.starts_at,
       e.ends_at,
       e.organizer_id,
+      cat.name as category_name,
       (
         e.claimed_at IS NULL
         AND e.organizer_id = (select user_id from livon)
@@ -592,6 +594,7 @@ AS $function$
     from public.events e
     join public.areas a on a.area_id = e.area_id
     join public.users u on u.user_id = e.organizer_id
+    join public.categories cat on cat.category_id = e.category_id
     where e.status = 'active'
       and (
         (e.ends_at is not null and (now() + interval '2 hours') < e.ends_at)
@@ -628,7 +631,8 @@ AS $function$
     peek_connections_count,
     rank_score,
     total_going_count,
-    is_claimable
+    is_claimable,
+    category_name
   from scored
   where
     p_cursor_rank_score is null

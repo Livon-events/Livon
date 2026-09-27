@@ -5,8 +5,8 @@ import { getPriceLabel } from "@/modules/events/format";
 import EventCardHead from "./EventCardHead";
 import EventCardActions from "./EventCardActions";
 import EventCardBackground from "./EventCardBackground";
-import EventHostLine from "./EventHostLine";
 import type { GoingVisibility } from "@/modules/rsvp";
+import { categoryChipBase, categoryChipInactive } from "@/modules/categories";
 import { safeImageUrl } from "@/shared/security/urls";
 
 export type EventCardData = {
@@ -23,6 +23,7 @@ export type EventCardData = {
   isGoing: boolean;
   myVisibility: GoingVisibility | null;
   isClaimable?: boolean;
+  categoryName?: string | null;
 };
 
 type EventCardProps = {
@@ -73,11 +74,11 @@ export default function EventCard({ event, priority = false }: EventCardProps) {
             </p>
             <MapPin className="h-[20px] w-[20px] shrink-0" strokeWidth={2} />
           </div>
-          <EventHostLine
-            isClaimable={Boolean(event.isClaimable)}
-            hostUsername={event.hostUsername}
-            nestedInLink
-          />
+          {event.categoryName && (
+            <span className={`${categoryChipBase} ${categoryChipInactive} mt-1 inline-flex w-fit`}>
+              {event.categoryName}
+            </span>
+          )}
         </div>
 
         <EventCardActions

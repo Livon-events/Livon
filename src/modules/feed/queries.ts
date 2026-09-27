@@ -26,8 +26,9 @@ export type HomeFeedEvent = {
   // this purpose), so it's merged in afterward from event_interests.
   isGoing: boolean;
   myVisibility: GoingVisibility | null;
-  /** Livon-published, unclaimed — cards show "Published by Livon". */
+  /** Livon-published and not yet claimed by a host. */
   isClaimable: boolean;
+  categoryName: string | null;
 };
 
 export type HomeFeedResult = {
@@ -63,6 +64,7 @@ type HomeFeedRow = {
   rank_score: number;
   total_going_count: number;
   is_claimable: boolean;
+  category_name: string | null;
 };
 
 export async function getHomeFeed({
@@ -131,6 +133,7 @@ export async function getHomeFeed({
     isGoing: myInterestByEventId.has(row.id),
     myVisibility: myInterestByEventId.get(row.id) ?? null,
     isClaimable: Boolean(row.is_claimable),
+    categoryName: row.category_name ?? null,
   }));
 
   const lastRow = rows[rows.length - 1];
