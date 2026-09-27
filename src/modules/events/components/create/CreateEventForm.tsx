@@ -2,8 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, MapPin, Calendar, Clock } from "lucide-react";
-import { createEvent, updateEvent, cancelEvent } from "@/modules/events/mutations";
+import { Camera, Calendar, Clock } from "lucide-react";
+import {
+  createEvent,
+  updateEvent,
+  cancelEvent,
+  prepareCover,
+  type PreparedCover,
+} from "@/modules/events/mutations";
 import {
   eventTextFieldsSchema,
   combineStartsAt,
@@ -16,7 +22,14 @@ import {
   IMAGE_MAX_BYTES,
 } from "@/modules/events/validation";
 import type { CreateEventCategory } from "@/modules/events/components/create/CreateEventPage";
-import { CitySelect, compareCityNames, DEFAULT_CITY_NAME, type LocationCity } from "@/modules/location";
+import VenueCombobox from "@/modules/events/components/create/VenueCombobox";
+import {
+  CitySelect,
+  compareCityNames,
+  DEFAULT_CITY_NAME,
+  type LocationCity,
+  type LocationVenue,
+} from "@/modules/location";
 import { safeBackgroundImage } from "@/shared/security/urls";
 
 type Admission = "free" | "paid";
@@ -37,6 +50,7 @@ export type EventFormInitialValues = {
 
 type CreateEventFormProps = {
   categories: CreateEventCategory[];
+  venues: LocationVenue[];
 } & (
   | {
       mode?: "create";
@@ -101,13 +115,14 @@ const inputBase =
   "w-full rounded-[10px] border-2 border-[#262626] bg-[#0C0C0C] px-4 py-3.5 text-[15px] font-medium text-white outline-none transition focus:border-[#FFF335]";
 
 export default function CreateEventForm(props: CreateEventFormProps) {
-  const { categories } = props;
+  const { categories, venues } = props;
   const isEditing = props.mode === "edit";
   const initialValues = isEditing ? props.initialValues : undefined;
   const cities = useMemo(() => (isEditing ? [] : props.cities), [isEditing, props]);
 
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverPrepRef = useRef<{ file: File; promise: Promise<PreparedCover> } | null>(null);
 
   const [title, setTitle] = useState(initialValues?.title ?? "");
   const [categoryId, setCategoryId] = useState<string | null>(initialValues?.categoryId ?? null);
@@ -123,6 +138,9 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   const [startDate, setStartDate] = useState(initialValues?.startDate ?? todayIso());
   const [startTime, setStartTime] = useState(initialValues?.startTime ?? "18:00");
   const [venueName, setVenueName] = useState(initialValues?.venueName ?? "");
+  // Name of the venue whose area is currently auto-selected; null once the
+  // host picks an area themselves or types a venue we don't know.
+  const [areaFromVenue, setAreaFromVenue] = useState<string | null>(null);
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [admission, setAdmission] = useState<Admission>(initialValues?.admission ?? "free");
   const [price, setPrice] = useState(initialValues?.price ? String(initialValues.price) : "");
@@ -167,6 +185,10 @@ export default function CreateEventForm(props: CreateEventFormProps) {
     () => [...(selectedCity?.areas ?? [])].sort((a, b) => a.name.localeCompare(b.name)),
     [selectedCity]
   );
+  const districtVenues = useMemo(
+    () => (isEditing || !selectedCity ? venues : venues.filter((venue) => venue.cityId === selectedCity.id)),
+    [isEditing, selectedCity, venues]
+  );
   const selectedAreaName = availableAreas.find((a) => a.id === areaId)?.name ?? null;
   const locationLabel =
     selectedAreaName && selectedCity ? `${selectedAreaName}, ${selectedCity.name}` : null;
@@ -176,6 +198,35 @@ export default function CreateEventForm(props: CreateEventFormProps) {
     // Area belongs to a specific city — switching city invalidates
     // whatever area was picked under the old one.
     setAreaId(null);
+    setAreaFromVenue(null);
+  }
+
+  function handleAreaPick(nextAreaId: string) {
+    setAreaId(nextAreaId);
+    setAreaFromVenue(null);
+    setErrors((prev) => ({ ...prev, areaId: undefined }));
+  }
+
+  function applyVenue(venue: LocationVenue) {
+    setVenueName(venue.name);
+    setErrors((prev) => ({ ...prev, venueName: undefined }));
+    // Area is fixed after creation, so in edit mode a venue only fills the name.
+    if (isEditing || !cities.some((city) => city.id === venue.cityId)) return;
+    setCityId(venue.cityId);
+    setAreaId(venue.areaId);
+    setAreaFromVenue(venue.name);
+    setErrors((prev) => ({ ...prev, areaId: undefined }));
+  }
+
+  function handleVenueTextChange(next: string) {
+    const match = districtVenues.find((venue) => venue.name.toLowerCase() === next.trim().toLowerCase());
+    if (match) {
+      applyVenue(match);
+      setVenueName(next);
+      return;
+    }
+    setVenueName(next);
+    setAreaFromVenue(null);
   }
 
   function handlePickImage() {
@@ -208,6 +259,11 @@ export default function CreateEventForm(props: CreateEventFormProps) {
     if (coverPreview?.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
     setCoverFile(file);
     setCoverPreview(URL.createObjectURL(file));
+
+    const promise = prepareCover(file);
+    // Failures are retried at submit; swallow here so the rejection isn't unhandled.
+    promise.catch(() => {});
+    coverPrepRef.current = { file, promise };
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -278,6 +334,9 @@ export default function CreateEventForm(props: CreateEventFormProps) {
     setErrors({});
     setSubmitting(true);
 
+    const preparedCover =
+      coverFile && coverPrepRef.current?.file === coverFile ? coverPrepRef.current.promise : null;
+
     const result = isEditing
       ? await updateEvent(props.eventId, {
           title: parsed.data.title,
@@ -291,6 +350,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           admission: parsed.data.admission,
           price: parsed.data.price,
           coverImage: coverFile,
+          preparedCover,
         })
       : await createEvent({
           title: parsed.data.title,
@@ -305,6 +365,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           admission: parsed.data.admission,
           price: parsed.data.price,
           coverImage: coverFile,
+          preparedCover,
         });
 
     setSubmitting(false);
@@ -419,6 +480,71 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         <p className="text-[11px] text-[#8e8e8e]">JPEG, PNG, or WebP only, up to 5MB.</p>
       </div>
 
+      {!isEditing && sortedCities.length > 1 && (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="eventCity" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
+            DISTRICT
+          </label>
+          <CitySelect
+            id="eventCity"
+            cities={sortedCities}
+            value={cityId ?? selectedCity?.id ?? ""}
+            onChange={handleCityChange}
+          />
+        </div>
+      )}
+
+      {/* Venue — picking a known venue pre-fills the area below. */}
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="eventVenue" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
+          VENUE
+        </label>
+        <VenueCombobox
+          id="eventVenue"
+          value={venueName}
+          venues={districtVenues}
+          maxLength={VENUE_MAX}
+          invalid={Boolean(errors.venueName)}
+          inputClassName={inputBase}
+          onChange={handleVenueTextChange}
+          onSelect={applyVenue}
+        />
+        <p className="text-[11px] text-[#8e8e8e]">
+          Pick a venue from the list or type your own (at least {VENUE_MIN} characters).
+        </p>
+        {errors.venueName && <p className="text-xs font-semibold text-[#ff453a]">{errors.venueName}</p>}
+      </div>
+
+      {/* Area — which City/Area is being posted to. Only shown when
+          creating: it's resolved once at creation and never re-editable
+          afterward (see PATCH /api/events/[id]). */}
+      {!isEditing && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">AREA</label>
+
+          {areaFromVenue && locationLabel && (
+            <p className="text-xs font-semibold text-[#FFF335]">
+              Set to {locationLabel} from {areaFromVenue}. Tap another area to change it.
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            {availableAreas.map((area) => (
+              <button
+                key={area.id}
+                type="button"
+                onClick={() => handleAreaPick(area.id)}
+                className={`${chipBase} ${areaId === area.id ? chipActive : chipInactive}`}
+              >
+                {area.name}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-[#8e8e8e]">Where the event will be listed. Visible on the feed to everyone in this area.</p>
+          {errors.areaId && <p className="text-xs font-semibold text-[#ff453a]">{errors.areaId}</p>}
+        </div>
+      )}
+
       {/* Title */}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="eventTitle" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
@@ -460,44 +586,6 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         </div>
         {errors.categoryId && <p className="text-xs font-semibold text-[#ff453a]">{errors.categoryId}</p>}
       </div>
-
-      {/* Area — which City/Area is being posted to. Only shown when
-          creating: it's resolved once at creation and never re-editable
-          afterward (see PATCH /api/events/[id]). */}
-      {!isEditing && (
-        <div className="flex flex-col gap-1.5">
-          {sortedCities.length > 1 && (
-            <>
-              <label htmlFor="eventCity" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
-                DISTRICT
-              </label>
-              <CitySelect
-                id="eventCity"
-                cities={sortedCities}
-                value={cityId ?? selectedCity?.id ?? ""}
-                onChange={handleCityChange}
-              />
-            </>
-          )}
-
-          <label className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">AREA</label>
-
-          <div className="flex flex-wrap gap-2">
-            {availableAreas.map((area) => (
-              <button
-                key={area.id}
-                type="button"
-                onClick={() => setAreaId(area.id)}
-                className={`${chipBase} ${areaId === area.id ? chipActive : chipInactive}`}
-              >
-                {area.name}
-              </button>
-            ))}
-          </div>
-          <p className="text-[11px] text-[#8e8e8e]">Where the event will be listed. Visible on the feed to everyone in this area.</p>
-          {errors.areaId && <p className="text-xs font-semibold text-[#ff453a]">{errors.areaId}</p>}
-        </div>
-      )}
 
       {/* Date & time */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -626,29 +714,6 @@ export default function CreateEventForm(props: CreateEventFormProps) {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Location */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="eventLocation" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
-          LOCATION
-        </label>
-        <div className="relative">
-          <input
-            id="eventLocation"
-            type="text"
-            value={venueName}
-            maxLength={VENUE_MAX}
-            onChange={(e) => setVenueName(e.target.value)}
-            placeholder="Venue name"
-            autoComplete="off"
-            aria-invalid={Boolean(errors.venueName)}
-            className={`${inputBase} pr-12`}
-          />
-          <MapPin className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#8e8e8e]" />
-        </div>
-        <p className="text-[11px] text-[#8e8e8e]">At least {VENUE_MIN} characters.</p>
-        {errors.venueName && <p className="text-xs font-semibold text-[#ff453a]">{errors.venueName}</p>}
       </div>
 
       {/* Admission */}

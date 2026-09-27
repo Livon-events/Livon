@@ -1,4 +1,4 @@
-export type { LocationPickerArea, LocationPickerCity } from "./queries";
+export type { LocationPickerArea, LocationPickerCity, LocationVenue } from "./queries";
 export {
   ALL_AREAS_ID,
   DEFAULT_AREA_NAME,

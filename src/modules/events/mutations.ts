@@ -28,6 +28,25 @@ async function fileToBase64(file: File): Promise<string> {
   return btoa(binary);
 }
 
+export type PreparedCover = { cover: JsonCover; uploadedBytes: number };
+
+/**
+ * Downscales and base64-encodes a cover photo. The form calls this as soon
+ * as a photo is picked so the work is done by the time the host submits;
+ * pass the resulting promise back as `preparedCover`.
+ */
+export async function prepareCover(image: File): Promise<PreparedCover> {
+  const file = await downscaleImageInBrowser(image, COVER_DOWNSCALE);
+  return {
+    uploadedBytes: file.size,
+    cover: {
+      name: file.name,
+      type: file.type,
+      data: await fileToBase64(file),
+    },
+  };
+}
+
 async function eventJsonBody(
   input: Omit<CreateEventInput, "coverImage" | "areaId"> & {
     areaId?: string;
@@ -37,13 +56,14 @@ async function eventJsonBody(
   let cover: JsonCover | undefined;
   let uploadedBytes: number | undefined;
   if (input.coverImage) {
-    const file = await downscaleImageInBrowser(input.coverImage, COVER_DOWNSCALE);
-    uploadedBytes = file.size;
-    cover = {
-      name: file.name,
-      type: file.type,
-      data: await fileToBase64(file),
-    };
+    let prepared: PreparedCover | null = null;
+    if (input.preparedCover) {
+      // A failed early attempt shouldn't block submit — retry below.
+      prepared = await input.preparedCover.catch(() => null);
+    }
+    prepared ??= await prepareCover(input.coverImage);
+    cover = prepared.cover;
+    uploadedBytes = prepared.uploadedBytes;
   }
 
   return {
@@ -78,6 +98,8 @@ export type CreateEventInput = {
   admission: "free" | "paid";
   price?: number;
   coverImage: File | null;
+  /** From prepareCover(coverImage), started when the photo was picked. */
+  preparedCover?: Promise<PreparedCover> | null;
 };
 
 /**

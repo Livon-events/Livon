@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/shared/supabase/server";
 import { getCategories } from "@/modules/categories/queries";
 import { getEventForEdit } from "@/modules/events/queries";
+import { getVenues } from "@/modules/location/queries";
 import { CreateEventPage } from "@/modules/events";
 
 type EditEventRouteProps = {
@@ -20,9 +21,10 @@ export default async function EditEventRoute({ params }: EditEventRouteProps) {
     redirect(`/login?next=/events/${id}/edit`);
   }
 
-  const [event, categories] = await Promise.all([
+  const [event, categories, venues] = await Promise.all([
     getEventForEdit(id, user.id),
     getCategories(),
+    getVenues(),
   ]);
 
   // getEventForEdit returns null for "doesn't exist" and "not your event"
@@ -50,6 +52,7 @@ export default async function EditEventRoute({ params }: EditEventRouteProps) {
         coverImageUrl: event.coverImageUrl,
       }}
       categories={categories}
+      venues={venues}
     />
   );
 }

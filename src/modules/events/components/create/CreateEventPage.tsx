@@ -2,12 +2,13 @@ import BackButton from "@/modules/events/components/create/BackButton";
 import CreateEventForm, {
   type EventFormInitialValues,
 } from "@/modules/events/components/create/CreateEventForm";
-import type { LocationPickerCity } from "@/modules/location/queries";
+import type { LocationPickerCity, LocationVenue } from "@/modules/location/queries";
 
 export type CreateEventCategory = { id: string; name: string };
 
 type CreateEventPageProps = {
   categories: CreateEventCategory[];
+  venues: LocationVenue[];
 } & (
   | {
       mode?: "create";
@@ -37,7 +38,7 @@ type CreateEventPageProps = {
  * stays a Server Component.
  */
 export default function CreateEventPage(props: CreateEventPageProps) {
-  const { categories } = props;
+  const { categories, venues } = props;
   const isEditing = props.mode === "edit";
 
   return (
@@ -57,10 +58,12 @@ export default function CreateEventPage(props: CreateEventPageProps) {
             eventId={props.eventId}
             initialValues={props.initialValues}
             categories={categories}
+            venues={venues}
           />
         ) : (
           <CreateEventForm
             categories={categories}
+            venues={venues}
             cities={props.cities}
             initialCityId={props.initialCityId}
             initialAreaId={props.initialAreaId}

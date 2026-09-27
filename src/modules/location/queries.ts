@@ -55,6 +55,49 @@ export async function getLocationPickerData(): Promise<LocationPickerCity[]> {
   }));
 }
 
+export type LocationVenue = {
+  id: string;
+  name: string;
+  areaId: string;
+  cityId: string;
+};
+
+type VenueRow = {
+  venue_id: string;
+  name: string;
+  area_id: string;
+  area: { city_id: string } | null;
+};
+
+/**
+ * Known venues for the create-event form's venue suggestions — picking one
+ * pre-fills the event's City/Area. Public read-only reference table, same
+ * RLS as `areas`. The chosen area is still re-verified server-side via
+ * getAreaById, so a stale client list can't post to a bogus area.
+ */
+export async function getVenues(): Promise<LocationVenue[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("venues")
+    .select("venue_id, name, area_id, area:areas!area_id ( city_id )")
+    .order("name", { ascending: true })
+    .returns<VenueRow[]>();
+
+  if (error) {
+    throw new Error(`getVenues failed: ${error.message}`);
+  }
+
+  return (data ?? [])
+    .filter((row) => row.area)
+    .map((row) => ({
+      id: row.venue_id,
+      name: row.name,
+      areaId: row.area_id,
+      cityId: row.area!.city_id,
+    }));
+}
+
 export type LocationAreaWithCity = {
   id: string;
   name: string;
