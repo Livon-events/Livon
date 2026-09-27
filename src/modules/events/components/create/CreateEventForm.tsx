@@ -17,9 +17,7 @@ import {
 } from "@/modules/events/validation";
 import type { CreateEventCategory } from "@/modules/events/components/create/CreateEventPage";
 import { CitySelect, compareCityNames, DEFAULT_CITY_NAME, type LocationCity } from "@/modules/location";
-import type { EventTalentProfile } from "@/modules/events";
 import { safeBackgroundImage } from "@/shared/security/urls";
-import TalentPicker from "./TalentPicker";
 
 type Admission = "free" | "paid";
 
@@ -35,7 +33,6 @@ export type EventFormInitialValues = {
   admission: Admission;
   price?: number;
   coverImageUrl: string;
-  talent: EventTalentProfile[];
 };
 
 type CreateEventFormProps = {
@@ -129,8 +126,6 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [admission, setAdmission] = useState<Admission>(initialValues?.admission ?? "free");
   const [price, setPrice] = useState(initialValues?.price ? String(initialValues.price) : "");
-  const [talent, setTalent] = useState<EventTalentProfile[]>(initialValues?.talent ?? []);
-
   const [showEndTime, setShowEndTime] = useState(
     Boolean(initialValues?.endDate && initialValues?.endTime)
   );
@@ -295,7 +290,6 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           description: parsed.data.description ?? "",
           admission: parsed.data.admission,
           price: parsed.data.price,
-          talentIds: talent.map((entry) => entry.userId),
           coverImage: coverFile,
         })
       : await createEvent({
@@ -310,7 +304,6 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           description: parsed.data.description ?? "",
           admission: parsed.data.admission,
           price: parsed.data.price,
-          talentIds: talent.map((entry) => entry.userId),
           coverImage: coverFile,
         });
 
@@ -713,8 +706,6 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         </p>
         {errors.description && <p className="text-xs font-semibold text-[#ff453a]">{errors.description}</p>}
       </div>
-
-      <TalentPicker value={talent} onChange={setTalent} max={10} />
 
       <div className="flex flex-col gap-3 pb-6 pt-2">
         <button

@@ -1,6 +1,5 @@
 import EventDetailsCard from "./EventDetailsCard";
 import EventAboutSection from "./EventAboutSection";
-import EventTalentSection from "./EventTalentSection";
 import EventActionBar from "./EventActionBar";
 import RecordEventView from "./RecordEventView";
 import type { EventDetails } from "@/modules/events/queries";
@@ -19,8 +18,6 @@ export default function EventDetailsPage({ event }: EventDetailsPageProps) {
         </h1>
 
         <EventDetailsCard event={event} />
-
-        <EventTalentSection talent={event.talent} />
 
         {/*
           Ad slot — sits between the Event Card and the About section.

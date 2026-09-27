@@ -137,8 +137,7 @@ function jsonToFormData(
       formData.set(key, String(field));
       continue;
     }
-    // Repeated primitive fields preserve arrays such as event talent ids
-    // across the JSON and legacy multipart request formats. Complex nested
+    // Repeated primitive fields preserve arrays across the JSON and legacy multipart request formats. Complex nested
     // objects remain deliberately unsupported by this generic adapter.
     if (
       Array.isArray(field) &&

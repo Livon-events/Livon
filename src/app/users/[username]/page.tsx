@@ -1,6 +1,6 @@
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { getConnectionStateBetween } from "@/modules/connections/queries";
-import { getUpcomingActiveEventsForProfile } from "@/modules/events/queries";
+import { getUpcomingActiveEventsOrganizedBy } from "@/modules/events/queries";
 import { PublicProfilePage } from "@/modules/users";
 import { getPublicProfile, resolveUsernameToUserId } from "@/modules/users/queries";
 import { createClient } from "@/shared/supabase/server";
@@ -46,7 +46,7 @@ export default async function ProfileByUsernamePage({ params }: ProfileByUsernam
     viewer
       ? getConnectionStateBetween(viewer.id, userId)
       : Promise.resolve({ status: "none" as const }),
-    getUpcomingActiveEventsForProfile(userId),
+    getUpcomingActiveEventsOrganizedBy(userId),
   ]);
 
   return (

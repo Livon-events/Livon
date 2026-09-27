@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { CategoryFilterBar, HomeFeed, HomePeopleDiscovery, type HomeFeedResult, type HomePeopleDiscoveryResult } from "@/modules/feed";
-import { getHomeFeed, getHomePeopleDiscovery } from "@/modules/feed/queries";
+import { CategoryFilterBar, HomeFeed, type HomeFeedResult } from "@/modules/feed";
+import { getHomeFeed } from "@/modules/feed/queries";
 import { getCategories } from "@/modules/categories/queries";
 import { getLocationPickerData, resolveFeedLocationScope } from "@/modules/location/queries";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
@@ -20,23 +20,6 @@ async function FeedContent({
 }) {
   const initial = await feed;
   return <HomeFeed key={remountKey} initial={initial} />;
-}
-
-async function DiscoveryContent({ discovery }: { discovery: Promise<HomePeopleDiscoveryResult> }) {
-  return <HomePeopleDiscovery discovery={await discovery} />;
-}
-
-function DiscoverySkeleton() {
-  return (
-    <div className="mx-auto mb-5 w-full max-w-[1400px] px-3 lg:mb-7 lg:px-6" aria-label="Loading Talent">
-      <div className="h-8 w-48 animate-pulse rounded bg-[#262626]" />
-      <div className="mt-2 h-4 w-80 max-w-full animate-pulse rounded bg-[#202020]" />
-      <div className="mt-3 flex gap-3 overflow-hidden">
-        <div className="aspect-square w-[min(calc(100vw-3rem),22rem)] shrink-0 animate-pulse rounded-xl bg-[#262626]" />
-        <div className="aspect-square w-[min(calc(100vw-3rem),22rem)] shrink-0 animate-pulse rounded-xl bg-[#262626]" />
-      </div>
-    </div>
-  );
 }
 
 function FeedSkeleton() {
@@ -81,26 +64,18 @@ export default async function Home({ searchParams }: HomeProps) {
     accountLocation,
   });
 
-  // Deliberately start both independent reads together. Each is streamed
-  // through its own Suspense boundary below, so a slow discovery calculation
-  // cannot hold back the main event feed.
   const feed = getHomeFeed({
     categoryId: activeCategory?.id ?? null,
     freeOnly,
     cityId,
     areaId,
   });
-  // Discovery is nationwide — location only scopes the event feed.
-  const discovery = getHomePeopleDiscovery();
 
   return (
     <main
       className="min-h-screen bg-[#0C0C0C] pt-4 md:pt-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px)+1.5rem)] md:pb-0"
     >
       <Analytics />
-      <Suspense fallback={<DiscoverySkeleton />}>
-        <DiscoveryContent discovery={discovery} />
-      </Suspense>
       <Suspense fallback={<FilterBarSkeleton />}>
         <CategoryFilterBar
           categories={categories.map((c) => c.name)}

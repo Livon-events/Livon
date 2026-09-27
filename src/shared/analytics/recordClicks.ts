@@ -1,7 +1,6 @@
 import { createClient } from "@/shared/supabase/client";
 import { getOrCreateAnonSessionId } from "@/shared/anonSession";
 
-export type DiscoverySection = "talent" | "makers";
 export type SocialPlatform = "facebook" | "instagram" | "tiktok" | "youtube";
 
 async function resolveViewer(): Promise<
@@ -28,39 +27,6 @@ async function resolveViewer(): Promise<
   const anonSessionId = getOrCreateAnonSessionId();
   if (!anonSessionId) return null;
   return { kind: "anon", anonSessionId };
-}
-
-/**
- * Logs a home discovery person-card click (Talent / Makers → profile).
- * Server-side rate limit: 30 / 5 min per viewer. Failures are swallowed —
- * tracking must never block navigation.
- */
-export async function recordDiscoveryPersonClick({
-  targetUserId,
-  section,
-}: {
-  targetUserId: string;
-  section: DiscoverySection;
-}): Promise<void> {
-  if (typeof window === "undefined") return;
-
-  try {
-    const viewer = await resolveViewer();
-    if (!viewer) return;
-    if (viewer.kind === "auth" && viewer.userId === targetUserId) return;
-
-    const supabase = createClient();
-    const { error } = await supabase.rpc("record_discovery_person_click", {
-      p_target_user_id: targetUserId,
-      p_section: section,
-      p_anon_session_id: viewer.kind === "anon" ? viewer.anonSessionId : null,
-    });
-    if (error) {
-      console.error("recordDiscoveryPersonClick failed", error);
-    }
-  } catch (error) {
-    console.error("recordDiscoveryPersonClick failed", error);
-  }
 }
 
 /**

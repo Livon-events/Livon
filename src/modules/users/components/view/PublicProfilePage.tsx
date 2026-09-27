@@ -20,8 +20,8 @@ interface PublicProfilePageProps {
 
 // Discovery-oriented view of another user, per
 // raw_html_and_css/profile_view/view_profile — header, bio, labeled social
-// links, full-width Connect button, then active upcoming events involving the
-// profile as organizer or Talent. Deliberately smaller in scope than the
+// links, full-width Connect button, then active upcoming events the profile
+// organizes. Deliberately smaller in scope than the
 // own-profile page (no Connections/Events tabs here).
 export default function PublicProfilePage({
   profile,

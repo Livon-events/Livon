@@ -39,19 +39,6 @@ export type EventEditData = {
   price: number | undefined;
   coverImageUrl: string;
   status: string;
-  talent: EventTalentProfile[];
-};
-
-/** Public-safe profile data for a person featured on an event. */
-export type EventTalentProfile = {
-  userId: string;
-  username: string;
-  avatarUrl: string | null;
-  bio: string | null;
-  tiktokUrl: string | null;
-  instagramUrl: string | null;
-  facebookUrl: string | null;
-  youtubeUrl: string | null;
 };
 
 export type PeekAttendee = {
@@ -107,7 +94,6 @@ export type EventDetails = {
   canViewerClaim: boolean;
   /** True when intended claimant fields are unset — ops must transfer in Supabase. */
   claimNeedsOpsTransfer: boolean;
-  talent: EventTalentProfile[];
 };
 
 export type EventManagementData = {

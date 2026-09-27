@@ -60,7 +60,6 @@ async function eventJsonBody(
       description: input.description,
       admission: input.admission,
       price: input.admission === "paid" ? input.price : undefined,
-      talentIds: input.talentIds,
       cover,
     }),
   };
@@ -78,8 +77,6 @@ export type CreateEventInput = {
   description: string;
   admission: "free" | "paid";
   price?: number;
-  /** Existing Livon profiles featured at this event, in display order. */
-  talentIds: string[];
   coverImage: File | null;
 };
 

@@ -35,24 +35,6 @@ export type HomeFeedResult = {
   nextCursor: HomeFeedCursor | null;
 };
 
-export type HomeDiscoveryPerson = {
-  userId: string;
-  username: string;
-  avatarUrl: string | null;
-};
-
-export type HomePeopleDiscoveryResult = {
-  talent: HomeDiscoveryPerson[];
-  makers: HomeDiscoveryPerson[];
-};
-
-type HomeDiscoveryRow = {
-  section: "talent" | "makers";
-  user_id: string;
-  username: string | null;
-  avatar_url: string | null;
-};
-
 const DEFAULT_PAGE_SIZE = 12; // matches 3-col grid at the lg breakpoint
 
 type GetHomeFeedParams = {
@@ -163,42 +145,4 @@ export async function getHomeFeed({
       : null;
 
   return { events, nextCursor };
-}
-
-/**
- * Optional home discovery data (nationwide — not scoped by the location
- * picker). It intentionally fails soft: the event feed remains the primary
- * page content and should still render when this newer feature's RPC is
- * unavailable or temporarily unhealthy.
- *
- * Talent includes people on Livon-organized events; only Makers exclude
- * username `livon` (handled in SQL).
- */
-export async function getHomePeopleDiscovery(): Promise<HomePeopleDiscoveryResult> {
-  const empty: HomePeopleDiscoveryResult = { talent: [], makers: [] };
-  const supabase = await createClient();
-  // Omit p_city_id / p_area_id so RPC defaults (NULL) mean all cities.
-  const { data, error } = await supabase.rpc("get_home_people_discovery", {
-    p_limit: 12,
-  });
-
-  if (error) {
-    // PGRST202 means this optional RPC has not reached PostgREST's schema
-    // cache yet (for example, while a test database migration is being
-    // rolled out). Treat it like an empty optional section rather than
-    // emitting a noisy server-console error or blocking the feed.
-    if (error.code === "PGRST202") return empty;
-    console.error("get_home_people_discovery failed:", error.message);
-    return empty;
-  }
-
-  return ((data ?? []) as HomeDiscoveryRow[]).reduce<HomePeopleDiscoveryResult>((result, row) => {
-    if (!row.username || (row.section !== "talent" && row.section !== "makers")) return result;
-    result[row.section].push({
-      userId: row.user_id,
-      username: row.username,
-      avatarUrl: row.avatar_url,
-    });
-    return result;
-  }, empty);
 }
