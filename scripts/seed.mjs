@@ -28,6 +28,7 @@ const CATEGORY = {
   FAITH_WORSHIP: '11111111-1111-1111-1111-111111111302',
   ARTS_CULTURE: '11111111-1111-1111-1111-111111111304',
   NIGHTLIFE: '11111111-1111-1111-1111-111111111306',
+  BUSINESS_TECH: '11111111-1111-1111-1111-111111111307',
 };
 
 const STALE_CATEGORY_IDS = [
@@ -283,6 +284,7 @@ async function seedCategories() {
         { category_id: CATEGORY.FAITH_WORSHIP, name: 'Faith & Worship' },
         { category_id: CATEGORY.ARTS_CULTURE, name: 'Arts & Culture' },
         { category_id: CATEGORY.NIGHTLIFE, name: 'Nightlife' },
+        { category_id: CATEGORY.BUSINESS_TECH, name: 'Business & Tech' },
       ],
       { onConflict: 'category_id' }
     );
@@ -547,7 +549,7 @@ async function seedViews(userIds) {
 /**
  * Deletes retired category rows (Music / Food & Drink / Networking) now
  * that seedCategories()/seedEvents() have already run — every event was
- * repointed to one of the 3 surviving categories above, so nothing should
+ * repointed to one of the surviving categories above, so nothing should
  * reference these ids anymore. Must run AFTER seedEvents(), or the delete
  * fails on the events.category_id FK (NOT NULL, references categories).
  * Safe to re-run: no-ops once the rows are gone.
