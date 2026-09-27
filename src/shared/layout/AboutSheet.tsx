@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Info, X } from "lucide-react";
 
 const WHATSAPP_HREF = "https://wa.me/26659034707";
-const WHATSAPP_GROUP_HREF = "https://chat.whatsapp.com/DNm1CIW7I9u2mZWi4fHLbj";
+const WHATSAPP_CHANNEL_HREF = "https://whatsapp.com/channel/0029VbD7S9Z9RZAV0QWgch2C";
 
 type AboutButtonProps = {
   onClick: () => void;
@@ -142,16 +142,16 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
               </a>
             </p>
             <p className="mt-2">
-              Join the{" "}
+              Follow the{" "}
               <a
-                href={WHATSAPP_GROUP_HREF}
+                href={WHATSAPP_CHANNEL_HREF}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-semibold text-white underline decoration-[#FFF335] underline-offset-2"
               >
-                WhatsApp group
+                WhatsApp channel
               </a>{" "}
-              for updates and to share suggestions.
+              for updates.
             </p>
           </section>
         </div>
