@@ -23,6 +23,7 @@ import {
 } from "@/modules/events/validation";
 import type { CreateEventCategory } from "@/modules/events/components/create/CreateEventPage";
 import VenueCombobox from "@/modules/events/components/create/VenueCombobox";
+import AreaCombobox from "@/modules/events/components/create/AreaCombobox";
 import {
   CitySelect,
   compareCityNames,
@@ -480,6 +481,30 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         <p className="text-[11px] text-[#8e8e8e]">JPEG, PNG, or WebP only, up to 5MB.</p>
       </div>
 
+      {/* Title */}
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="eventTitle" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
+          TITLE
+        </label>
+        <input
+          id="eventTitle"
+          type="text"
+          value={title}
+          maxLength={TITLE_MAX}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Maseru Flea Market"
+          autoComplete="off"
+          aria-invalid={Boolean(errors.title)}
+          aria-describedby={errors.title ? "titleError" : undefined}
+          className={inputBase}
+        />
+        {errors.title && (
+          <p id="titleError" className="text-xs font-semibold text-[#ff453a]">
+            {errors.title}
+          </p>
+        )}
+      </div>
+
       {!isEditing && sortedCities.length > 1 && (
         <div className="flex flex-col gap-1.5">
           <label htmlFor="eventCity" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
@@ -520,54 +545,28 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           afterward (see PATCH /api/events/[id]). */}
       {!isEditing && (
         <div className="flex flex-col gap-1.5">
-          <label className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">AREA</label>
+          <label htmlFor="eventArea" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
+            AREA
+          </label>
 
           {areaFromVenue && locationLabel && (
             <p className="text-xs font-semibold text-[#FFF335]">
-              Set to {locationLabel} from {areaFromVenue}. Tap another area to change it.
+              Set to {locationLabel} from {areaFromVenue}. Pick another area to change it.
             </p>
           )}
 
-          <div className="flex flex-wrap gap-2">
-            {availableAreas.map((area) => (
-              <button
-                key={area.id}
-                type="button"
-                onClick={() => handleAreaPick(area.id)}
-                className={`${chipBase} ${areaId === area.id ? chipActive : chipInactive}`}
-              >
-                {area.name}
-              </button>
-            ))}
-          </div>
+          <AreaCombobox
+            id="eventArea"
+            areas={availableAreas}
+            value={areaId}
+            invalid={Boolean(errors.areaId)}
+            inputClassName={inputBase}
+            onSelect={handleAreaPick}
+          />
           <p className="text-[11px] text-[#8e8e8e]">Where the event will be listed. Visible on the feed to everyone in this area.</p>
           {errors.areaId && <p className="text-xs font-semibold text-[#ff453a]">{errors.areaId}</p>}
         </div>
       )}
-
-      {/* Title */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="eventTitle" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
-          TITLE
-        </label>
-        <input
-          id="eventTitle"
-          type="text"
-          value={title}
-          maxLength={TITLE_MAX}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Maseru Flea Market"
-          autoComplete="off"
-          aria-invalid={Boolean(errors.title)}
-          aria-describedby={errors.title ? "titleError" : undefined}
-          className={inputBase}
-        />
-        {errors.title && (
-          <p id="titleError" className="text-xs font-semibold text-[#ff453a]">
-            {errors.title}
-          </p>
-        )}
-      </div>
 
       {/* Category */}
       <div className="flex flex-col gap-1.5">
