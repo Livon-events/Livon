@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/shared/supabase/server";
 
 /**
@@ -159,13 +160,14 @@ type UserLocationRow = {
  * validates the submitted `areaId` directly against the `areas` table).
  *
  * Returns null if there's no signed-in user, or no preference set yet at
- * all. Deliberately re-read fresh on every call (no caching).
+ * all. Re-read fresh on every request (memoized only within a single
+ * request, so the header and page share one query).
  *
  * When an area is selected, `cityId`/`cityName` are derived from the
  * area's own `city_id` FK (not from `users.preferred_city_id` directly) —
  * this guarantees the pair handed back is always internally consistent.
  */
-export async function getOrganizerLocationContext(
+export const getOrganizerLocationContext = cache(async function getOrganizerLocationContext(
   userId: string
 ): Promise<OrganizerLocationContext | null> {
   const supabase = await createClient();
@@ -199,4 +201,4 @@ export async function getOrganizerLocationContext(
     areaId: null,
     areaName: null,
   };
-}
+});

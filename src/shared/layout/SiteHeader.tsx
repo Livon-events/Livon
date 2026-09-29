@@ -1,19 +1,14 @@
 import AppHeader from "./AppHeader";
 import DesktopHeader from "./DesktopHeader";
-import { createClient } from "@/shared/supabase/server";
+import { getCurrentUser } from "@/shared/supabase/server";
 import { getLocationPickerData, readLocationPreferenceCookie } from "@/modules/location/queries";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
 import { ALL_AREAS_ID, DEFAULT_CITY_NAME, compareCityNames } from "@/modules/location";
 
 export default async function SiteHeader() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [user, pickerCities] = await Promise.all([getCurrentUser(), getLocationPickerData()]);
 
-  const cities = [...(await getLocationPickerData())].sort((a, b) =>
-    compareCityNames(a.name, b.name)
-  );
+  const cities = [...pickerCities].sort((a, b) => compareCityNames(a.name, b.name));
   const defaultCity = cities.find((city) => city.name === DEFAULT_CITY_NAME) ?? cities[0];
 
   const location = user ? await getOrganizerLocationContext(user.id) : null;

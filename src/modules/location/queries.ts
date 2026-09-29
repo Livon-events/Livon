@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/shared/supabase/server";
 import { DEFAULT_CITY_NAME } from "./constants";
 import { readLocationPreferenceCookie } from "./cookie";
@@ -33,7 +34,9 @@ type CityRow = {
  * rather than assuming a single city. Ordered by name for deterministic
  * display; the default city is resolved by name (Maseru) in SiteHeader.
  */
-export async function getLocationPickerData(): Promise<LocationPickerCity[]> {
+export const getLocationPickerData = cache(async function getLocationPickerData(): Promise<
+  LocationPickerCity[]
+> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -53,7 +56,7 @@ export async function getLocationPickerData(): Promise<LocationPickerCity[]> {
       .sort((a, b) => a.name.localeCompare(b.name))
       .map((area) => ({ id: area.area_id, name: area.name })),
   }));
-}
+});
 
 export type LocationVenue = {
   id: string;

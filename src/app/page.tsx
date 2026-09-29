@@ -4,21 +4,70 @@ import { getHomeFeed } from "@/modules/feed/queries";
 import { getCategories } from "@/modules/categories/queries";
 import { getLocationPickerData, resolveFeedLocationScope } from "@/modules/location/queries";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
-import { createClient } from "@/shared/supabase/server";
-import { Analytics } from "@vercel/analytics/next";
+import { getCurrentUser } from "@/shared/supabase/server";
 
 type HomeProps = {
   searchParams: Promise<{ category?: string; free?: string }>;
 };
 
-async function FeedContent({
-  feed,
-  remountKey,
-}: {
-  feed: Promise<HomeFeedResult>;
+type Categories = Awaited<ReturnType<typeof getCategories>>;
+type Category = Categories[number];
+
+type HomeFeedData = {
+  initial: HomeFeedResult;
   remountKey: string;
+};
+
+async function loadHomeFeed(
+  activeCategory: Promise<Category | null>,
+  freeOnly: boolean
+): Promise<HomeFeedData> {
+  const [category, user, cities] = await Promise.all([
+    activeCategory,
+    getCurrentUser(),
+    getLocationPickerData(),
+  ]);
+  const accountLocation = user ? await getOrganizerLocationContext(user.id) : null;
+
+  const { cityId, areaId } = await resolveFeedLocationScope({
+    cities,
+    accountLocation,
+  });
+
+  const initial = await getHomeFeed({
+    categoryId: category?.id ?? null,
+    freeOnly,
+    cityId,
+    areaId,
+  });
+
+  return {
+    initial,
+    remountKey: `${category?.name ?? ""}:${freeOnly}:${cityId}:${areaId ?? ""}`,
+  };
+}
+
+async function FilterBarContent({
+  categories,
+  activeCategory,
+  freeOnly,
+}: {
+  categories: Promise<Categories>;
+  activeCategory: Promise<Category | null>;
+  freeOnly: boolean;
 }) {
-  const initial = await feed;
+  const [allCategories, active] = await Promise.all([categories, activeCategory]);
+  return (
+    <CategoryFilterBar
+      categories={allCategories.map((c) => c.name)}
+      activeCategory={active?.name ?? null}
+      freeOnly={freeOnly}
+    />
+  );
+}
+
+async function FeedContent({ feed }: { feed: Promise<HomeFeedData> }) {
+  const { initial, remountKey } = await feed;
   return <HomeFeed key={remountKey} initial={initial} />;
 }
 
@@ -46,48 +95,23 @@ export default async function Home({ searchParams }: HomeProps) {
   const { category: activeCategoryName, free: freeParam } = await searchParams;
   const freeOnly = freeParam === "1" || freeParam === "true";
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const [categories, cities, accountLocation] = await Promise.all([
-    getCategories(),
-    getLocationPickerData(),
-    user ? getOrganizerLocationContext(user.id) : Promise.resolve(null),
-  ]);
-
-  const activeCategory = categories.find((c) => c.name === activeCategoryName) ?? null;
-
-  const { cityId, areaId } = await resolveFeedLocationScope({
-    cities,
-    accountLocation,
-  });
-
-  const feed = getHomeFeed({
-    categoryId: activeCategory?.id ?? null,
-    freeOnly,
-    cityId,
-    areaId,
-  });
+  // Started here but awaited inside the Suspense boundaries below, so the
+  // shell and skeletons stream before any Supabase work finishes.
+  const categories = getCategories();
+  const activeCategory = categories.then(
+    (all) => all.find((c) => c.name === activeCategoryName) ?? null
+  );
+  const feed = loadHomeFeed(activeCategory, freeOnly);
 
   return (
     <main
       className="min-h-screen bg-[#0C0C0C] pt-4 md:pt-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px)+1.5rem)] md:pb-0"
     >
-      <Analytics />
       <Suspense fallback={<FilterBarSkeleton />}>
-        <CategoryFilterBar
-          categories={categories.map((c) => c.name)}
-          activeCategory={activeCategory?.name ?? null}
-          freeOnly={freeOnly}
-        />
+        <FilterBarContent categories={categories} activeCategory={activeCategory} freeOnly={freeOnly} />
       </Suspense>
       <Suspense fallback={<FeedSkeleton />}>
-        <FeedContent
-          feed={feed}
-          remountKey={`${activeCategory?.name ?? ""}:${freeOnly}:${cityId}:${areaId ?? ""}`}
-        />
+        <FeedContent feed={feed} />
       </Suspense>
     </main>
   );

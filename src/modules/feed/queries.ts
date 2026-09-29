@@ -1,5 +1,5 @@
 import "server-only";
-import { createClient } from "@/shared/supabase/server";
+import { createClient, getCurrentUser } from "@/shared/supabase/server";
 import type { GoingVisibility } from "@/modules/rsvp";
 
 export type HomeFeedCursor = {
@@ -77,27 +77,26 @@ export async function getHomeFeed({
 }: GetHomeFeedParams = {}): Promise<HomeFeedResult> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase.rpc("get_home_feed", {
-    p_category_id: categoryId,
-    p_city_id: cityId,
-    p_area_id: areaId,
-    p_cursor_rank_score: cursor?.rankScore ?? null,
-    p_cursor_total_going: cursor?.totalGoingCount ?? null,
-    p_cursor_starts_at: cursor?.startsAt ?? null,
-    p_cursor_event_id: cursor?.eventId ?? null,
-    p_page_size: pageSize,
-    p_free_only: freeOnly,
-  });
+  const [{ data, error }, viewer] = await Promise.all([
+    supabase.rpc("get_home_feed", {
+      p_category_id: categoryId,
+      p_city_id: cityId,
+      p_area_id: areaId,
+      p_cursor_rank_score: cursor?.rankScore ?? null,
+      p_cursor_total_going: cursor?.totalGoingCount ?? null,
+      p_cursor_starts_at: cursor?.startsAt ?? null,
+      p_cursor_event_id: cursor?.eventId ?? null,
+      p_page_size: pageSize,
+      p_free_only: freeOnly,
+    }),
+    getCurrentUser(),
+  ]);
 
   if (error) {
     throw new Error(`get_home_feed failed: ${error.message}`);
   }
 
   const rows = (data ?? []) as HomeFeedRow[];
-
-  const {
-    data: { user: viewer },
-  } = await supabase.auth.getUser();
 
   // event_id -> visibility, for just this page's events and just the
   // signed-in viewer's own rows (RLS already scopes a plain select on
