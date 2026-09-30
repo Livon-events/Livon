@@ -174,8 +174,9 @@ type WeekendEventRow = {
 
 /**
  * "This weekend" rail — Friday to Sunday of the current week, ordered by
- * start time only. Ignores category/free filters and viewer state, so one
- * small unpaginated fetch (capped at 20) is enough.
+ * start time only. Ignores category/free filters and viewer state. Every
+ * weekend event is shown in one unpaginated fetch — 100 is only a safety
+ * ceiling; images lazy-load and off-screen cards skip paint in WeekendRail.
  */
 export async function getWeekendEvents({
   cityId = null,
@@ -189,7 +190,7 @@ export async function getWeekendEvents({
   const { data, error } = await supabase.rpc("get_weekend_events", {
     p_city_id: cityId,
     p_area_id: areaId,
-    p_limit: 20,
+    p_limit: 100,
   });
 
   if (error) {

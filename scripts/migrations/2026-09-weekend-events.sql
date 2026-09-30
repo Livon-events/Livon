@@ -16,7 +16,7 @@ CREATE INDEX IF NOT EXISTS events_active_city_starts_at_idx
 CREATE OR REPLACE FUNCTION public.get_weekend_events(
   p_city_id uuid DEFAULT NULL::uuid,
   p_area_id uuid DEFAULT NULL::uuid,
-  p_limit integer DEFAULT 20
+  p_limit integer DEFAULT 100
 )
 RETURNS TABLE(
   id uuid,
@@ -64,7 +64,7 @@ AS $function$
     and (p_city_id is null or e.city_id = p_city_id)
     and (p_area_id is null or e.area_id = p_area_id)
   order by e.starts_at asc, e.event_id asc
-  limit least(greatest(coalesce(p_limit, 20), 1), 30);
+  limit least(greatest(coalesce(p_limit, 100), 1), 100);
 $function$;
 
 REVOKE ALL ON FUNCTION public.get_weekend_events(uuid, uuid, integer) FROM PUBLIC;
