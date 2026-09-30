@@ -33,7 +33,7 @@ function WeekendSkeleton() {
       <div className="mb-2 h-7 w-40 animate-pulse rounded-[7px] bg-[#1f1f1f]" />
       <div className="flex gap-[13px] overflow-hidden">
         {[0, 1].map((index) => (
-          <div key={index} className="h-[300px] w-[85vw] max-w-[340px] shrink-0 animate-pulse rounded-xl bg-[#262626]" />
+          <div key={index} className="h-[330px] w-[85vw] max-w-[340px] shrink-0 animate-pulse rounded-xl bg-[#262626]" />
         ))}
       </div>
     </div>

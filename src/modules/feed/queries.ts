@@ -176,7 +176,7 @@ type WeekendEventRow = {
  * "This weekend" rail — Friday to Sunday of the current week, ordered by
  * start time only. Ignores category/free filters and viewer state. Every
  * weekend event is shown in one unpaginated fetch — 100 is only a safety
- * ceiling; images lazy-load and off-screen cards skip paint in WeekendRail.
+ * ceiling; cover images lazy-load in WeekendRail.
  */
 export async function getWeekendEvents({
   cityId = null,

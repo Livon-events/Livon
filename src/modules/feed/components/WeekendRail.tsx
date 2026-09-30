@@ -7,9 +7,9 @@ type WeekendRailProps = {
 
 /**
  * Horizontal "This weekend" rail. Native overflow + CSS scroll-snap only —
- * no scroll listeners or carousel lib. Off-screen cards opt into
- * content-visibility so low-end devices skip their layout/paint, and every
- * cover image except the first lazy-loads.
+ * no scroll listeners or carousel lib, and every cover image except the
+ * first lazy-loads. No content-visibility: its placeholder height stretches
+ * every card in the flex row, leaving empty space at the card bottom.
  */
 export default function WeekendRail({ events }: WeekendRailProps) {
   if (events.length === 0) return null;
@@ -38,7 +38,7 @@ export default function WeekendRail({ events }: WeekendRailProps) {
           {events.map((event, index) => (
             <li
               key={event.id}
-              className="w-[85vw] max-w-[340px] shrink-0 snap-start [contain-intrinsic-size:auto_340px_auto_320px] [content-visibility:auto]"
+              className="w-[85vw] max-w-[340px] shrink-0 snap-start"
             >
               <WeekendEventCard event={event} now={now} priority={index === 0} />
             </li>

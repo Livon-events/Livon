@@ -4,6 +4,7 @@ import { MapPin } from "lucide-react";
 import { getPriceLabel, getTimeOrLiveLabel, getWeekendDayLabel } from "@/modules/events";
 import { safeImageUrl } from "@/shared/security/urls";
 import type { WeekendEvent } from "../queries";
+import WeekendShareButton from "./WeekendShareButton";
 
 type WeekendEventCardProps = {
   event: WeekendEvent;
@@ -12,9 +13,9 @@ type WeekendEventCardProps = {
 };
 
 /**
- * Server-only rail card — no hooks, no measured SVG chrome, no RSVP actions,
- * so 20 of these ship zero client JS. The title Link is stretched over the
- * whole card via ::after so the entire card is tappable.
+ * Server-rendered rail card — no measured SVG chrome and no RSVP state, so
+ * the only client code is the small Share button. The title Link is
+ * stretched over the whole card via ::after so the entire card is tappable.
  */
 export default function WeekendEventCard({ event, now, priority = false }: WeekendEventCardProps) {
   const coverImageUrl = safeImageUrl(event.coverImageUrl);
@@ -66,6 +67,8 @@ export default function WeekendEventCard({ event, now, priority = false }: Weeke
             </span>
           </p>
         </div>
+
+        <WeekendShareButton eventId={event.id} eventTitle={event.title} />
       </div>
     </article>
   );
