@@ -10,6 +10,7 @@ export {
   getTimeOrLiveLabel,
   getEventDateTimeLabel,
   getProfileEventDateLabel,
+  getWeekendDayLabel,
   isEventStillLive,
 } from "./format";
 

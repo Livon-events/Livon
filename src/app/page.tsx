@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { CategoryFilterBar, HomeFeed, type HomeFeedResult } from "@/modules/feed";
-import { getHomeFeed } from "@/modules/feed/queries";
+import { CategoryFilterBar, HomeFeed, WeekendRail, type HomeFeedResult, type WeekendEvent } from "@/modules/feed";
+import { getHomeFeed, getWeekendEvents } from "@/modules/feed/queries";
 import { getCategories } from "@/modules/categories/queries";
 import { getLocationPickerData, resolveFeedLocationScope } from "@/modules/location/queries";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
@@ -20,6 +20,24 @@ async function FeedContent({
 }) {
   const initial = await feed;
   return <HomeFeed key={remountKey} initial={initial} />;
+}
+
+async function WeekendContent({ weekend }: { weekend: Promise<WeekendEvent[]> }) {
+  const events = await weekend;
+  return <WeekendRail events={events} />;
+}
+
+function WeekendSkeleton() {
+  return (
+    <div className="mx-auto max-w-[1400px] px-3 pb-2 lg:px-6" aria-hidden="true">
+      <div className="mb-2 h-7 w-40 animate-pulse rounded-[7px] bg-[#1f1f1f]" />
+      <div className="flex gap-[13px] overflow-hidden">
+        {[0, 1].map((index) => (
+          <div key={index} className="h-[300px] w-[85vw] max-w-[340px] shrink-0 animate-pulse rounded-xl bg-[#262626]" />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function FeedSkeleton() {
@@ -70,12 +88,20 @@ export default async function Home({ searchParams }: HomeProps) {
     cityId,
     areaId,
   });
+  // The rail is supplementary — a failure here must not take down the feed.
+  const weekend = getWeekendEvents({ cityId, areaId }).catch((error: unknown) => {
+    console.error(error);
+    return [];
+  });
 
   return (
     <main
       className="min-h-screen bg-[#0C0C0C] pt-4 md:pt-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px)+1.5rem)] md:pb-0"
     >
       <Analytics />
+      <Suspense fallback={<WeekendSkeleton />}>
+        <WeekendContent weekend={weekend} />
+      </Suspense>
       <Suspense fallback={<FilterBarSkeleton />}>
         <CategoryFilterBar
           categories={categories.map((c) => c.name)}

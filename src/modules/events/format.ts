@@ -88,6 +88,19 @@ export function getTimeOrLiveLabel(
 }
 
 /**
+ * "This weekend" rail day chip: "Today", or "This Friday" / "This Saturday"
+ * / "This Sunday". Rendered on the server, so "today" comes from Maseru
+ * wall-clock (TEMP PATCH: same +2h shift as isEventStillLive) rather than
+ * the host machine's local day.
+ */
+export function getWeekendDayLabel(startsAt: Date, now: Date = new Date()): string {
+  const shiftedNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  if (utcDayNumber(startsAt) <= utcDayNumber(shiftedNow)) return "Today";
+  const weekday = startsAt.toLocaleString("en-US", { weekday: "long", timeZone: "UTC" });
+  return `This ${weekday}`;
+}
+
+/**
  * Event details page date/time line.
  *
  * When `endsAt` is provided and on the same calendar day as `startsAt`:

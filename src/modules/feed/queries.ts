@@ -149,3 +149,61 @@ export async function getHomeFeed({
 
   return { events, nextCursor };
 }
+
+export type WeekendEvent = {
+  id: string;
+  title: string;
+  price: number;
+  venueName: string;
+  area: string;
+  coverImageUrl: string | null;
+  startsAt: string;
+  endsAt: string | null;
+};
+
+type WeekendEventRow = {
+  id: string;
+  title: string;
+  price: string;
+  venue_name: string;
+  area: string;
+  cover_image_url: string | null;
+  starts_at: string;
+  ends_at: string | null;
+};
+
+/**
+ * "This weekend" rail — Friday to Sunday of the current week, ordered by
+ * start time only. Ignores category/free filters and viewer state, so one
+ * small unpaginated fetch (capped at 20) is enough.
+ */
+export async function getWeekendEvents({
+  cityId = null,
+  areaId = null,
+}: {
+  cityId?: string | null;
+  areaId?: string | null;
+} = {}): Promise<WeekendEvent[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("get_weekend_events", {
+    p_city_id: cityId,
+    p_area_id: areaId,
+    p_limit: 20,
+  });
+
+  if (error) {
+    throw new Error(`get_weekend_events failed: ${error.message}`);
+  }
+
+  return ((data ?? []) as WeekendEventRow[]).map((row) => ({
+    id: row.id,
+    title: row.title,
+    price: parseFloat(row.price),
+    venueName: row.venue_name,
+    area: row.area,
+    coverImageUrl: row.cover_image_url,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+  }));
+}
