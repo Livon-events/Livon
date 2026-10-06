@@ -290,7 +290,8 @@ export async function getEventsOrganizedBy(userId: string): Promise<EventSummary
     .from("events")
     .select(EVENT_SUMMARY_SELECT)
     .eq("organizer_id", userId)
-    .order("starts_at", { ascending: false })
+    .order("created_at", { ascending: false })
+    .order("event_id", { ascending: false })
     .returns<EventSummaryRow[]>();
 
   if (error) {
