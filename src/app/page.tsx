@@ -1,6 +1,16 @@
 import { Suspense } from "react";
-import { CategoryFilterBar, HomeFeed, WeekendRail, type HomeFeedResult, type WeekendEvent } from "@/modules/feed";
-import { getHomeFeed, getWeekendEvents } from "@/modules/feed/queries";
+import {
+  CategoryFilterBar,
+  EventRailList,
+  EventRailTabs,
+  HomeFeed,
+  type EventRailTab,
+  type HomeFeedResult,
+  type RecentEvent,
+  type WeekendEvent,
+} from "@/modules/feed";
+import { getHomeFeed, getRecentEvents, getWeekendEvents } from "@/modules/feed/queries";
+import { getEventDayLabel, getWeekendDayLabel } from "@/modules/events";
 import { getCategories } from "@/modules/categories/queries";
 import { getLocationPickerData, resolveFeedLocationScope } from "@/modules/location/queries";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
@@ -22,15 +32,59 @@ async function FeedContent({
   return <HomeFeed key={remountKey} initial={initial} />;
 }
 
-async function WeekendContent({ weekend }: { weekend: Promise<WeekendEvent[]> }) {
-  const events = await weekend;
-  return <WeekendRail events={events} />;
+async function RailContent({
+  weekend,
+  recent,
+}: {
+  weekend: Promise<WeekendEvent[]>;
+  recent: Promise<RecentEvent[]>;
+}) {
+  const [weekendEvents, recentEvents] = await Promise.all([weekend, recent]);
+
+  const now = new Date();
+  // First tab is the default — "Recently added" leads so returning users
+  // see something new; falls back to "This weekend" when nothing is new.
+  const tabs: EventRailTab[] = [];
+
+  if (recentEvents.length > 0) {
+    tabs.push({
+      id: "recentRail",
+      label: "Recently added",
+      analyticsKey: "recent",
+      content: (
+        <EventRailList
+          events={recentEvents}
+          now={now}
+          getDayLabel={(event, at) => getEventDayLabel(new Date(event.startsAt), at)}
+          prioritizeFirst
+        />
+      ),
+    });
+  }
+
+  if (weekendEvents.length > 0) {
+    tabs.push({
+      id: "weekendRail",
+      label: "This weekend",
+      analyticsKey: "weekend",
+      content: (
+        <EventRailList
+          events={weekendEvents}
+          now={now}
+          getDayLabel={(event, at) => getWeekendDayLabel(new Date(event.startsAt), at)}
+          prioritizeFirst={tabs.length === 0}
+        />
+      ),
+    });
+  }
+
+  return <EventRailTabs tabs={tabs} />;
 }
 
-function WeekendSkeleton() {
+function RailSkeleton() {
   return (
     <div className="mx-auto max-w-[1400px] px-3 pb-2 lg:px-6" aria-hidden="true">
-      <div className="mb-2 h-7 w-40 animate-pulse rounded-[7px] bg-[#1f1f1f]" />
+      <div className="mb-3 h-[46px] w-full animate-pulse rounded-[7px] bg-[#1f1f1f] md:max-w-[520px]" />
       <div className="flex gap-[13px] overflow-hidden">
         {[0, 1].map((index) => (
           <div key={index} className="h-[330px] w-[85vw] max-w-[340px] shrink-0 animate-pulse rounded-xl bg-[#262626]" />
@@ -88,8 +142,13 @@ export default async function Home({ searchParams }: HomeProps) {
     cityId,
     areaId,
   });
-  // The rail is supplementary — a failure here must not take down the feed.
+  // The rails are supplementary — a failure in either must not take down
+  // the feed or the other rail.
   const weekend = getWeekendEvents({ cityId, areaId }).catch((error: unknown) => {
+    console.error(error);
+    return [];
+  });
+  const recent = getRecentEvents({ cityId, areaId }).catch((error: unknown) => {
     console.error(error);
     return [];
   });
@@ -99,8 +158,8 @@ export default async function Home({ searchParams }: HomeProps) {
       className="min-h-screen bg-[#0C0C0C] pt-4 md:pt-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px)+1.5rem)] md:pb-0"
     >
       <Analytics />
-      <Suspense fallback={<WeekendSkeleton />}>
-        <WeekendContent weekend={weekend} />
+      <Suspense fallback={<RailSkeleton />}>
+        <RailContent weekend={weekend} recent={recent} />
       </Suspense>
       <Suspense fallback={<FilterBarSkeleton />}>
         <CategoryFilterBar

@@ -2,13 +2,13 @@
 
 import { useShareEvent } from "@/modules/invites";
 
-type WeekendShareButtonProps = {
+type EventRailShareButtonProps = {
   eventId: string;
   eventTitle: string;
 };
 
-/** The only client island on a weekend card — raised above the card's stretched Link. */
-export default function WeekendShareButton({ eventId, eventTitle }: WeekendShareButtonProps) {
+/** The only client island on a rail card — raised above the card's stretched Link. */
+export default function EventRailShareButton({ eventId, eventTitle }: EventRailShareButtonProps) {
   const { share, sharing, copied, error } = useShareEvent(eventId);
 
   return (

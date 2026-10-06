@@ -101,6 +101,17 @@ export function getWeekendDayLabel(startsAt: Date, now: Date = new Date()): stri
 }
 
 /**
+ * "Recently added" rail day chip: "Today", "Tomorrow", or "Sat, 11 Oct".
+ * Same Maseru wall-clock "today" as getWeekendDayLabel (TEMP PATCH +2h).
+ */
+export function getEventDayLabel(startsAt: Date, now: Date = new Date()): string {
+  const shiftedNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const diffDays = utcDayNumber(startsAt) - utcDayNumber(shiftedNow);
+  if (diffDays <= 0) return "Today";
+  if (diffDays === 1) return "Tomorrow";
+  return getProfileEventDateLabel(startsAt);
+}
+/**
  * Event details page date/time line.
  *
  * When `endsAt` is provided and on the same calendar day as `startsAt`:

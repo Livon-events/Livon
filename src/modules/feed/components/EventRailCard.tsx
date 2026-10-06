@@ -1,14 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin } from "lucide-react";
-import { getPriceLabel, getTimeOrLiveLabel, getWeekendDayLabel } from "@/modules/events";
+import { getPriceLabel, getTimeOrLiveLabel } from "@/modules/events";
 import { safeImageUrl } from "@/shared/security/urls";
-import type { WeekendEvent } from "../queries";
-import WeekendShareButton from "./WeekendShareButton";
+import type { RailEvent } from "../queries";
+import EventRailShareButton from "./EventRailShareButton";
 
-type WeekendEventCardProps = {
-  event: WeekendEvent;
+type EventRailCardProps = {
+  event: RailEvent;
   now: Date;
+  /** Top-left chip — each rail decides its own wording. */
+  dayLabel: string;
   priority?: boolean;
 };
 
@@ -17,7 +19,7 @@ type WeekendEventCardProps = {
  * the only client code is the small Share button. The title Link is
  * stretched over the whole card via ::after so the entire card is tappable.
  */
-export default function WeekendEventCard({ event, now, priority = false }: WeekendEventCardProps) {
+export default function EventRailCard({ event, now, dayLabel, priority = false }: EventRailCardProps) {
   const coverImageUrl = safeImageUrl(event.coverImageUrl);
   const starts = new Date(event.startsAt);
   const ends = event.endsAt ? new Date(event.endsAt) : null;
@@ -26,7 +28,7 @@ export default function WeekendEventCard({ event, now, priority = false }: Weeke
     <article className="relative flex h-full flex-col rounded-[12px] bg-[#FFF335] p-[3px] text-white">
       <div className="flex h-[36px] p-[2px]">
         <div className="flex flex-1 items-center gap-2 rounded-[7px] bg-[#0C0C0C] px-3 text-[14px] font-medium text-white">
-          <span className="flex-[3] truncate text-center">{getWeekendDayLabel(starts, now)}</span>
+          <span className="flex-[3] truncate text-center">{dayLabel}</span>
           <span aria-hidden="true" className="h-4 w-[2px] shrink-0 bg-white" />
           <span className="flex-[2] whitespace-nowrap text-center">{getTimeOrLiveLabel(starts, ends, now)}</span>
         </div>
@@ -68,7 +70,7 @@ export default function WeekendEventCard({ event, now, priority = false }: Weeke
           </p>
         </div>
 
-        <WeekendShareButton eventId={event.id} eventTitle={event.title} />
+        <EventRailShareButton eventId={event.id} eventTitle={event.title} />
       </div>
     </article>
   );

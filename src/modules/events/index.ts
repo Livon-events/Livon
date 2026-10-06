@@ -11,6 +11,7 @@ export {
   getEventDateTimeLabel,
   getProfileEventDateLabel,
   getWeekendDayLabel,
+  getEventDayLabel,
   isEventStillLive,
 } from "./format";
 

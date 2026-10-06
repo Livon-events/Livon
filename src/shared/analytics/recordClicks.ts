@@ -3,6 +3,8 @@ import { getOrCreateAnonSessionId } from "@/shared/anonSession";
 
 export type SocialPlatform = "facebook" | "instagram" | "tiktok" | "youtube";
 
+export type RailTab = "recent" | "weekend";
+
 async function resolveViewer(): Promise<
   | { kind: "auth"; userId: string }
   | { kind: "anon"; anonSessionId: string }
@@ -59,5 +61,29 @@ export async function recordProfileSocialClick({
     }
   } catch (error) {
     console.error("recordProfileSocialClick failed", error);
+  }
+}
+
+/**
+ * Logs a home rail tab switch. Server-side rate limit: 30 / 5 min per
+ * viewer. Failures are swallowed — tracking must never block switching tabs.
+ */
+export async function recordRailTabClick({ tab }: { tab: RailTab }): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  try {
+    const viewer = await resolveViewer();
+    if (!viewer) return;
+
+    const supabase = createClient();
+    const { error } = await supabase.rpc("record_rail_tab_click", {
+      p_tab: tab,
+      p_anon_session_id: viewer.kind === "anon" ? viewer.anonSessionId : null,
+    });
+    if (error) {
+      console.error("recordRailTabClick failed", error);
+    }
+  } catch (error) {
+    console.error("recordRailTabClick failed", error);
   }
 }

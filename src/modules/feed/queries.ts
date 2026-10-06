@@ -150,7 +150,8 @@ export async function getHomeFeed({
   return { events, nextCursor };
 }
 
-export type WeekendEvent = {
+/** Fields every home rail card renders. */
+export type RailEvent = {
   id: string;
   title: string;
   price: number;
@@ -161,7 +162,11 @@ export type WeekendEvent = {
   endsAt: string | null;
 };
 
-type WeekendEventRow = {
+export type WeekendEvent = RailEvent;
+
+export type RecentEvent = RailEvent;
+
+type RailEventRow = {
   id: string;
   title: string;
   price: string;
@@ -171,6 +176,19 @@ type WeekendEventRow = {
   starts_at: string;
   ends_at: string | null;
 };
+
+function mapRailRow(row: RailEventRow): RailEvent {
+  return {
+    id: row.id,
+    title: row.title,
+    price: parseFloat(row.price),
+    venueName: row.venue_name,
+    area: row.area,
+    coverImageUrl: row.cover_image_url,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+  };
+}
 
 /**
  * "This weekend" rail — Friday to Sunday of the current week, ordered by
@@ -197,14 +215,33 @@ export async function getWeekendEvents({
     throw new Error(`get_weekend_events failed: ${error.message}`);
   }
 
-  return ((data ?? []) as WeekendEventRow[]).map((row) => ({
-    id: row.id,
-    title: row.title,
-    price: parseFloat(row.price),
-    venueName: row.venue_name,
-    area: row.area,
-    coverImageUrl: row.cover_image_url,
-    startsAt: row.starts_at,
-    endsAt: row.ends_at,
-  }));
+  return ((data ?? []) as RailEventRow[]).map(mapRailRow);
+}
+
+/**
+ * "Recently added" rail — up to 12 events uploaded in the last 7 days that
+ * haven't ended, newest upload first. The 7-day cutoff and 12-event cap live
+ * in get_recent_events, so cards drop off on the next render after they age
+ * out — nothing is deleted.
+ */
+export async function getRecentEvents({
+  cityId = null,
+  areaId = null,
+}: {
+  cityId?: string | null;
+  areaId?: string | null;
+} = {}): Promise<RecentEvent[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("get_recent_events", {
+    p_city_id: cityId,
+    p_area_id: areaId,
+    p_limit: 12,
+  });
+
+  if (error) {
+    throw new Error(`get_recent_events failed: ${error.message}`);
+  }
+
+  return ((data ?? []) as RailEventRow[]).map(mapRailRow);
 }
