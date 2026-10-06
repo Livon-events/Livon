@@ -23,14 +23,14 @@ export default function EventsPanel({ going, created, onLeaveEvent, onManageEven
         active={subTab}
         onChange={setSubTab}
         options={[
-          { value: "going", label: "Going", count: going.length },
+          { value: "going", label: "Interested", count: going.length },
           { value: "created", label: "Created", count: created.length },
         ]}
       />
 
       {list.length === 0 ? (
         <div className="text-center text-[#AEAEB2] text-sm py-8">
-          {subTab === "going" ? "You're not going to any events yet." : "You haven't created any events yet."}
+          {subTab === "going" ? "You're not interested in any events yet." : "You haven't created any events yet."}
         </div>
       ) : (
         <div className="flex flex-col gap-2.5">
