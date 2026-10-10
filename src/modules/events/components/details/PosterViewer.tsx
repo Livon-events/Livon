@@ -55,6 +55,9 @@ export default function PosterViewer({ src, alt }: PosterViewerProps) {
           className="object-cover"
         />
       </button>
+      <p className="mt-1 px-1 text-[11px] text-[#FFF335] sm:text-xs">
+        *Tap the image to view the full poster
+      </p>
 
       {isOpen && (
         <div
