@@ -4,8 +4,6 @@ import { useEffect } from "react";
 import { Info, X } from "lucide-react";
 
 const WHATSAPP_HREF = "https://wa.me/26659034707";
-const WHATSAPP_CHANNEL_HREF = "https://whatsapp.com/channel/0029VbD7S9Z9RZAV0QWgch2C";
-
 type AboutButtonProps = {
   onClick: () => void;
 };
@@ -140,18 +138,6 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
               >
                 +266 5903 4707
               </a>
-            </p>
-            <p className="mt-2">
-              Follow the{" "}
-              <a
-                href={WHATSAPP_CHANNEL_HREF}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-white underline decoration-[#FFF335] underline-offset-2"
-              >
-                WhatsApp channel
-              </a>{" "}
-              for updates.
             </p>
           </section>
         </div>
