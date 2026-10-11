@@ -92,6 +92,7 @@ export default function CategorySelector({
                 <button
                   type="button"
                   onClick={() => handleClick(category)}
+                  aria-pressed={isActive}
                   className={`${chipBase} ${
                     isActive
                       ? "border-2 border-[#FFF335] bg-[#1f1f1f] text-white"

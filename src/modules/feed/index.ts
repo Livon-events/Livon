@@ -8,6 +8,7 @@ export type {
 } from "./queries";
 export { default as CategoryFilterBar } from "./components/CategoryFilterBar";
 export { default as HomeFeed } from "./components/HomeFeed";
+export { FeedFilterPendingProvider, FeedPendingFrame } from "./components/FeedFilterPending";
 export { default as EventRailList } from "./components/EventRailList";
 export { default as EventRailTabs, type EventRailTab } from "./components/EventRailTabs";
 

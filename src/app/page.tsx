@@ -3,6 +3,8 @@ import {
   CategoryFilterBar,
   EventRailList,
   EventRailTabs,
+  FeedFilterPendingProvider,
+  FeedPendingFrame,
   HomeFeed,
   type EventRailTab,
   type HomeFeedResult,
@@ -161,19 +163,23 @@ export default async function Home({ searchParams }: HomeProps) {
       <Suspense fallback={<RailSkeleton />}>
         <RailContent weekend={weekend} recent={recent} />
       </Suspense>
-      <Suspense fallback={<FilterBarSkeleton />}>
-        <CategoryFilterBar
-          categories={categories.map((c) => c.name)}
-          activeCategory={activeCategory?.name ?? null}
-          freeOnly={freeOnly}
-        />
-      </Suspense>
-      <Suspense fallback={<FeedSkeleton />}>
-        <FeedContent
-          feed={feed}
-          remountKey={`${activeCategory?.name ?? ""}:${freeOnly}:${cityId}:${areaId ?? ""}`}
-        />
-      </Suspense>
+      <FeedFilterPendingProvider>
+        <Suspense fallback={<FilterBarSkeleton />}>
+          <CategoryFilterBar
+            categories={categories.map((c) => c.name)}
+            activeCategory={activeCategory?.name ?? null}
+            freeOnly={freeOnly}
+          />
+        </Suspense>
+        <FeedPendingFrame>
+          <Suspense fallback={<FeedSkeleton />}>
+            <FeedContent
+              feed={feed}
+              remountKey={`${activeCategory?.name ?? ""}:${freeOnly}:${cityId}:${areaId ?? ""}`}
+            />
+          </Suspense>
+        </FeedPendingFrame>
+      </FeedFilterPendingProvider>
     </main>
   );
 }

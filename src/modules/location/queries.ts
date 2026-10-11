@@ -1,5 +1,7 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { createClient } from "@/shared/supabase/server";
+import { createPublicClient } from "@/shared/supabase/public";
 import { DEFAULT_CITY_NAME } from "./constants";
 import { readLocationPreferenceCookie } from "./cookie";
 import type { OrganizerLocationContext } from "@/modules/users/queries";
@@ -33,27 +35,31 @@ type CityRow = {
  * rather than assuming a single city. Ordered by name for deterministic
  * display; the default city is resolved by name (Maseru) in SiteHeader.
  */
-export async function getLocationPickerData(): Promise<LocationPickerCity[]> {
-  const supabase = await createClient();
+export const getLocationPickerData = unstable_cache(
+  async function getLocationPickerData(): Promise<LocationPickerCity[]> {
+    const supabase = createPublicClient();
 
-  const { data, error } = await supabase
-    .from("cities")
-    .select("city_id, name, areas ( area_id, name )")
-    .order("name", { ascending: true })
-    .returns<CityRow[]>();
+    const { data, error } = await supabase
+      .from("cities")
+      .select("city_id, name, areas ( area_id, name )")
+      .order("name", { ascending: true })
+      .returns<CityRow[]>();
 
-  if (error) {
-    throw new Error(`getLocationPickerData failed: ${error.message}`);
-  }
+    if (error) {
+      throw new Error(`getLocationPickerData failed: ${error.message}`);
+    }
 
-  return (data ?? []).map((city) => ({
-    id: city.city_id,
-    name: city.name,
-    areas: [...(city.areas ?? [])]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((area) => ({ id: area.area_id, name: area.name })),
-  }));
-}
+    return (data ?? []).map((city) => ({
+      id: city.city_id,
+      name: city.name,
+      areas: [...(city.areas ?? [])]
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((area) => ({ id: area.area_id, name: area.name })),
+    }));
+  },
+  ["cities"],
+  { tags: ["cities"], revalidate: 3600 }
+);
 
 export type LocationVenue = {
   id: string;
