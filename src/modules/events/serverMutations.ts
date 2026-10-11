@@ -6,7 +6,12 @@ import { checkRateLimit } from "@/shared/security/rateLimit";
 import { getCategories } from "@/modules/categories/queries";
 import { getAreaById } from "@/modules/location/queries";
 import { processEventCoverImage } from "@/modules/events/images";
-import { parseAndValidateEventFormData, parseTicketLinksFormData } from "@/modules/events/formParsing";
+import {
+  parseAndValidateEventFormData,
+  parsePricingFormData,
+  parseTicketLinksFormData,
+} from "@/modules/events/formParsing";
+import type { PricePhase } from "@/modules/events/pricePhases";
 import {
   eventTextFieldsSchema,
   combineStartsAt,
@@ -31,6 +36,12 @@ import {
 
 const STORAGE_BUCKET = "event-covers";
 const STATIC_FALLBACK_COVER_PATH = "/images/event-cover-placeholder.jpg";
+
+/** events.price mirrors the final phase's price when the event sells in phases. */
+function storedPrice(admission: "free" | "paid", price: number | undefined, pricePhases: PricePhase[]) {
+  if (admission === "free") return 0;
+  return pricePhases.at(-1)?.price ?? price;
+}
 
 
 /**
@@ -78,6 +89,11 @@ export async function createEventOnServer(
   const ticketLinks = parseTicketLinksFormData(formData);
   if (!ticketLinks.ok) {
     return ticketLinks;
+  }
+
+  const pricing = parsePricingFormData(formData, admission, startDate);
+  if (!pricing.ok) {
+    return pricing;
   }
 
   // Re-verify the category against the live table rather than trusting the
@@ -179,7 +195,9 @@ export async function createEventOnServer(
       ends_at: endsAt ? endsAt.toISOString() : null,
       cover_image_url: coverImageUrl,
       status: "active",
-      price: admission === "paid" ? price : 0,
+      price: storedPrice(admission, price, pricing.data.pricePhases),
+      price_phases: pricing.data.pricePhases,
+      gate_price: pricing.data.gatePrice,
       ticket_links: ticketLinks.data,
     })
     .select("event_id")
@@ -245,8 +263,19 @@ export async function updateEventOnServer(
     return { ok: false, error: parsed.error, status: parsed.status };
   }
 
-  const { title, categoryId, venueName, description, admission, price, startsAt, endsAt, ticketLinks } =
-    parsed.data;
+  const {
+    title,
+    categoryId,
+    venueName,
+    description,
+    admission,
+    price,
+    startsAt,
+    endsAt,
+    ticketLinks,
+    pricePhases,
+    gatePrice,
+  } = parsed.data;
 
   // city_id/area_id are intentionally left untouched on edit — see
   // docs/FR/location-toggle.md.
@@ -296,7 +325,9 @@ export async function updateEventOnServer(
       starts_at: startsAt.toISOString(),
       ends_at: endsAt ? endsAt.toISOString() : null,
       cover_image_url: coverImageUrl,
-      price: admission === "paid" ? price : 0,
+      price: storedPrice(admission, price, pricePhases),
+      price_phases: pricePhases,
+      gate_price: gatePrice,
       ticket_links: ticketLinks,
     })
     .eq("event_id", eventId)

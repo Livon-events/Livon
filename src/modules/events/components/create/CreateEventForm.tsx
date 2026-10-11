@@ -22,6 +22,14 @@ import {
   IMAGE_MAX_BYTES,
 } from "@/modules/events/validation";
 import { TICKET_LINKS_MAX, parseTicketLink, type TicketProviderId } from "@/modules/events/ticketLinks";
+import {
+  PRICE_PHASES_MAX,
+  PRICE_PHASE_LABEL_MAX,
+  gatePriceSchema,
+  getPricingError,
+  pricePhasesSchema,
+  type PricePhase,
+} from "@/modules/events/pricePhases";
 import type { CreateEventCategory } from "@/modules/events/components/create/CreateEventPage";
 import VenueCombobox from "@/modules/events/components/create/VenueCombobox";
 import AreaCombobox from "@/modules/events/components/create/AreaCombobox";
@@ -36,6 +44,10 @@ import { safeBackgroundImage } from "@/shared/security/urls";
 
 type Admission = "free" | "paid";
 
+type PriceRow = { label: string; price: string; until: string };
+
+const PHASE_LABEL_PLACEHOLDERS = ["Early bird", "Regular", "Late", "Final", "At the gate"];
+
 export type EventFormInitialValues = {
   title: string;
   categoryId: string;
@@ -47,6 +59,8 @@ export type EventFormInitialValues = {
   description: string;
   admission: Admission;
   price?: number;
+  pricePhases?: PricePhase[];
+  gatePrice?: number | null;
   coverImageUrl: string;
   ticketLinks?: string[];
 };
@@ -68,7 +82,7 @@ type CreateEventFormProps = {
 );
 
 type FormErrors = Partial<
-  Record<"title" | "categoryId" | "areaId" | "startDate" | "startTime" | "endDate" | "endTime" | "venueName" | "description" | "price" | "ticketLinks" | "image" | "form", string>
+  Record<"title" | "categoryId" | "areaId" | "startDate" | "startTime" | "endDate" | "endTime" | "venueName" | "description" | "price" | "gatePrice" | "ticketLinks" | "image" | "form", string>
 >;
 
 function todayIso(): string {
@@ -146,7 +160,18 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   const [areaFromVenue, setAreaFromVenue] = useState<string | null>(null);
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [admission, setAdmission] = useState<Admission>(initialValues?.admission ?? "free");
-  const [price, setPrice] = useState(initialValues?.price ? String(initialValues.price) : "");
+  // One undated row = a single price. Otherwise each row is a phase; only the
+  // last may be undated (runs until the event).
+  const [priceRows, setPriceRows] = useState<PriceRow[]>(() =>
+    initialValues?.pricePhases?.length
+      ? initialValues.pricePhases.map((phase) => ({
+          label: phase.label ?? "",
+          price: String(phase.price),
+          until: phase.until ?? "",
+        }))
+      : [{ label: "", price: initialValues?.price ? String(initialValues.price) : "", until: "" }]
+  );
+  const [gatePrice, setGatePrice] = useState(initialValues?.gatePrice ? String(initialValues.gatePrice) : "");
   const [ticketUrls, setTicketUrls] = useState<string[]>(() =>
     initialValues?.ticketLinks?.length ? initialValues.ticketLinks : [""]
   );
@@ -235,6 +260,10 @@ export default function CreateEventForm(props: CreateEventFormProps) {
     setAreaFromVenue(null);
   }
 
+  function updatePriceRow(index: number, patch: Partial<PriceRow>) {
+    setPriceRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+  }
+
   function handlePickImage() {
     fileInputRef.current?.click();
   }
@@ -280,6 +309,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   async function submitForm() {
     if (submitting) return;
 
+    const finalPrice = priceRows[priceRows.length - 1].price.trim();
     const parsed = eventTextFieldsSchema.safeParse({
       title,
       categoryId: categoryId ?? "",
@@ -288,7 +318,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
       venueName,
       description,
       admission,
-      price: admission === "paid" && price.trim() !== "" ? Number(price) : undefined,
+      price: admission === "paid" && finalPrice !== "" ? Number(finalPrice) : undefined,
       endDate: showEndTime ? endDate : "",
       endTime: showEndTime ? endTime : "",
     });
@@ -306,6 +336,40 @@ export default function CreateEventForm(props: CreateEventFormProps) {
     if (!combineStartsAt(startDate, startTime)) {
       setErrors({ startDate: "Enter a valid start date and time" });
       return;
+    }
+
+    let pricePhases: PricePhase[] = [];
+    let parsedGatePrice: number | null = null;
+    if (admission === "paid") {
+      if (gatePrice.trim() !== "") {
+        const parsedGate = gatePriceSchema.safeParse(Number(gatePrice));
+        if (!parsedGate.success) {
+          setErrors({ gatePrice: parsedGate.error.issues[0]?.message ?? "Enter a valid gate price" });
+          return;
+        }
+        parsedGatePrice = parsedGate.data;
+      }
+
+      if (priceRows.length > 1 || priceRows[0].until !== "") {
+        const parsedPhases = pricePhasesSchema.safeParse(
+          priceRows.map((row) => ({
+            label: row.label,
+            price: row.price.trim() === "" ? Number.NaN : Number(row.price),
+            until: row.until || null,
+          }))
+        );
+        if (!parsedPhases.success) {
+          setErrors({ price: parsedPhases.error.issues[0]?.message ?? "Check your price phases" });
+          return;
+        }
+        pricePhases = parsedPhases.data;
+      }
+
+      const pricingError = getPricingError(pricePhases, parsedGatePrice, startDate);
+      if (pricingError) {
+        setErrors({ price: pricingError });
+        return;
+      }
     }
 
     const ticketLinks: string[] = [];
@@ -373,6 +437,8 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           description: parsed.data.description ?? "",
           admission: parsed.data.admission,
           price: parsed.data.price,
+          pricePhases,
+          gatePrice: parsedGatePrice,
           ticketLinks,
           coverImage: coverFile,
           preparedCover,
@@ -389,6 +455,8 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           description: parsed.data.description ?? "",
           admission: parsed.data.admission,
           price: parsed.data.price,
+          pricePhases,
+          gatePrice: parsedGatePrice,
           ticketLinks,
           coverImage: coverFile,
           preparedCover,
@@ -759,21 +827,135 @@ export default function CreateEventForm(props: CreateEventFormProps) {
         </div>
 
         {admission === "paid" && (
-          <div className="mt-1.5 flex items-center rounded-[10px] border-2 border-[#262626] bg-[#0C0C0C] px-4 focus-within:border-[#FFF335]">
-            <span className="mr-1.5 text-lg font-extrabold text-[#FFF335]">M</span>
-            <input
-              type="number"
-              inputMode="decimal"
-              min={1}
-              step={1}
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="20"
-              className="w-full appearance-none border-none bg-transparent py-3.5 text-[15px] font-medium text-white outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            />
+          <div className="mt-1.5 flex flex-col gap-2">
+            {priceRows.map((row, index) => {
+              const multiple = priceRows.length > 1;
+              const phased = multiple || row.until !== "";
+              const isLast = index === priceRows.length - 1;
+              const priceInput = (
+                <div className="flex flex-1 items-center rounded-[10px] border-2 border-[#262626] bg-[#0C0C0C] px-4 focus-within:border-[#FFF335]">
+                  <span className="mr-1.5 text-lg font-extrabold text-[#FFF335]">M</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={1}
+                    step={1}
+                    value={row.price}
+                    onChange={(e) => updatePriceRow(index, { price: e.target.value })}
+                    placeholder="20"
+                    aria-label={phased ? `Phase ${index + 1} price` : "Price"}
+                    className="w-full appearance-none border-none bg-transparent py-3.5 text-[15px] font-medium text-white outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                </div>
+              );
+
+              return (
+                <div
+                  key={index}
+                  className={multiple ? "flex flex-col gap-2 rounded-[10px] border border-[#262626] p-3" : "flex flex-col gap-2"}
+                >
+                  {phased && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={row.label}
+                        maxLength={PRICE_PHASE_LABEL_MAX}
+                        onChange={(e) => updatePriceRow(index, { label: e.target.value })}
+                        placeholder={PHASE_LABEL_PLACEHOLDERS[index] ?? `Phase ${index + 1}`}
+                        aria-label={`Phase ${index + 1} name`}
+                        autoComplete="off"
+                        className="min-w-0 flex-1 bg-transparent text-sm font-bold text-white outline-none placeholder:text-[#5f5f5f]"
+                      />
+                      {multiple && (
+                        <button
+                          type="button"
+                          onClick={() => setPriceRows((prev) => prev.filter((_, i) => i !== index))}
+                          aria-label={`Remove phase ${index + 1}`}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#8e8e8e] transition hover:bg-white/5 hover:text-white"
+                        >
+                          <X className="h-4 w-4" strokeWidth={2.5} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-extrabold tracking-wider text-[#8e8e8e]">PRICE</span>
+                      {priceInput}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label
+                        htmlFor={`priceUntil${index}`}
+                        className="text-[10px] font-extrabold tracking-wider text-[#8e8e8e]"
+                      >
+                        LAST DAY AT THIS PRICE
+                        {isLast && <span className="text-[9px] font-semibold opacity-70"> (OPTIONAL)</span>}
+                      </label>
+                      <div className="relative">
+                        <input
+                          id={`priceUntil${index}`}
+                          type="date"
+                          value={row.until}
+                          max={startDate}
+                          onChange={(e) => updatePriceRow(index, { until: e.target.value })}
+                          className={`${inputBase} pr-12`}
+                        />
+                        <Calendar className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#8e8e8e]" />
+                      </div>
+                      {isLast && (
+                        <p className="text-[11px] text-[#8e8e8e]">Leave empty if this price runs until the event.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {priceRows.length < PRICE_PHASES_MAX && (
+              <button
+                type="button"
+                onClick={() => setPriceRows((prev) => [...prev, { label: "", price: "", until: "" }])}
+                className="flex w-fit items-center gap-1 text-sm font-bold text-[#FFF335]"
+              >
+                <Plus className="h-4 w-4" strokeWidth={2.5} />
+                {priceRows.length === 1 ? "Add a price phase" : "Add another phase"}
+              </button>
+            )}
+            {priceRows.length === 1 && (
+              <p className="text-[11px] text-[#8e8e8e]">
+                Selling in phases (early bird, regular)? Add up to {PRICE_PHASES_MAX} and your event card switches to
+                the next price on its own.
+              </p>
+            )}
           </div>
         )}
         {errors.price && <p className="text-xs font-semibold text-[#ff453a]">{errors.price}</p>}
+
+        {admission === "paid" && (
+          <div className="mt-3 flex flex-col gap-1.5">
+            <label htmlFor="gatePrice" className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
+              AT THE GATE <span className="text-[9px] font-semibold opacity-70">(OPTIONAL)</span>
+            </label>
+            <div className="flex items-center rounded-[10px] border-2 border-[#262626] bg-[#0C0C0C] px-4 focus-within:border-[#FFF335]">
+              <span className="mr-1.5 text-lg font-extrabold text-[#FFF335]">M</span>
+              <input
+                id="gatePrice"
+                type="number"
+                inputMode="decimal"
+                min={1}
+                step={1}
+                value={gatePrice}
+                onChange={(e) => setGatePrice(e.target.value)}
+                placeholder="50"
+                className="w-full appearance-none border-none bg-transparent py-3.5 text-[15px] font-medium text-white outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+            </div>
+            <p className="text-[11px] text-[#8e8e8e]">
+              Shown on your event card while the event is live, and once advance sales end.
+            </p>
+            {errors.gatePrice && <p className="text-xs font-semibold text-[#ff453a]">{errors.gatePrice}</p>}
+          </div>
+        )}
       </div>
 
       {/* Ticket links */}

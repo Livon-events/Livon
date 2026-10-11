@@ -7,6 +7,65 @@ import {
   MAX_YEARS_IN_FUTURE,
 } from "@/modules/events/validation";
 import { ticketLinksSchema } from "@/modules/events/ticketLinks";
+import {
+  gatePriceSchema,
+  getPricingError,
+  pricePhasesSchema,
+  type PricePhase,
+} from "@/modules/events/pricePhases";
+
+export type ParsedPricing = { pricePhases: PricePhase[]; gatePrice: number | null };
+
+/**
+ * `pricePhases` arrives as a JSON string (the JSON→FormData adapter only
+ * carries primitives). Free events always store no phases and no gate price.
+ */
+export function parsePricingFormData(
+  formData: FormData,
+  admission: "free" | "paid",
+  startDate: string
+): { ok: true; data: ParsedPricing } | { ok: false; error: string; status: number } {
+  if (admission === "free") {
+    return { ok: true, data: { pricePhases: [], gatePrice: null } };
+  }
+
+  let gatePrice: number | null = null;
+  const rawGate = formData.get("gatePrice");
+  if (typeof rawGate === "string" && rawGate.trim() !== "") {
+    const parsedGate = gatePriceSchema.safeParse(Number(rawGate));
+    if (!parsedGate.success) {
+      return { ok: false, error: parsedGate.error.issues[0]?.message ?? "Invalid gate price.", status: 400 };
+    }
+    gatePrice = parsedGate.data;
+  } else if (rawGate !== null && typeof rawGate !== "string") {
+    return { ok: false, error: "Invalid gate price.", status: 400 };
+  }
+
+  let pricePhases: PricePhase[] = [];
+  const rawPhases = formData.get("pricePhases");
+  if (rawPhases !== null && rawPhases !== "") {
+    if (typeof rawPhases !== "string") {
+      return { ok: false, error: "Invalid ticket prices.", status: 400 };
+    }
+    let value: unknown;
+    try {
+      value = JSON.parse(rawPhases);
+    } catch {
+      return { ok: false, error: "Invalid ticket prices.", status: 400 };
+    }
+    const parsed = pricePhasesSchema.safeParse(value);
+    if (!parsed.success) {
+      return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid ticket prices.", status: 400 };
+    }
+    pricePhases = parsed.data;
+  }
+
+  const pricingError = getPricingError(pricePhases, gatePrice, startDate);
+  if (pricingError) {
+    return { ok: false, error: `${pricingError}.`, status: 400 };
+  }
+  return { ok: true, data: { pricePhases, gatePrice } };
+}
 
 export function parseTicketLinksFormData(
   formData: FormData
@@ -32,6 +91,8 @@ export type ParsedEventFields = {
   startsAt: Date;
   endsAt: Date | null;
   ticketLinks: string[];
+  pricePhases: PricePhase[];
+  gatePrice: number | null;
 };
 
 export type ParseEventFormResult =
@@ -105,6 +166,11 @@ export async function parseAndValidateEventFormData(
     return ticketLinks;
   }
 
+  const pricing = parsePricingFormData(formData, parsed.data.admission, parsed.data.startDate);
+  if (!pricing.ok) {
+    return pricing;
+  }
+
   return {
     ok: true,
     categories,
@@ -121,6 +187,8 @@ export async function parseAndValidateEventFormData(
       startsAt,
       endsAt,
       ticketLinks: ticketLinks.data,
+      pricePhases: pricing.data.pricePhases,
+      gatePrice: pricing.data.gatePrice,
     },
   };
 }

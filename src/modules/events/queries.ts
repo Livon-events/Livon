@@ -18,6 +18,7 @@ import {
 } from "@/modules/events/format";
 import { isClaimableEvent } from "@/modules/events/platform";
 import { safeTicketLinks } from "@/modules/events/ticketLinks";
+import { getCurrentPrice, parseStoredPricePhases } from "@/modules/events/pricePhases";
 import type {
   EventSummary,
   FeaturedEvent,
@@ -28,6 +29,13 @@ import type {
 } from "@/modules/events/types";
 
 export type { EventEditData, EventDetails, PeekPageData };
+
+/** PostgREST returns `numeric` columns as strings. */
+function parseGatePrice(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  const parsed = typeof value === "number" ? value : parseFloat(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
 
 /**
  * All reads of the `events` table live in this one file — merged during
@@ -53,7 +61,7 @@ export async function getEventForEdit(
   const { data, error } = await supabase
     .from("events")
     .select(
-      "event_id, organizer_id, title, category_id, starts_at, ends_at, venue_name, description, price, cover_image_url, status, ticket_links"
+      "event_id, organizer_id, title, category_id, starts_at, ends_at, venue_name, description, price, price_phases, gate_price, cover_image_url, status, ticket_links"
     )
     .eq("event_id", eventId)
     .maybeSingle();
@@ -93,6 +101,8 @@ export async function getEventForEdit(
     description: data.description ?? "",
     admission: priceNum > 0 ? "paid" : "free",
     price: priceNum > 0 ? priceNum : undefined,
+    pricePhases: priceNum > 0 ? parseStoredPricePhases(data.price_phases) : [],
+    gatePrice: priceNum > 0 ? parseGatePrice(data.gate_price) : null,
     coverImageUrl: data.cover_image_url,
     status: data.status,
     ticketLinks: safeTicketLinks(data.ticket_links as string[] | null).map((link) => link.url),
@@ -109,6 +119,8 @@ type EventDetailsRow = {
   cover_image_url: string;
   status: string;
   price: string; // numeric comes back as a string over PostgREST
+  price_phases: unknown;
+  gate_price: string | null;
   organizer_id: string;
   claimed_at: string | null;
   intended_claim_user_id: string | null;
@@ -140,7 +152,7 @@ export const getEventDetails = cache(async function getEventDetails(
     .from("events")
     .select(
       `event_id, title, description, venue_name, starts_at, ends_at,
-       cover_image_url, status, price, organizer_id,
+       cover_image_url, status, price, price_phases, gate_price, organizer_id,
        claimed_at, intended_claim_user_id, intended_claim_email, ticket_links,
        areas ( name ),
        categories ( name ),
@@ -193,12 +205,26 @@ export const getEventDetails = cache(async function getEventDetails(
     }
   }
 
+  const pricePhases = parseStoredPricePhases(event.price_phases);
+  const gatePrice = parseGatePrice(event.gate_price);
+  const currentPrice = getCurrentPrice({
+    price: parseFloat(event.price),
+    phases: pricePhases,
+    gatePrice,
+    startsAt: new Date(event.starts_at),
+    endsAt: event.ends_at ? new Date(event.ends_at) : null,
+  });
+
   return {
     id: event.event_id,
     organizerId: event.organizer_id,
     title: event.title,
     description: event.description,
-    price: parseFloat(event.price),
+    price: currentPrice.price,
+    pricePhases,
+    currentPricePhaseIndex: currentPrice.phaseIndex,
+    gatePrice,
+    isGatePriceNow: currentPrice.isGate,
     venueName: event.venue_name,
     area: event.areas?.name ?? "",
     hostUsername: event.organizer?.username ?? "",

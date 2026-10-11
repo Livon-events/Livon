@@ -6,6 +6,7 @@ import {
   messageForUploadFailure,
   reportUploadFailure,
 } from "@/shared/uploads";
+import type { PricePhase } from "@/modules/events/pricePhases";
 
 type Result<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -80,6 +81,11 @@ async function eventJsonBody(
       description: input.description,
       admission: input.admission,
       price: input.admission === "paid" ? input.price : undefined,
+      pricePhases:
+        input.admission === "paid" && input.pricePhases?.length
+          ? JSON.stringify(input.pricePhases)
+          : undefined,
+      gatePrice: input.admission === "paid" ? input.gatePrice ?? undefined : undefined,
       ticketLinks: input.ticketLinks ?? [],
       cover,
     }),
@@ -98,6 +104,10 @@ export type CreateEventInput = {
   description: string;
   admission: "free" | "paid";
   price?: number;
+  /** 1–3 chronological phases (see pricePhases.ts); empty or omitted means a single price. */
+  pricePhases?: PricePhase[];
+  /** Door price; omitted clears it on edit. */
+  gatePrice?: number | null;
   /** Allowlisted ticket URLs (see ticketLinks.ts); empty clears them on edit. */
   ticketLinks?: string[];
   coverImage: File | null;

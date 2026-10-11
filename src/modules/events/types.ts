@@ -1,4 +1,5 @@
 import type { GoingVisibility } from "@/modules/rsvp";
+import type { PricePhase } from "@/modules/events/pricePhases";
 
 /**
  * Types owned by the events module. `EventSummary` and `FeaturedEvent`
@@ -37,6 +38,8 @@ export type EventEditData = {
   description: string;
   admission: "free" | "paid";
   price: number | undefined;
+  pricePhases: PricePhase[];
+  gatePrice: number | null;
   coverImageUrl: string;
   status: string;
   ticketLinks: string[];
@@ -71,7 +74,15 @@ export type EventDetails = {
   organizerId: string;
   title: string;
   description: string | null;
+  /** Price on sale right now — see getCurrentPrice in pricePhases.ts. */
   price: number;
+  /** Empty for single-price events. */
+  pricePhases: PricePhase[];
+  /** Index into pricePhases of the phase on sale now; -1 when there are none or the gate price applies. */
+  currentPricePhaseIndex: number;
+  gatePrice: number | null;
+  /** True while the event is live, or after a dated last phase has ended. */
+  isGatePriceNow: boolean;
   venueName: string;
   area: string;
   hostUsername: string;

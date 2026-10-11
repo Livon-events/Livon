@@ -49,6 +49,8 @@ export default async function EditEventRoute({ params }: EditEventRouteProps) {
         description: event.description,
         admission: event.admission,
         price: event.price,
+        pricePhases: event.pricePhases,
+        gatePrice: event.gatePrice,
         coverImageUrl: event.coverImageUrl,
         ticketLinks: event.ticketLinks,
       }}

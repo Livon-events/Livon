@@ -28,7 +28,7 @@ export const ALLOWED_IMAGE_MIME = ["image/jpeg", "image/png", "image/webp"] as c
 // Reject control characters (other than plain space) anywhere in free-text
 // fields — these have no legitimate use in a title/venue name and are a
 // classic vector for header-injection / log-forging / rendering weirdness.
-const NO_CONTROL_CHARS = /^[^\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]*$/;
+export const NO_CONTROL_CHARS = /^[^\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]*$/;
 
 export const eventTextFieldsSchema = z.object({
   title: z
