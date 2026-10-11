@@ -1,5 +1,14 @@
 export type { EventEditData, EventDetails, EventSummary, FeaturedEvent, PeekPageData, PeekAttendee } from "./types";
 export { IMAGE_MAX_BYTES } from "./validation";
+export {
+  TICKET_PROVIDERS,
+  TICKET_LINKS_MAX,
+  parseTicketLink,
+  getTicketProvider,
+  safeTicketLinks,
+  ticketLinksSchema,
+} from "./ticketLinks";
+export type { TicketProvider, TicketProviderId, TicketLink } from "./ticketLinks";
 export { createEvent, updateEvent, cancelEvent, claimEvent } from "./mutations";
 export { recordEventView } from "./recordEventView";
 export type { CreateEventInput, UpdateEventInput } from "./mutations";
@@ -30,6 +39,7 @@ export { default as EventActionBar } from "./components/details/EventActionBar";
 export { default as EventDetailsCard } from "./components/details/EventDetailsCard";
 export { default as EventDetailsPage } from "./components/details/EventDetailsPage";
 export { default as ClaimEventSection } from "./components/details/ClaimEventSection";
+export { default as TicketButton } from "./components/tickets/TicketButton";
 export { default as PeekPage } from "./components/peek/PeekPage";
 export { default as EventManagementPage } from "./components/manage/EventManagementPage";
 export { default as EventDateMetric } from "./components/manage/EventDateMetric";

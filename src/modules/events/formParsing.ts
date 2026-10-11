@@ -6,6 +6,21 @@ import {
   combineDateAndTime,
   MAX_YEARS_IN_FUTURE,
 } from "@/modules/events/validation";
+import { ticketLinksSchema } from "@/modules/events/ticketLinks";
+
+export function parseTicketLinksFormData(
+  formData: FormData
+): { ok: true; data: string[] } | { ok: false; error: string; status: number } {
+  const raw = formData.getAll("ticketLinks");
+  if (raw.some((value) => typeof value !== "string")) {
+    return { ok: false, error: "Invalid ticket links.", status: 400 };
+  }
+  const parsed = ticketLinksSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid ticket links.", status: 400 };
+  }
+  return { ok: true, data: parsed.data };
+}
 
 export type ParsedEventFields = {
   title: string;
@@ -16,6 +31,7 @@ export type ParsedEventFields = {
   price: number | undefined;
   startsAt: Date;
   endsAt: Date | null;
+  ticketLinks: string[];
 };
 
 export type ParseEventFormResult =
@@ -84,6 +100,11 @@ export async function parseAndValidateEventFormData(
     }
   }
 
+  const ticketLinks = parseTicketLinksFormData(formData);
+  if (!ticketLinks.ok) {
+    return ticketLinks;
+  }
+
   return {
     ok: true,
     categories,
@@ -99,6 +120,7 @@ export async function parseAndValidateEventFormData(
       price: parsed.data.price,
       startsAt,
       endsAt,
+      ticketLinks: ticketLinks.data,
     },
   };
 }

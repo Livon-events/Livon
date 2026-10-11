@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/shared/supabase/server";
 import type { GoingVisibility } from "@/modules/rsvp";
+import { safeTicketLinks } from "@/modules/events";
 
 export type HomeFeedCursor = {
   rankScore: number;
@@ -29,6 +30,7 @@ export type HomeFeedEvent = {
   /** Livon-published and not yet claimed by a host. */
   isClaimable: boolean;
   categoryName: string | null;
+  ticketLinks: string[];
 };
 
 export type HomeFeedResult = {
@@ -65,6 +67,7 @@ type HomeFeedRow = {
   total_going_count: number;
   is_claimable: boolean;
   category_name: string | null;
+  ticket_links?: string[] | null;
 };
 
 export async function getHomeFeed({
@@ -134,6 +137,7 @@ export async function getHomeFeed({
     myVisibility: myInterestByEventId.get(row.id) ?? null,
     isClaimable: Boolean(row.is_claimable),
     categoryName: row.category_name ?? null,
+    ticketLinks: ticketUrls(row.ticket_links),
   }));
 
   const lastRow = rows[rows.length - 1];
@@ -160,6 +164,7 @@ export type RailEvent = {
   coverImageUrl: string | null;
   startsAt: string;
   endsAt: string | null;
+  ticketLinks: string[];
 };
 
 export type WeekendEvent = RailEvent;
@@ -175,7 +180,12 @@ type RailEventRow = {
   cover_image_url: string | null;
   starts_at: string;
   ends_at: string | null;
+  ticket_links?: string[] | null;
 };
+
+function ticketUrls(values: string[] | null | undefined): string[] {
+  return safeTicketLinks(values).map((link) => link.url);
+}
 
 function mapRailRow(row: RailEventRow): RailEvent {
   return {
@@ -187,6 +197,7 @@ function mapRailRow(row: RailEventRow): RailEvent {
     coverImageUrl: row.cover_image_url,
     startsAt: row.starts_at,
     endsAt: row.ends_at,
+    ticketLinks: ticketUrls(row.ticket_links),
   };
 }
 

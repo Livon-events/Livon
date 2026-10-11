@@ -24,6 +24,7 @@ export type EventCardData = {
   myVisibility: GoingVisibility | null;
   isClaimable?: boolean;
   categoryName?: string | null;
+  ticketLinks?: string[];
 };
 
 type EventCardProps = {
@@ -86,6 +87,7 @@ export default function EventCard({ event, priority = false }: EventCardProps) {
           eventTitle={event.title}
           initialInterested={event.isGoing}
           initialVisibility={event.myVisibility}
+          ticketLinks={event.ticketLinks ?? []}
         />
       </div>
     </Link>

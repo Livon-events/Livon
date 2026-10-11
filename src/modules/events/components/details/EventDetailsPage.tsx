@@ -43,6 +43,7 @@ export default function EventDetailsPage({ event }: EventDetailsPageProps) {
             eventTitle={event.title}
             initialGoing={event.isGoing}
             initialVisibility={event.myVisibility}
+            ticketLinks={event.ticketLinks}
           />
         </div>
       </div>

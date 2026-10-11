@@ -17,6 +17,7 @@ import {
   isEventStillLive,
 } from "@/modules/events/format";
 import { isClaimableEvent } from "@/modules/events/platform";
+import { safeTicketLinks } from "@/modules/events/ticketLinks";
 import type {
   EventSummary,
   FeaturedEvent,
@@ -52,7 +53,7 @@ export async function getEventForEdit(
   const { data, error } = await supabase
     .from("events")
     .select(
-      "event_id, organizer_id, title, category_id, starts_at, ends_at, venue_name, description, price, cover_image_url, status"
+      "event_id, organizer_id, title, category_id, starts_at, ends_at, venue_name, description, price, cover_image_url, status, ticket_links"
     )
     .eq("event_id", eventId)
     .maybeSingle();
@@ -94,6 +95,7 @@ export async function getEventForEdit(
     price: priceNum > 0 ? priceNum : undefined,
     coverImageUrl: data.cover_image_url,
     status: data.status,
+    ticketLinks: safeTicketLinks(data.ticket_links as string[] | null).map((link) => link.url),
   };
 }
 
@@ -114,6 +116,7 @@ type EventDetailsRow = {
   areas: { name: string } | null;
   categories: { name: string } | null;
   organizer: { username: string } | null;
+  ticket_links: string[] | null;
 };
 
 /**
@@ -138,7 +141,7 @@ export const getEventDetails = cache(async function getEventDetails(
     .select(
       `event_id, title, description, venue_name, starts_at, ends_at,
        cover_image_url, status, price, organizer_id,
-       claimed_at, intended_claim_user_id, intended_claim_email,
+       claimed_at, intended_claim_user_id, intended_claim_email, ticket_links,
        areas ( name ),
        categories ( name ),
        organizer:users!organizer_id ( username )`
@@ -210,6 +213,7 @@ export const getEventDetails = cache(async function getEventDetails(
     isClaimable,
     canViewerClaim,
     claimNeedsOpsTransfer,
+    ticketLinks: safeTicketLinks(event.ticket_links).map((link) => link.url),
   };
 });
 

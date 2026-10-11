@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Calendar, Clock } from "lucide-react";
+import { Camera, Calendar, Clock, Plus, X } from "lucide-react";
 import {
   createEvent,
   updateEvent,
@@ -21,6 +21,7 @@ import {
   ALLOWED_IMAGE_MIME,
   IMAGE_MAX_BYTES,
 } from "@/modules/events/validation";
+import { TICKET_LINKS_MAX, parseTicketLink, type TicketProviderId } from "@/modules/events/ticketLinks";
 import type { CreateEventCategory } from "@/modules/events/components/create/CreateEventPage";
 import VenueCombobox from "@/modules/events/components/create/VenueCombobox";
 import AreaCombobox from "@/modules/events/components/create/AreaCombobox";
@@ -47,6 +48,7 @@ export type EventFormInitialValues = {
   admission: Admission;
   price?: number;
   coverImageUrl: string;
+  ticketLinks?: string[];
 };
 
 type CreateEventFormProps = {
@@ -66,7 +68,7 @@ type CreateEventFormProps = {
 );
 
 type FormErrors = Partial<
-  Record<"title" | "categoryId" | "areaId" | "startDate" | "startTime" | "endDate" | "endTime" | "venueName" | "description" | "price" | "image" | "form", string>
+  Record<"title" | "categoryId" | "areaId" | "startDate" | "startTime" | "endDate" | "endTime" | "venueName" | "description" | "price" | "ticketLinks" | "image" | "form", string>
 >;
 
 function todayIso(): string {
@@ -145,6 +147,9 @@ export default function CreateEventForm(props: CreateEventFormProps) {
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [admission, setAdmission] = useState<Admission>(initialValues?.admission ?? "free");
   const [price, setPrice] = useState(initialValues?.price ? String(initialValues.price) : "");
+  const [ticketUrls, setTicketUrls] = useState<string[]>(() =>
+    initialValues?.ticketLinks?.length ? initialValues.ticketLinks : [""]
+  );
   const [showEndTime, setShowEndTime] = useState(
     Boolean(initialValues?.endDate && initialValues?.endTime)
   );
@@ -303,6 +308,24 @@ export default function CreateEventForm(props: CreateEventFormProps) {
       return;
     }
 
+    const ticketLinks: string[] = [];
+    const usedProviders = new Set<TicketProviderId>();
+    for (const raw of ticketUrls) {
+      const value = raw.trim();
+      if (value === "") continue;
+      const link = parseTicketLink(value);
+      if (!link) {
+        setErrors({ ticketLinks: "This ticket site isn't supported" });
+        return;
+      }
+      if (usedProviders.has(link.provider.id)) {
+        setErrors({ ticketLinks: `You've already added a ${link.provider.label} link` });
+        return;
+      }
+      usedProviders.add(link.provider.id);
+      ticketLinks.push(link.url);
+    }
+
     // Validate end date/time when the toggle is on.
     if (showEndTime) {
       if (!endDate || !endTime) {
@@ -350,6 +373,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           description: parsed.data.description ?? "",
           admission: parsed.data.admission,
           price: parsed.data.price,
+          ticketLinks,
           coverImage: coverFile,
           preparedCover,
         })
@@ -365,6 +389,7 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           description: parsed.data.description ?? "",
           admission: parsed.data.admission,
           price: parsed.data.price,
+          ticketLinks,
           coverImage: coverFile,
           preparedCover,
         });
@@ -749,6 +774,52 @@ export default function CreateEventForm(props: CreateEventFormProps) {
           </div>
         )}
         {errors.price && <p className="text-xs font-semibold text-[#ff453a]">{errors.price}</p>}
+      </div>
+
+      {/* Ticket links */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[11px] font-extrabold tracking-wider text-[#8e8e8e]">
+          TICKET LINKS <span className="text-[9px] font-semibold opacity-70">(OPTIONAL)</span>
+        </label>
+        <div className="flex flex-col gap-2">
+          {ticketUrls.map((url, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <input
+                type="url"
+                inputMode="url"
+                autoComplete="off"
+                aria-label={`Ticket link ${index + 1}`}
+                value={url}
+                onChange={(e) =>
+                  setTicketUrls((prev) => prev.map((value, i) => (i === index ? e.target.value : value)))
+                }
+                placeholder="https://ticketbox.co.ls/..."
+                className={inputBase}
+              />
+              {ticketUrls.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setTicketUrls((prev) => prev.filter((_, i) => i !== index))}
+                  aria-label={`Remove ticket link ${index + 1}`}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8e8e8e] transition hover:bg-white/5 hover:text-white"
+                >
+                  <X className="h-5 w-5" strokeWidth={2.5} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        {ticketUrls.length < TICKET_LINKS_MAX && ticketUrls[ticketUrls.length - 1].trim() !== "" && (
+          <button
+            type="button"
+            onClick={() => setTicketUrls((prev) => [...prev, ""])}
+            className="flex w-fit items-center gap-1 text-sm font-bold text-[#FFF335]"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            Add another link
+          </button>
+        )}
+        {errors.ticketLinks && <p className="text-xs font-semibold text-[#ff453a]">{errors.ticketLinks}</p>}
       </div>
 
       {/* Description */}

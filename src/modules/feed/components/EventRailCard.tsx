@@ -16,7 +16,7 @@ type EventRailCardProps = {
 
 /**
  * Server-rendered rail card — no measured SVG chrome and no RSVP state, so
- * the only client code is the small Share button. The title Link is
+ * the only client code is the Share / ticket button row. The title Link is
  * stretched over the whole card via ::after so the entire card is tappable.
  */
 export default function EventRailCard({ event, now, dayLabel, priority = false }: EventRailCardProps) {
@@ -70,7 +70,7 @@ export default function EventRailCard({ event, now, dayLabel, priority = false }
           </p>
         </div>
 
-        <EventRailShareButton eventId={event.id} eventTitle={event.title} />
+        <EventRailShareButton eventId={event.id} eventTitle={event.title} ticketLinks={event.ticketLinks} />
       </div>
     </article>
   );

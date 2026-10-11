@@ -80,6 +80,7 @@ async function eventJsonBody(
       description: input.description,
       admission: input.admission,
       price: input.admission === "paid" ? input.price : undefined,
+      ticketLinks: input.ticketLinks ?? [],
       cover,
     }),
   };
@@ -97,6 +98,8 @@ export type CreateEventInput = {
   description: string;
   admission: "free" | "paid";
   price?: number;
+  /** Allowlisted ticket URLs (see ticketLinks.ts); empty clears them on edit. */
+  ticketLinks?: string[];
   coverImage: File | null;
   /** From prepareCover(coverImage), started when the photo was picked. */
   preparedCover?: Promise<PreparedCover> | null;

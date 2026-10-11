@@ -6,7 +6,7 @@ import { checkRateLimit } from "@/shared/security/rateLimit";
 import { getCategories } from "@/modules/categories/queries";
 import { getAreaById } from "@/modules/location/queries";
 import { processEventCoverImage } from "@/modules/events/images";
-import { parseAndValidateEventFormData } from "@/modules/events/formParsing";
+import { parseAndValidateEventFormData, parseTicketLinksFormData } from "@/modules/events/formParsing";
 import {
   eventTextFieldsSchema,
   combineStartsAt,
@@ -74,6 +74,11 @@ export async function createEventOnServer(
 
   const { title, categoryId, startDate, startTime, venueName, description, admission, price } =
     parsed.data;
+
+  const ticketLinks = parseTicketLinksFormData(formData);
+  if (!ticketLinks.ok) {
+    return ticketLinks;
+  }
 
   // Re-verify the category against the live table rather than trusting the
   // client's id.
@@ -175,6 +180,7 @@ export async function createEventOnServer(
       cover_image_url: coverImageUrl,
       status: "active",
       price: admission === "paid" ? price : 0,
+      ticket_links: ticketLinks.data,
     })
     .select("event_id")
     .single();
@@ -239,7 +245,8 @@ export async function updateEventOnServer(
     return { ok: false, error: parsed.error, status: parsed.status };
   }
 
-  const { title, categoryId, venueName, description, admission, price, startsAt, endsAt } = parsed.data;
+  const { title, categoryId, venueName, description, admission, price, startsAt, endsAt, ticketLinks } =
+    parsed.data;
 
   // city_id/area_id are intentionally left untouched on edit — see
   // docs/FR/location-toggle.md.
@@ -290,6 +297,7 @@ export async function updateEventOnServer(
       ends_at: endsAt ? endsAt.toISOString() : null,
       cover_image_url: coverImageUrl,
       price: admission === "paid" ? price : 0,
+      ticket_links: ticketLinks,
     })
     .eq("event_id", eventId)
     .eq("organizer_id", userId)

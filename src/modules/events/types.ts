@@ -39,6 +39,7 @@ export type EventEditData = {
   price: number | undefined;
   coverImageUrl: string;
   status: string;
+  ticketLinks: string[];
 };
 
 export type PeekAttendee = {
@@ -94,6 +95,8 @@ export type EventDetails = {
   canViewerClaim: boolean;
   /** True when intended claimant fields are unset — ops must transfer in Supabase. */
   claimNeedsOpsTransfer: boolean;
+  /** Allowlisted external ticket URLs; empty when the event has none. */
+  ticketLinks: string[];
 };
 
 export type EventManagementData = {

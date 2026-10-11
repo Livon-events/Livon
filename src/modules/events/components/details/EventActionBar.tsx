@@ -4,12 +4,14 @@ import { Check, Share2 } from "lucide-react";
 import { useGoingAction, type GoingVisibility } from "@/modules/rsvp";
 import { GoingPrivacyPopup } from "@/modules/rsvp";
 import { useShareEvent } from "@/modules/invites";
+import TicketButton from "@/modules/events/components/tickets/TicketButton";
 
 type EventActionBarProps = {
   eventId: string;
   eventTitle: string;
   initialGoing?: boolean;
   initialVisibility?: GoingVisibility | null;
+  ticketLinks?: string[];
 };
 
 const secondaryButtonClass =
@@ -23,6 +25,7 @@ export default function EventActionBar({
   eventTitle,
   initialGoing = false,
   initialVisibility = null,
+  ticketLinks = [],
 }: EventActionBarProps) {
   const { going, popup, handleButtonClick, closePopup, selectChangePrivacy, selectNotGoing, choosePrivacy } =
     useGoingAction(eventId, initialGoing, initialVisibility);
@@ -56,6 +59,7 @@ export default function EventActionBar({
       >
         Interested
       </button>
+      <TicketButton eventId={eventId} links={ticketLinks} className={secondaryButtonClass} />
       <button
         type="button"
         onClick={handleShareClick}
