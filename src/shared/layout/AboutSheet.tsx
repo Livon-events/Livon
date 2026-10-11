@@ -1,22 +1,86 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import Image from "next/image";
 import { Info, X } from "lucide-react";
 
 const WHATSAPP_HREF = "https://wa.me/26659034707";
+const GUIDE_SEEN_KEY = "livon:install-guide-seen";
+const GUIDE_SEEN_EVENT = "livon:install-guide-seen";
+
+type Platform = "android" | "ios";
+
+const STEPS: Record<Platform, { src: string; caption: string }[]> = {
+  android: [
+    { src: "/install/android-1-menu.png", caption: "Tap the menu (three dots) in Chrome" },
+    { src: "/install/android-2-add-to-home.png", caption: "Tap Add to Home screen" },
+    { src: "/install/android-3-install.png", caption: "Tap Install" },
+  ],
+  ios: [
+    { src: "/install/ios-1-share.png", caption: "Tap Share in Safari" },
+    { src: "/install/ios-2-add-to-home.png", caption: "Tap Add to Home Screen" },
+    { src: "/install/ios-3-add.png", caption: "Tap Add" },
+  ],
+};
+
+function subscribeNoop() {
+  return () => {};
+}
+
+function isInstalled() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  );
+}
+
+function useInstallGuideSeen() {
+  const [seen, setSeen] = useState(true);
+
+  useEffect(() => {
+    function sync() {
+      setSeen(isInstalled() || localStorage.getItem(GUIDE_SEEN_KEY) === "1");
+    }
+    sync();
+    window.addEventListener("storage", sync);
+    window.addEventListener(GUIDE_SEEN_EVENT, sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener(GUIDE_SEEN_EVENT, sync);
+    };
+  }, []);
+
+  const markSeen = useCallback(() => {
+    try {
+      localStorage.setItem(GUIDE_SEEN_KEY, "1");
+    } catch {}
+    window.dispatchEvent(new Event(GUIDE_SEEN_EVENT));
+  }, []);
+
+  return { seen, markSeen };
+}
+
 type AboutButtonProps = {
   onClick: () => void;
 };
 
 export function AboutButton({ onClick }: AboutButtonProps) {
+  const { seen, markSeen } = useInstallGuideSeen();
+
   return (
     <button
       type="button"
-      onClick={onClick}
-      aria-label="About Livon"
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-opacity hover:opacity-80 active:scale-95"
+      onClick={() => {
+        markSeen();
+        onClick();
+      }}
+      aria-label="How to install Livon"
+      className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-opacity hover:opacity-80 active:scale-95"
     >
       <Info className="h-[26px] w-[26px]" strokeWidth={2.25} />
+      {!seen && (
+        <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-[#FF3B30] ring-2 ring-[#0C0C0C]" />
+      )}
     </button>
   );
 }
@@ -28,6 +92,14 @@ type AboutSheetProps = {
 };
 
 export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) {
+  const [chosenPlatform, setPlatform] = useState<Platform | null>(null);
+  const isIOS = useSyncExternalStore(
+    subscribeNoop,
+    () => /iPhone|iPad|iPod/i.test(navigator.userAgent),
+    () => false,
+  );
+  const platform = chosenPlatform ?? (isIOS ? "ios" : "android");
+
   useEffect(() => {
     if (!open) return;
     function onKeyDown(event: KeyboardEvent) {
@@ -79,16 +151,42 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
             id="about-livon-title"
             className="text-lg font-semibold tracking-[-0.2px] text-white"
           >
-            About Livon
+            How to install / Add to Home Screen
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[#1f1f1f] text-[#8e8e93] transition-colors hover:bg-[#2a2a2a] hover:text-white active:bg-[#2a2a2a] active:text-white"
+            className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-[#1f1f1f] text-[#8e8e93] transition-colors hover:bg-[#2a2a2a] hover:text-white active:bg-[#2a2a2a] active:text-white"
           >
             <X className="h-4 w-4" />
           </button>
+        </div>
+
+        <div
+          role="tablist"
+          aria-label="Device"
+          className="mb-4 grid shrink-0 grid-cols-2 gap-1 rounded-full border border-[#222222] bg-[#141414] p-1"
+        >
+          {(["android", "ios"] as const).map((id) => {
+            const active = platform === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setPlatform(id)}
+                className={`rounded-full py-2 text-[14px] font-semibold transition-colors ${
+                  active
+                    ? "bg-[#FFF335] text-[#0C0C0C]"
+                    : "text-[#8e8e93] hover:text-white"
+                }`}
+              >
+                {id === "android" ? "Android" : "iPhone"}
+              </button>
+            );
+          })}
         </div>
 
         <div
@@ -96,35 +194,25 @@ export default function AboutSheet({ open, onClose, variant }: AboutSheetProps) 
             isSheet ? "flex-1 pb-6" : "max-h-[min(70vh,520px)]"
           }`}
         >
-          <p>
-            Livon is how Maseru finds out what&apos;s on and how hosts reach
-            people looking for something to do.
-          </p>
+          <ol role="tabpanel" className="space-y-5">
+            {STEPS[platform].map((step, index) => (
+              <li key={step.src}>
+                <p className="mb-2 font-semibold text-white">
+                  {index + 1}. {step.caption}
+                </p>
+                <Image
+                  src={step.src}
+                  alt={step.caption}
+                  width={576}
+                  height={1024}
+                  sizes="(max-width: 480px) 90vw, 432px"
+                  className="mx-auto h-auto w-full max-w-[320px] rounded-2xl border border-[#222222]"
+                />
+              </li>
+            ))}
+          </ol>
 
-          <section>
-            <h3 className="mb-1.5 text-[13px] font-bold uppercase tracking-[0.8px] text-[#FFF335]">
-              Going out
-            </h3>
-            <p>
-              See what&apos;s happening around Maseru in one place. Discover
-              events your connections are interested in and decide what&apos;s
-              worth checking out. Mark an event as Interested to get reminders
-              and help your connections discover it too.
-            </p>
-          </section>
-
-          <section>
-            <h3 className="mb-1.5 text-[13px] font-bold uppercase tracking-[0.8px] text-[#FFF335]">
-              Hosting
-            </h3>
-            <p>
-              Post an event in minutes and reach people beyond your own circle.
-              See who&apos;s interested and make it easier for people to
-              discover what you&apos;re putting on.
-            </p>
-          </section>
-
-          <section>
+          <section className="border-t border-[#1f1f1f] pt-5">
             <h3 className="mb-1.5 text-[13px] font-bold uppercase tracking-[0.8px] text-[#FFF335]">
               Contact
             </h3>
