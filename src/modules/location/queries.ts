@@ -35,31 +35,37 @@ type CityRow = {
  * rather than assuming a single city. Ordered by name for deterministic
  * display; the default city is resolved by name (Maseru) in SiteHeader.
  */
-export const getLocationPickerData = unstable_cache(
-  async function getLocationPickerData(): Promise<LocationPickerCity[]> {
-    const supabase = createPublicClient();
+export const getLocationPickerData = unstable_cache(getFreshLocationPickerData, ["cities"], {
+  tags: ["cities"],
+  revalidate: 3600,
+});
 
-    const { data, error } = await supabase
-      .from("cities")
-      .select("city_id, name, areas ( area_id, name )")
-      .order("name", { ascending: true })
-      .returns<CityRow[]>();
+/**
+ * Uncached read of the same data, for the create-event form: venues are read
+ * live, so the areas they point at must be too, or a venue in a newly added
+ * area can't pre-select it.
+ */
+export async function getFreshLocationPickerData(): Promise<LocationPickerCity[]> {
+  const supabase = createPublicClient();
 
-    if (error) {
-      throw new Error(`getLocationPickerData failed: ${error.message}`);
-    }
+  const { data, error } = await supabase
+    .from("cities")
+    .select("city_id, name, areas ( area_id, name )")
+    .order("name", { ascending: true })
+    .returns<CityRow[]>();
 
-    return (data ?? []).map((city) => ({
-      id: city.city_id,
-      name: city.name,
-      areas: [...(city.areas ?? [])]
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((area) => ({ id: area.area_id, name: area.name })),
-    }));
-  },
-  ["cities"],
-  { tags: ["cities"], revalidate: 3600 }
-);
+  if (error) {
+    throw new Error(`getLocationPickerData failed: ${error.message}`);
+  }
+
+  return (data ?? []).map((city) => ({
+    id: city.city_id,
+    name: city.name,
+    areas: [...(city.areas ?? [])]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((area) => ({ id: area.area_id, name: area.name })),
+  }));
+}
 
 export type LocationVenue = {
   id: string;

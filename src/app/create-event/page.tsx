@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/shared/supabase/server";
 import { getCategories } from "@/modules/categories/queries";
-import { getLocationPickerData, getVenues } from "@/modules/location/queries";
+import { getFreshLocationPickerData, getVenues } from "@/modules/location/queries";
 import { DEFAULT_CITY_NAME } from "@/modules/location";
 import { getOrganizerLocationContext } from "@/modules/users/queries";
 import { CreateEventPage } from "@/modules/events";
@@ -19,7 +19,7 @@ export default async function CreateEventRoute() {
 
   const [categories, cities, venues, location] = await Promise.all([
     getCategories(),
-    getLocationPickerData(),
+    getFreshLocationPickerData(),
     getVenues(),
     getOrganizerLocationContext(user.id),
   ]);
