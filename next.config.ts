@@ -3,11 +3,11 @@ import type { NextConfig } from "next";
 const isDevelopment = process.env.NODE_ENV === "development";
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://*.clarity.ms${isDevelopment ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co https://*.vercel-insights.com" +
+  "connect-src 'self' https://*.supabase.co https://*.vercel-insights.com https://*.clarity.ms https://c.bing.com" +
     (isDevelopment ? " ws: wss:" : ""),
   "worker-src 'self' blob:",
   "object-src 'none'",
