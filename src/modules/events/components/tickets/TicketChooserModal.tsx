@@ -63,7 +63,7 @@ export default function TicketChooserModal({ links, onSelect, onClose }: TicketC
               key={link.provider.id}
               type="button"
               onClick={() => onSelect(link)}
-              className="flex h-[48px] w-full items-center justify-between rounded-[6px] bg-[#FFF335] px-4 text-[16px] font-black text-[#0C0C0C] transition-transform active:scale-[0.98]"
+              className="flex h-[48px] w-full items-center justify-between rounded-[6px] bg-[#262626] px-4 text-[16px] font-black text-white transition-transform active:scale-[0.98]"
             >
               {link.provider.label}
               <ExternalLink className="h-4 w-4" strokeWidth={2.5} />
