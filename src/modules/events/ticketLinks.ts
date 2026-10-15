@@ -1,16 +1,18 @@
 import { z } from "zod";
 
 /**
- * Ticket links are external purchase pages on one of these four Lesotho
- * ticketing sites — nothing else is accepted. The same allowlist is enforced
- * by the events_ticket_links_allowed CHECK constraint
- * (scripts/migrations/2026-10-event-ticket-links.sql), so keep them in sync.
+ * Ticket links are external purchase pages on these ticketing sites — nothing
+ * else is accepted. The same allowlist is enforced by the
+ * events_ticket_links_allowed CHECK constraint
+ * (scripts/migrations/2026-10-event-ticket-links.sql and follow-ups), so keep
+ * them in sync.
  */
 export const TICKET_PROVIDERS = [
   { id: "ecoticket", label: "EcoTicket", host: "ecoticket.co.ls" },
   { id: "ticketbox", label: "TicketBox", host: "ticketbox.co.ls" },
   { id: "mytag", label: "MyTag", host: "mytag.co.ls" },
   { id: "etickets", label: "eTickets", host: "etickets.co.ls" },
+  { id: "computicket", label: "Computicket", host: "computicket.com" },
 ] as const;
 
 export type TicketProvider = (typeof TICKET_PROVIDERS)[number];
@@ -37,13 +39,25 @@ export function parseTicketLink(value: string | null | undefined): TicketLink | 
   }
 
   const host = parsed.hostname.startsWith("www.") ? parsed.hostname.slice(4) : parsed.hostname;
-  const provider = TICKET_PROVIDERS.find((p) => p.host === host);
+  const provider = findTicketProvider(host);
   if (!provider) return null;
 
   const url = parsed.href;
   if (url.length > TICKET_URL_MAX_LENGTH || url.includes("@")) return null;
 
   return { provider, url };
+}
+
+function findTicketProvider(host: string): TicketProvider | undefined {
+  const exact = TICKET_PROVIDERS.find((p) => p.host === host);
+  if (exact) return exact;
+
+  const computicket = TICKET_PROVIDERS.find((p) => p.id === "computicket");
+  if (computicket && host.endsWith(`.${computicket.host}`)) {
+    return computicket;
+  }
+
+  return undefined;
 }
 
 export function getTicketProvider(value: string | null | undefined): TicketProvider | null {
